@@ -44,72 +44,57 @@ html, body {
 .hp-screen { padding-bottom: 152px; }
 
 /* ── Fixed app dock ───────────────────────────────────────────── */
-.hp-appnav-scrim {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
-  height: 172px; pointer-events: none;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.55) 34%, rgba(0, 0, 0, 0.94) 100%);
-  backdrop-filter: blur(18px) saturate(120%); -webkit-backdrop-filter: blur(18px) saturate(120%);
-  mask-image: linear-gradient(180deg, transparent 0%, #000 42%, #000 100%);
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 42%, #000 100%);
-}
 .hp-appnav {
   position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
   transform: translateX(-50%); z-index: 50;
-  width: min(560px, calc(100vw - 28px)); display: flex; align-items: stretch; gap: 8px;
-  pointer-events: none;
-}
-.hp-appnav-cluster {
-  flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px; padding: 6px; border-radius: var(--radius-card);
-  background: var(--glass); border: 0;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
+  width: min(560px, calc(100vw - 28px));
   pointer-events: auto;
 }
-.hp-appnav-link,
-.hp-appnav-explore {
+.hp-appnav-cluster {
+  --active-index: 0;
+  position: relative; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0; padding: 6px; border-radius: var(--radius-card);
+  background: var(--glass); border: 0;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+}
+.hp-appnav-selection {
+  position: absolute; top: 6px; bottom: 6px; left: 6px; z-index: 0;
+  width: calc((100% - 12px) / 5); border-radius: var(--radius-control);
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+  transform: translateX(calc(var(--active-index) * 100%));
+  transition: transform 180ms cubic-bezier(.2, .8, .2, 1);
+}
+.hp-appnav-link {
+  position: relative; z-index: 1;
   min-width: 0; color: rgba(255, 255, 255, 0.78); text-decoration: none;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
   font-size: 11px; line-height: 1; font-weight: 800; letter-spacing: 0;
-}
-.hp-appnav-link {
   min-height: 56px; padding: 6px 6px; border-radius: var(--radius-control);
+  transition: color 120ms ease;
 }
 .hp-appnav-link.is-active {
-  background: #fff; color: #000;
-}
-.hp-appnav-explore {
-  flex: 0 0 68px; width: 68px; aspect-ratio: 1 / 1; min-height: 0; border-radius: var(--radius-card);
-  background: var(--glass); border: 0;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
-  pointer-events: auto;
-}
-.hp-appnav-explore.is-active {
-  background: #fff; color: #000;
+  color: #000;
 }
 .hp-appnav svg {
   width: 23px; height: 23px; display: block; fill: none; stroke: currentColor;
   stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
 }
-.hp-appnav-link:focus,
-.hp-appnav-explore:focus { outline: 0; }
-.hp-appnav-link:focus-visible,
-.hp-appnav-explore:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.32); }
+.hp-appnav-link:focus { outline: 0; }
+.hp-appnav-link:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.32); }
 
 @media (min-width: 720px) {
-  .hp-appnav-link,
-  .hp-appnav-explore { font-size: 12px; }
+  .hp-appnav-link { font-size: 12px; }
   .hp-appnav svg { width: 25px; height: 25px; }
 }
 @media (max-width: 460px) {
   .hp-screen { padding-bottom: 132px; }
-  .hp-appnav { width: calc(100vw - 20px); gap: 8px; }
+  .hp-appnav { width: calc(100vw - 20px); }
   .hp-appnav-cluster { padding: 5px; }
   .hp-appnav-link { min-height: 54px; padding: 5px 4px; font-size: 9px; }
-  .hp-appnav-explore { flex-basis: 64px; width: 64px; font-size: 9px; }
+  .hp-appnav-selection { top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 5); }
   .hp-appnav svg { width: 21px; height: 21px; }
-  .hp-appnav-scrim { height: 154px; }
 }
 
 /* ── Top bar: centered logo + top-left back (kiosk logo bar) ──── */
@@ -415,12 +400,13 @@ html, body {
   letter-spacing: -0.04em; max-width: 16ch;
 }
 
-.hp-detail-meta { padding: clamp(24px, 4vh, 40px) 0 clamp(32px, 5vh, 56px); display: grid; gap: 28px; }
-.hp-meta-list { display: flex; flex-direction: column; gap: 12px; }
+.hp-detail-meta { padding: clamp(24px, 4vh, 40px) 0 clamp(32px, 5vh, 56px); display: grid; gap: clamp(34px, 5vh, 44px); }
+.hp-meta-list { display: flex; flex-direction: column; gap: 14px; }
 .hp-meta-row { display: grid; grid-template-columns: 72px 1fr; gap: 16px; align-items: baseline; }
 .hp-meta-label { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
 .hp-meta-value { font-size: 16px; font-weight: 400; letter-spacing: -0.01em; color: #fff; }
-.hp-detail-instructor { display: flex; align-items: center; gap: 16px; padding-top: 8px; }
+.hp-detail-instructor { display: flex; align-items: center; gap: 16px; }
+.hp-detail .hp-detail-instructor { margin-top: 12px; }
 .hp-detail-instructor-photo {
   width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
   background: rgba(255, 255, 255, 0.92); color: #07110f;

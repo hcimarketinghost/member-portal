@@ -1,4 +1,4 @@
-import { AppContent, AppPage } from "@/components/AppPage";
+import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import { getAccount } from "@/lib/clubready";
 
 const CURRENT_USER_ID = 34822497;
@@ -90,11 +90,13 @@ export default async function BarcodePage() {
   return (
     <AppPage>
       <AppContent className="hp-card-shell">
+        <PageTitle title="Member card" />
+
         <section className="hp-member-card">
           <div className="hp-member-card-top">
             <div>
-              <div className="hp-label">Member card</div>
-              <h1 className="hp-h2">{memberName}</h1>
+              <div className="hp-h2">{memberName}</div>
+              <div className="hp-label">Barcode and wallet pass</div>
             </div>
             <span className="hp-member-status">{account.CustomStatusText}</span>
           </div>

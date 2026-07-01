@@ -1,5 +1,5 @@
 import AccountActions from "@/components/AccountActions";
-import { AppContent, AppHeader, AppPage } from "@/components/AppPage";
+import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import { getAccount } from "@/lib/clubready";
 
 // TODO: replace with the real signed-in member's ClubReady UserId.
@@ -12,15 +12,22 @@ export default async function AccountPage() {
   return (
     <AppPage>
       <AppContent maxWidth={560}>
-        <AppHeader className="hp-profile-header">
-          <span className="hp-member-avatar" style={{ width: 80, height: 80, fontSize: 28, marginBottom: 16 }}>
-            {initials}
-          </span>
-          <p className="hp-eyebrow">My account</p>
-          <h1 className="hp-h2">
-            {account.FirstName} {account.LastName}
-          </h1>
-        </AppHeader>
+        <PageTitle title="My account" />
+
+        <section className="hp-card">
+          <div className="hp-member-card-top">
+            <div className="hp-detail-instructor">
+              <span className="hp-member-avatar">{initials}</span>
+              <div>
+                <div className="hp-h2">
+                  {account.FirstName} {account.LastName}
+                </div>
+                <div className="hp-label">{account.Email}</div>
+              </div>
+            </div>
+            <span className="hp-member-status">{account.CustomStatusText}</span>
+          </div>
+        </section>
 
         <div id="account-details" className="hp-card">
           <Row label="Membership" value={account.MembershipTypeName} first />

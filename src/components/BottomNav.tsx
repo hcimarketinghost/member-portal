@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { CSSProperties } from "react";
 
 type IconName = "home" | "schedule" | "barcode" | "account" | "explore";
 
@@ -10,9 +11,8 @@ const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: st
   { href: "/classes", label: "Schedule", icon: "schedule", match: ["/classes"] },
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
   { href: "/account", label: "Account", icon: "account", match: ["/account"] },
+  { href: "/explore", label: "Explore", icon: "explore", match: ["/explore"] },
 ];
-
-const EXPLORE_ITEM = { href: "/explore", label: "Explore", icon: "explore" as const, match: ["/explore"] };
 
 function Icon({ name }: { name: IconName }) {
   if (name === "home") {
@@ -60,37 +60,30 @@ function isActive(pathname: string, match: string[]) {
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const activeIndex = Math.max(
+    0,
+    MAIN_ITEMS.findIndex((item) => isActive(pathname, item.match)),
+  );
 
   return (
-    <>
-      <div className="hp-appnav-scrim" aria-hidden="true" />
-      <nav className="hp-appnav" aria-label="Member portal">
-        <div className="hp-appnav-cluster">
-          {MAIN_ITEMS.map((item) => {
-            const active = isActive(pathname, item.match);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`hp-appnav-link ${active ? "is-active" : ""}`}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon name={item.icon} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-        <Link
-          href={EXPLORE_ITEM.href}
-          className={`hp-appnav-explore ${isActive(pathname, EXPLORE_ITEM.match) ? "is-active" : ""}`}
-          aria-label="Explore"
-          aria-current={isActive(pathname, EXPLORE_ITEM.match) ? "page" : undefined}
-        >
-          <Icon name={EXPLORE_ITEM.icon} />
-          <span>{EXPLORE_ITEM.label}</span>
-        </Link>
-      </nav>
-    </>
+    <nav className="hp-appnav" aria-label="Member portal">
+      <div className="hp-appnav-cluster" style={{ "--active-index": activeIndex } as CSSProperties}>
+        <span className="hp-appnav-selection" aria-hidden="true" />
+        {MAIN_ITEMS.map((item) => {
+          const active = isActive(pathname, item.match);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`hp-appnav-link ${active ? "is-active" : ""}`}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon name={item.icon} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
