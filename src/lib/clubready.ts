@@ -37,6 +37,7 @@ export type OpenPlayItem = {
   StartTime: string;
   EndTime: string;
   Location: string;
+  Href: string;
 };
 
 export type ScheduleEntry =
@@ -210,8 +211,8 @@ export async function getClass(scheduleId: number): Promise<ClassScheduleItem | 
 
 // TODO: source from the live "open play" val alongside the class schedule.
 const MOCK_OPEN_PLAY: OpenPlayItem[] = [
-  { Id: "turf-open", Title: "Turf Open Play", StartTime: "8:00 AM", EndTime: "4:00 PM", Location: "Turf" },
-  { Id: "court-open", Title: "Court Open Play", StartTime: "8:00 AM", EndTime: "9:00 PM", Location: "Courts 1–4" },
+  { Id: "turf-open", Title: "Turf Open Play", StartTime: "8:00 AM", EndTime: "4:00 PM", Location: "Turf", Href: "/explore/turf-open-play" },
+  { Id: "court-open", Title: "Court Open Play", StartTime: "8:00 AM", EndTime: "9:00 PM", Location: "Courts 1–4", Href: "/explore/court-open-play" },
 ];
 
 function scheduleMinutes(time: string): number {

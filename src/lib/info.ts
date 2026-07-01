@@ -167,6 +167,30 @@ export const INFO_PAGES: Record<string, InfoContent> = {
     hero: SPORTS_HERO,
   },
 
+  // ── Open Play (linked from the schedule) ─────────────────────
+  "turf-open-play": {
+    title: "Turf Open Play",
+    eyebrow: "Open Play",
+    intro: "Drop in to the indoor turf for pickup games, training, or just to move — open 8:00 AM to 4:00 PM.",
+    sections: [
+      { heading: "When", body: "Turf open play runs daily, 8:00 AM – 4:00 PM. Come and go as you like." },
+      { heading: "What to Bring", body: "Indoor shoes and whatever gear your game needs. First-come, first-served." },
+    ],
+    cta: ADD_TO_CALENDAR,
+    hero: SPORTS_HERO,
+  },
+  "court-open-play": {
+    title: "Court Open Play",
+    eyebrow: "Open Play",
+    intro: "Open court time across Courts 1–4 for basketball, volleyball, pickleball, and more.",
+    sections: [
+      { heading: "When", body: "Court open play runs 8:00 AM – 9:00 PM. Check signage for court assignments." },
+      { heading: "How It Works", body: "Rotate in during open play. Loaner equipment is available at the front desk." },
+    ],
+    cta: ADD_TO_CALENDAR,
+    hero: SPORTS_HERO,
+  },
+
   // ── Training & Performance ───────────────────────────────────
   "personal-training": {
     title: "Personal Training",

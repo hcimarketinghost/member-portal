@@ -72,7 +72,7 @@ export default async function ClassesPage() {
           {entries.map((e) => {
             if (e.kind === "open") {
               return (
-                <div key={e.Id} className="hp-row-item is-open">
+                <Link key={e.Id} href={e.Href} className="hp-row-item is-open">
                   <span className="hp-ri-thumb hp-ri-thumb-icon" aria-hidden="true">
                     <FieldIcon />
                   </span>
@@ -87,8 +87,10 @@ export default async function ClassesPage() {
                     {e.StartTime}&ndash;{e.EndTime}
                   </span>
                   <span className="hp-ri-meta hp-ri-location">{e.Location}</span>
-                  <span className="hp-ri-chevron hp-ri-chevron--empty" aria-hidden="true" />
-                </div>
+                  <span className="hp-ri-chevron">
+                    <Chevron />
+                  </span>
+                </Link>
               );
             }
 
