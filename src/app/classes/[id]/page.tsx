@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import InfoPage from "@/components/InfoPage";
 import Roster from "@/components/Roster";
 import SignupButton from "@/components/SignupButton";
 import { getClass, getRoster } from "@/lib/clubready";
@@ -31,13 +32,8 @@ export default async function ClassDetailPage(props: PageProps<"/classes/[id]">)
   };
 
   return (
-    <div className="hp-detail hp-rise">
-      <div className="hp-hero" style={heroStyle}>
-        <h1 className="hp-hero-title">{cls.Title}</h1>
-      </div>
-
-      <div className="hp-shell hp-screen">
-        <div className="hp-detail-meta">
+    <InfoPage title={cls.Title} eyebrow="Class" backHref="/classes" hero={heroStyle}>
+      <div className="hp-detail-meta">
           <div className="hp-meta-list">
             {metaRows.map(([label, value]) => (
               <div className="hp-meta-row" key={label}>
@@ -61,8 +57,7 @@ export default async function ClassDetailPage(props: PageProps<"/classes/[id]">)
           <SignupButton scheduleId={cls.ScheduleId} disabled={full} />
         </div>
 
-        <Roster members={roster} />
-      </div>
-    </div>
+      <Roster members={roster} />
+    </InfoPage>
   );
 }

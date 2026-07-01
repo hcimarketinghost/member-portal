@@ -23,7 +23,7 @@ const SECTIONS: CatSection[] = [
       { label: "Conditioning", href: "/classes" },
       { label: "Cycle", href: "/classes" },
       { label: "Yoga & Mobility", href: "/classes" },
-      { label: "Pilates", href: "/classes" },
+      { label: "Pilates", href: "/explore/pilates" },
       { label: "Bootcamp", href: "/classes" },
     ],
   },
@@ -41,8 +41,8 @@ const SECTIONS: CatSection[] = [
   {
     title: "Training & Performance",
     items: [
-      { label: "Personal Training", href: "#" },
-      { label: "Athlete Performance", href: "#" },
+      { label: "Personal Training", href: "/explore/personal-training" },
+      { label: "Athlete Performance", href: "/explore/athlete-performance" },
       { label: "Small Group Training", href: "#" },
       { label: "Recovery & Mobility", href: "#" },
     ],

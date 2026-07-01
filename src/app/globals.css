@@ -218,9 +218,15 @@ html, body {
   font-size: 50px; line-height: 1.2; font-weight: 700;
   letter-spacing: -0.06em; color: var(--text); text-wrap: balance;
 }
-/* Brand H1 — hex mark + wordmark (home) */
-.hp-h1-brand { display: flex; align-items: center; gap: 14px; }
-.hp-h1-brand svg { height: 0.86em; width: auto; flex-shrink: 0; }
+/* Home H1 — hex + wordmark on mobile, plain "Home" on desktop (nav carries
+   the wordmark there). */
+.hp-home-brand { display: inline-flex; align-items: center; gap: 8px; }
+.hp-home-brand svg { height: 1.1em; width: auto; flex-shrink: 0; }
+.hp-home-plain { display: none; }
+@media (min-width: 960px) {
+  .hp-home-brand { display: none; }
+  .hp-home-plain { display: inline; }
+}
 /* Heading 2 — section title (h2) */
 .hp-h2 {
   font-size: 2rem; line-height: 0.9; font-weight: 600;
@@ -558,11 +564,35 @@ html, body {
   background: linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,.5) 70%, #000 100%);
 }
 .hp-hero > * { position: relative; z-index: 1; }
-.hp-hero-title {
-  color: #fff; font-size: clamp(38px, 12vw, 72px); line-height: 0.94; font-weight: 700;
-  letter-spacing: -0.04em; width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
+.hp-hero-back {
+  position: absolute; z-index: 2;
+  top: calc(env(safe-area-inset-top, 0px) + 14px); left: var(--hci-x);
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; background: rgba(0, 0, 0, 0.42); color: #fff; cursor: pointer; text-decoration: none;
+  backdrop-filter: blur(10px) saturate(130%); -webkit-backdrop-filter: blur(10px) saturate(130%);
+}
+.hp-hero-back svg {
+  width: 22px; height: 22px; fill: none; stroke: currentColor;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+}
+.hp-hero-heading {
+  width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
   margin: auto auto 0;
 }
+.hp-hero-eyebrow {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82); margin-bottom: 10px;
+}
+.hp-hero-title {
+  color: #fff; font-size: clamp(38px, 12vw, 72px); line-height: 0.94; font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+/* ── Info page body (templatized) ─────────────────────────────── */
+.hp-info-body { padding: 36px 0 8px; display: grid; gap: 28px; }
+.hp-info-section { display: grid; gap: 10px; }
+.hp-info-cta { margin-top: 28px; }
 
 .hp-detail-meta { padding: 36px 0 48px; display: grid; row-gap: 36px; column-gap: 28px; }
 .hp-meta-list { display: flex; flex-direction: column; gap: 16px; }

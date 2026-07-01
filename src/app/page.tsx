@@ -21,9 +21,12 @@ export default function Home() {
     <AppPage>
       <AppContent>
         <AppHeader>
-          <h1 className="hp-h1 hp-h1-brand">
-            <Logo height={44} />
-            <span>Member Portal</span>
+          <h1 className="hp-h1 hp-home-title">
+            <span className="hp-home-brand">
+              <Logo height={56} />
+              <span>Member Portal</span>
+            </span>
+            <span className="hp-home-plain">Home</span>
           </h1>
         </AppHeader>
         <div className="hp-tiles">
