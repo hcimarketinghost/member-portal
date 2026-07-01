@@ -17,7 +17,7 @@ export function AppPage({
   className?: string;
 }) {
   return (
-    <div className={cx("hp-detail", className)}>
+    <div className={cx("hp-detail has-fixed-topbar", className)}>
       <TopBar backHref={backHref} over={over} />
       {children}
     </div>
