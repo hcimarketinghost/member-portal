@@ -414,13 +414,12 @@ html, body {
   background: linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,.5) 70%, #000 100%);
 }
 .hp-hero > * { position: relative; z-index: 1; }
-.hp-hero-topbar { position: relative; z-index: 2; margin: 0 calc(-1 * var(--hci-x)); }
 .hp-hero-title {
   color: #fff; font-size: clamp(38px, 12vw, 72px); line-height: 0.94; font-weight: 700;
   letter-spacing: -0.04em; max-width: 16ch; margin-top: auto;
 }
 
-.hp-detail-meta { padding: 48px 0; display: grid; row-gap: 36px; column-gap: 28px; }
+.hp-detail-meta { padding: 36px 0 48px; display: grid; row-gap: 36px; column-gap: 28px; }
 .hp-meta-list { display: flex; flex-direction: column; gap: 16px; }
 .hp-meta-row { display: grid; grid-template-columns: 72px 1fr; gap: 16px; align-items: baseline; }
 .hp-meta-label { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
