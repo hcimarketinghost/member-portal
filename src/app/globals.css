@@ -26,12 +26,17 @@
   --radius-card: 8px;
   --radius-control: 4px;
 
-  --hci-x: clamp(20px, 7vw, 100px);
+  /* Side padding — 16px on mobile + tablet, 100px on desktop (≥1200px) */
+  --hci-x: 16px;
   --content-max: 1240px;
 
   /* Section rhythm — mirrors hillcountryindoor.com */
   --gap-section: 24px;   /* content gap between blocks inside a section */
   --gap-dense: 10px;     /* dense internal gap for compact groups */
+}
+
+@media (min-width: 1200px) {
+  .hp { --hci-x: 100px; }
 }
 
 html, body {
@@ -115,12 +120,15 @@ html, body {
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   }
   .hp-desktopnav-inner {
-    width: min(calc(100% - var(--hci-x) - var(--hci-x)), 1200px);
+    width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
     height: 48px; margin: 0 auto; padding: 13px 8px 12px 16px;
     display: flex; align-items: center; justify-content: space-between; gap: 20px;
   }
   .hp-desktopnav-logo {
-    display: flex; align-items: center; color: #fff; text-decoration: none; flex: 1 1 0; min-width: 0;
+    display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; flex: 1 1 0; min-width: 0;
+  }
+  .hp-desktopnav-wordmark {
+    font-size: 16px; font-weight: 600; letter-spacing: -0.02em; color: #fff; white-space: nowrap;
   }
   .hp-desktopnav-links {
     display: flex; align-items: center; justify-content: center; gap: 50px; width: auto;
@@ -205,10 +213,10 @@ html, body {
   font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none;
   color: var(--text-2); margin-bottom: var(--gap-dense);
 }
-/* Heading 1c — responsive hero / page title (h1) */
+/* Heading 1 — page title (h1). Fixed 50px, does not scale per breakpoint. */
 .hp-h1 {
-  font-size: 2.95rem; line-height: 0.9; font-weight: 600;
-  letter-spacing: -0.05em; color: var(--text); text-wrap: balance;
+  font-size: 50px; line-height: 1.2; font-weight: 700;
+  letter-spacing: -0.06em; color: var(--text); text-wrap: balance;
 }
 /* Heading 2 — section title (h2) */
 .hp-h2 {
@@ -241,7 +249,6 @@ html, body {
 
 /* Tablet — 810px to 1199.98px */
 @media (min-width: 810px) {
-  .hp-h1 { font-size: 3.46rem; }
   .hp-h2 { font-size: 2.25rem; }
   .hp-h3 { font-size: 1.43rem; }
   .hp-h4 { font-size: 1.38rem; }
@@ -249,7 +256,6 @@ html, body {
 }
 /* Desktop — 1200px and up */
 @media (min-width: 1200px) {
-  .hp-h1 { font-size: 4rem; }
   .hp-h2 { font-size: 2.5rem; }
   .hp-h3 { font-size: 1.58rem; }
   .hp-h4 { font-size: 1.5rem; }
@@ -278,37 +284,75 @@ html, body {
 .hp-row-label { font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
 .hp-row-value { font-size: 18px; font-weight: 600; color: #fff; line-height: 1.15; }
 
-/* ── Account actions ──────────────────────────────────────────── */
+/* ── Account profile ──────────────────────────────────────────── */
+.hp-account-layout { display: grid; gap: 20px; }
+.hp-profile-row {
+  display: flex; align-items: center; gap: 16px;
+}
+.hp-profile-avatar {
+  width: 72px; height: 72px; flex-shrink: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(155deg, #565b63 0%, #34373c 52%, #212327 100%);
+  color: #f5f5f7; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+.hp-profile-id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hp-profile-name {
+  font-size: 1.5rem; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: var(--text);
+}
+.hp-profile-username {
+  font-size: 14px; font-weight: 400; letter-spacing: -0.01em; color: var(--text-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Membership detail card — lighter grouped surface, balanced padding */
+.hp-account-stats { background: var(--inset); }
+.hp-account-stats .hp-row { padding: 14px 0; }
+.hp-account-stats .hp-row:first-child { padding-top: 0; }
+.hp-account-stats .hp-row:last-child { padding-bottom: 0; }
+
+/* ── Grouped action menu (icon · label · chevron) ─────────────── */
 .hp-account-actions {
   display: grid; gap: 12px; margin-top: 16px;
 }
 .hp-action-menu {
-  display: grid; padding: 8px; border-radius: var(--radius-card); background: var(--surface);
+  display: grid; padding: 4px; border-radius: var(--radius-card); background: var(--inset);
 }
 .hp-action {
-  min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 0 12px; border-radius: var(--radius-control); color: var(--text);
-  text-decoration: none; font-size: 16px; font-weight: 650; letter-spacing: -0.01em;
+  position: relative;
+  min-height: 60px; display: flex; align-items: center; gap: 16px;
+  padding: 0 16px; border-radius: calc(var(--radius-card) - 4px); color: var(--text);
+  text-decoration: none; font-size: 17px; font-weight: 600; letter-spacing: -0.01em;
 }
-.hp-action + .hp-action {
-  border-top: 1px solid var(--hairline);
+.hp-action-label { flex: 1 1 auto; min-width: 0; }
+.hp-action-icon, .hp-action-chevron { flex-shrink: 0; display: flex; }
+.hp-action + .hp-action::before {
+  content: ""; position: absolute; top: 0; left: 56px; right: 12px; height: 1px;
+  background: var(--hairline);
 }
 .hp-action svg {
-  width: 22px; height: 22px; flex-shrink: 0; fill: none; stroke: var(--text-2);
-  stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round;
+  width: 24px; height: 24px; flex-shrink: 0; fill: none; stroke: var(--text);
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
 }
-@media (hover: hover) { .hp-action:hover { background: var(--inset); } }
+.hp-action-chevron svg { width: 20px; height: 20px; stroke: var(--text-3); stroke-width: 2.4; }
+@media (hover: hover) { .hp-action:hover { background: rgba(255, 255, 255, 0.04); } }
+
+/* ── Auth button (Log In filled / Log Out outlined) ───────────── */
 .hp-account-auth {
-  display: flex; align-items: center; justify-content: center; width: 100%; min-height: 54px;
+  display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px;
   border: 0; border-radius: var(--radius-control); background: #fff; color: #000;
   font-family: inherit; font-size: 16px; font-weight: 800; letter-spacing: -0.01em; cursor: pointer;
 }
 .hp-account-auth.is-secondary {
-  background: var(--inset); color: var(--text);
+  background: transparent; color: var(--text);
+  box-shadow: inset 0 0 0 1.5px var(--hairline-strong);
 }
-@media (hover: hover) { .hp-account-auth:hover { opacity: 0.78; } }
+@media (hover: hover) {
+  .hp-account-auth:hover { opacity: 0.78; }
+  .hp-account-auth.is-secondary:hover { opacity: 1; background: rgba(255, 255, 255, 0.04); }
+}
 .hp-account-auth:focus { outline: 0; }
-.hp-account-auth:focus-visible { box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.26); }
+.hp-account-auth:focus-visible { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4); }
 
 /* ── Empty states ─────────────────────────────────────────────── */
 .hp-empty-state {
@@ -593,6 +637,125 @@ html, body {
   .hp-member-card-top { flex-direction: column; }
   .hp-member-status { align-self: flex-start; }
 }
+
+/* ── Explore category tiles ───────────────────────────────────── */
+.hp-explore-section { margin-top: 40px; }
+.hp-explore-section .hp-h2 { margin-bottom: 16px; }
+.hp-cat-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+}
+.hp-cat-tile {
+  position: relative; display: flex; align-items: flex-end;
+  aspect-ratio: 4 / 3; padding: 16px; border-radius: 12px; overflow: hidden;
+  color: #fff; text-decoration: none; isolation: isolate;
+  background-color: #1a1d22; background-size: cover; background-position: center;
+  transition: transform .2s ease;
+}
+.hp-cat-tile::after {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 34%, rgba(0, 0, 0, 0.55) 100%);
+}
+.hp-cat-title {
+  position: relative; z-index: 1;
+  font-size: 1.25rem; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
+}
+@media (hover: hover) { .hp-cat-tile:hover { transform: translateY(-2px); } }
+@media (min-width: 720px) { .hp-cat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1080px) {
+  .hp-cat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .hp-explore-section { margin-top: 48px; }
+}
+
+/* ── Login screen ─────────────────────────────────────────────── */
+.hp-login {
+  min-height: 100dvh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 16px;
+  background: #000;
+}
+.hp-login-card {
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column;
+}
+.hp-login-logo {
+  display: flex; justify-content: center; color: #fff;
+  margin-bottom: 40px;
+}
+.hp-login-form { display: flex; flex-direction: column; gap: 12px; }
+
+.hp-login-input,
+.hp-login-password {
+  width: 100%; border: 0; border-radius: var(--radius-control);
+  background: var(--inset);
+}
+.hp-login-input {
+  min-height: 58px; padding: 0 18px; color: var(--text);
+  font-family: inherit; font-size: 16px; letter-spacing: -0.01em;
+}
+.hp-login-input:focus { outline: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+
+.hp-login-password { display: flex; align-items: stretch; overflow: hidden; }
+.hp-login-password:focus-within { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+.hp-login-password input {
+  flex: 1 1 auto; min-width: 0; min-height: 58px; padding: 0 18px;
+  border: 0; background: transparent; color: var(--text);
+  font-family: inherit; font-size: 16px; letter-spacing: -0.01em;
+}
+.hp-login-password input:focus { outline: 0; }
+.hp-login-eye {
+  flex-shrink: 0; width: 58px; display: flex; align-items: center; justify-content: center;
+  border: 0; border-left: 1px solid var(--hairline); background: transparent;
+  color: var(--text-2); cursor: pointer;
+}
+.hp-login-eye svg {
+  width: 24px; height: 24px; fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.hp-login-input::placeholder,
+.hp-login-password input::placeholder { color: var(--text-3); }
+
+.hp-login-submit {
+  margin-top: 16px; width: 100%; min-height: 60px;
+  border: 0; border-radius: var(--radius-card); background: #f5f5f7; color: #000;
+  font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer; transition: opacity .15s ease;
+}
+.hp-login-submit:disabled { opacity: 0.6; cursor: default; }
+@media (hover: hover) { .hp-login-submit:not(:disabled):hover { opacity: 0.85; } }
+
+.hp-login-legal {
+  margin-top: 30px; text-align: center;
+  font-size: 14px; line-height: 1.5; font-weight: 400; letter-spacing: -0.01em; color: var(--text-2);
+}
+.hp-login-forgot {
+  margin-top: 26px; text-align: center;
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--text);
+}
+.hp-login-create { margin-top: 26px; text-align: center; }
+.hp-login-create a { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.hp-login-legal a,
+.hp-login-forgot a,
+.hp-login-create a {
+  color: inherit; text-decoration: underline; text-underline-offset: 3px;
+}
+@media (hover: hover) {
+  .hp-login-legal a:hover,
+  .hp-login-forgot a:hover,
+  .hp-login-create a:hover { color: rgba(255, 255, 255, 0.55); }
+}
+
+/* Desktop — elevate into a card on a soft gradient */
+@media (min-width: 810px) {
+  .hp-login { background: radial-gradient(120% 78% at 50% 0%, #14171c 0%, #000 62%); }
+  .hp-login-card {
+    max-width: 452px; padding: 48px 44px 40px;
+    background: #0c0d0f; border: 1px solid var(--hairline);
+    border-radius: 24px; box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+  }
+  .hp-login-logo { margin-bottom: 44px; }
+}
+@media (min-width: 960px) { .hp-login { min-height: calc(100dvh - 48px); } }
 
 /* ── Rise animation ───────────────────────────────────────────── */
 @keyframes hp-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

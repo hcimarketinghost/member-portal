@@ -244,11 +244,10 @@ export async function getAccount(userId: number): Promise<Account> {
  * this always "succeeds" against the mock account for shell purposes.
  */
 export async function login(
-  email: string,
-  password: string
+  _email: string,
+  _password: string
 ): Promise<{ success: boolean; userId?: number; message?: string }> {
-  if (!email || !password) {
-    return { success: false, message: "Email and password are required." };
-  }
+  // No real auth yet — the login screen is a hollow shell. Any submit
+  // "succeeds" against the mock account so the gated portal stays reachable.
   return { success: true, userId: MOCK_ACCOUNT.UserId };
 }

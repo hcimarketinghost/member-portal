@@ -16,7 +16,7 @@ const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: st
 ];
 
 const DESKTOP_ITEMS: Array<{ href: string; label: string; match: string[] }> = [
-  { href: "/", label: "Member Home", match: ["/"] },
+  { href: "/", label: "Home", match: ["/"] },
   { href: "/classes", label: "Schedule", match: ["/classes"] },
   { href: "/reservations", label: "My Reservations", match: ["/reservations"] },
   { href: "/explore", label: "Search", match: ["/explore"] },
@@ -69,6 +69,10 @@ function isActive(pathname: string, match: string[]) {
 
 export default function BottomNav() {
   const pathname = usePathname();
+
+  // Login is a standalone, full-screen screen — no app chrome.
+  if (pathname === "/login") return null;
+
   const activeIndex = Math.max(
     0,
     MAIN_ITEMS.findIndex((item) => isActive(pathname, item.match)),
@@ -80,6 +84,7 @@ export default function BottomNav() {
         <div className="hp-desktopnav-inner">
           <Link href="/" className="hp-desktopnav-logo" aria-label="Member home">
             <Logo height={30} />
+            <span className="hp-desktopnav-wordmark">Member Portal</span>
           </Link>
           <div className="hp-desktopnav-links">
             {DESKTOP_ITEMS.map((item) => {
