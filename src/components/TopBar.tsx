@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Logo from "./Logo";
 
 function BackIcon() {
@@ -20,8 +23,18 @@ export default function TopBar({
   backHref?: string;
   over?: boolean;
 }) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateScrolled = () => setScrolled(window.scrollY > 8);
+
+    updateScrolled();
+    window.addEventListener("scroll", updateScrolled, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrolled);
+  }, []);
+
   return (
-    <div className="hp-topbar">
+    <div className={`hp-topbar ${over ? "is-over" : ""} ${scrolled ? "is-scrolled" : ""}`}>
       {backHref && (
         <Link
           href={backHref}

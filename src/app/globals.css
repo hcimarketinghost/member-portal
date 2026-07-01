@@ -56,6 +56,7 @@ html, body {
   gap: 0; padding: 6px; border-radius: var(--radius-card);
   background: var(--glass); border: 0;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
   overflow: hidden;
 }
 .hp-appnav-selection {
@@ -99,9 +100,25 @@ html, body {
 
 /* ── Top bar: centered logo + top-left back (kiosk logo bar) ──── */
 .hp-topbar {
-  position: relative; display: flex; align-items: center; justify-content: center;
+  position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
   height: 72px;
   overflow: visible;
+  background: transparent;
+  transition: background .18s ease, box-shadow .18s ease, backdrop-filter .18s ease;
+}
+.hp-topbar.is-scrolled {
+  background: rgba(0, 0, 0, 0.72);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+.hp-topbar.is-over {
+  background: transparent;
+  box-shadow: none;
+}
+.hp-topbar.is-over.is-scrolled {
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow: none;
+  backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
 }
 .hp-logo-link { display: flex; color: #fff; }
 .hp-back {
