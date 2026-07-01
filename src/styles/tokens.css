@@ -1,0 +1,253 @@
+/* ──────────────────────────────────────────────────────────────
+   HCI DESIGN SYSTEM — TOKENS
+   Hill Country Indoor Sports & Fitness
+   Source of truth for all design decisions.
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Fonts — Inter loaded via Google Fonts in each HTML file.
+   @font-face declarations removed to avoid overriding the
+   Google Fonts version with a failing local path. */
+
+:root {
+  /* ── Core ─────────────────────────────────────────────── */
+  --black:            #000000;
+  --white:            #ffffff;
+
+  /* ── Brand Accents ────────────────────────────────────── */
+  --bolt:             #a6fd00;  /* Brand default accent */
+  --orange:           #ff6b00;  /* Urgency, alerts, offers */
+  --aim-blue:         #0026ff;  /* AIM program */
+  --kidcare-purple:   #8028c8;  /* KidCare program */
+  --canopy-green:     #21dc23;  /* Canopy fitness program */
+  --red:              #ff1d26;  /* Critical / error */
+  --aqua:             #1dc4e1;  /* Aquatics / secondary */
+  --yellow:           #ffb41d;  /* Warning / accent */
+
+  /* ── Grays & Text ─────────────────────────────────────── */
+  --gray-900:         #141414;  /* Near-black surface */
+  --gray-800:         #333333;
+  --gray-700:         #454545;
+  --gray-500:         #525252;
+  --text-muted:       #cdcdcd;  /* Secondary body copy */
+  --text-soft:        #ededed;  /* Softest muted — "Starting at", sub-desc */
+  --text-dim:         #c9c9c9;  /* Slightly darker muted — joining fee, meta */
+  --text-subtle:      #555555;  /* Captions, meta */
+
+  /* ── Studio Palette — fitness / yoga contexts only ────── */
+  --studio-light:     #e9e5e1;
+  --studio-natural:   #b79e8d;
+  --studio-green:     #a6c1a0;
+  --studio-oceanic:   #a7b9c9;
+  --studio-brown:     #3a312b;
+
+  /* ── Borders ──────────────────────────────────────────── */
+  --border-subtle:    #2b2b2b;             /* Canonical card hairline */
+  --border-strong:    #3a3a3a;             /* Nested / hover emphasis */
+  --border-hard:      2px solid #ffffff;   /* Signature HCI hero-card border only */
+
+  /* ── Surfaces ─────────────────────────────────────────── */
+  --surface-solid:    rgba(0,0,0,1);
+  --surface-frosted:  rgba(0,0,0,0.2);
+  --surface-e2:       rgba(0,0,0,0.24);
+  --surface-blur:     blur(29px);
+  --surface-blur-e2:  blur(13px);
+
+  /* Card surface — frosted near-black with hairline border.
+     Used by Pricing, Program Cards, Form fields, etc. */
+  --card-bg:          #181818;
+  --card-border:      #2b2b2b;
+  --card-border-strong: #3a3a3a;
+
+  /* ── Typography ───────────────────────────────────────── */
+  --font-sans:        'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* HCI is Inter-only. --font-mono maps to Inter so any existing references
+     that reach for the mono slot still render in the house face. */
+  --font-mono:        'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --tracking-display: -0.04em;  /* Display & H1 hero titles (live site) */
+  --tracking-heading: -0.04em;  /* H2 + most headings (live site preset g0izax) */
+  --tracking-tight:   -0.03em;  /* Program title, tight display numerals */
+  --tracking-body:    -0.02em;  /* Body & sub-body */
+  --tracking-micro:   -0.01em;  /* Small & micro — barely any tightening */
+  --tracking-default: -0.02em;  /* Legacy alias */
+  --tracking-label:    0.08em;  /* Uppercase eyebrows & labels */
+
+  /* Sizes */
+  --fs-display: 64px;  --lh-display: 57.6px; /* Hero strong title (e.g. "Memberships") */
+  --fs-h1:     52px;   --lh-h1: 52px;
+  --fs-h2:     40px;   --lh-h2: 36px;        /* Framer preset g0izax — 0.9em line-height */
+  --fs-h2-tablet: 32px; --lh-h2-tablet: 29px;
+  --fs-h2-mobile: 32px; --lh-h2-mobile: 29px;
+  --fs-prog:   48px;   --lh-prog: 42px;
+  --fs-body:   20px;   --lh-body: 24px;
+  --fs-tight:  20px;   --lh-tight: 20px;
+  --fs-label:  14px;   --lh-label: 16px;
+  --fs-note:   18px;   --lh-note: 18px;
+  --fs-micro:  11px;   --lh-micro: 12px;
+
+  /* ── Framer Paragraph Preset (s66xbc) — live site values ─
+     Actual body preset used on hillcountryindoor.com via Framer.
+     Spec above (20/24) is the brand-book target; use these when
+     matching the live Framer site. */
+  --fs-para:        18px;   --lh-para:       1.4em;   /* Default paragraph */
+  --fs-para-tight:  18px;   --lh-para-tight: 1.2em;   /* Dense / headline-adjacent */
+  --fs-para-sm:     16px;   --lh-para-sm:    1.4em;   /* Mobile / compact */
+
+  /* ── Spacing — 8pt grid ───────────────────────────────── */
+  --spacing-2xs:       8px;
+  --spacing-xs:       16px;
+  --spacing-sm:       24px;
+  --spacing-md:       32px;
+  --spacing-lg:       48px;
+  --spacing-xl:       64px;
+  --spacing-2xl:      96px;
+  --spacing-3xl:     128px;
+
+  /* ── Layout ───────────────────────────────────────────── */
+  --max-width:      1440px;
+  --nav-height:       48px;
+  --bp-tablet:       810px;
+  --bp-desktop:     1200px;
+
+  /* ── Buttons ──────────────────────────────────────────── */
+  --btn-min-width:   300px;
+  --btn-py:           16px;
+  --btn-px:           32px;
+  --btn-blur:         blur(5px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RESET + BASE
+   ───────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; }
+
+/* ─────────────────────────────────────────────────────────────
+   TYPOGRAPHY CLASSES
+   ───────────────────────────────────────────────────────────── */
+.hci-heading {
+  font-size: var(--fs-h1); line-height: var(--lh-h1);
+  font-weight: 600; letter-spacing: var(--tracking-heading);
+}
+.hci-display {
+  font-size: var(--fs-display); line-height: var(--lh-display);
+  font-weight: 600; letter-spacing: var(--tracking-display);
+}
+.hci-subheading {
+  font-size: var(--fs-h2); line-height: var(--lh-h2);
+  font-weight: 600; letter-spacing: var(--tracking-heading);
+}
+
+/* Frosted info pill — dark glass chip for amenities, tags on overlays */
+.hci-chip-frosted {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 16px; gap: 10px;
+  background: rgba(0,0,0,0.05);
+  border: 1px solid #303030;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  font-family: var(--font-sans);
+  font-size: 13px; line-height: 1.3em;
+  font-weight: 500; letter-spacing: -0.01em;
+  color: #fff;
+}
+.hci-chip-frosted.on-light { color: #000; border-color: rgba(0,0,0,0.15); background: rgba(255,255,255,0.2); }
+.hci-program-title {
+  font-size: var(--fs-prog); line-height: var(--lh-prog);
+  font-weight: 700; letter-spacing: var(--tracking-heading);
+}
+.hci-body {
+  font-size: var(--fs-body); line-height: var(--lh-body);
+  font-weight: 500; letter-spacing: var(--tracking-body);
+}
+.hci-tight {
+  font-size: var(--fs-tight); line-height: var(--lh-tight);
+  font-weight: 600; letter-spacing: var(--tracking-body);
+}
+.hci-label {
+  font-size: var(--fs-label); line-height: var(--lh-label);
+  font-weight: 700; letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+.hci-note {
+  font-size: var(--fs-note); line-height: var(--lh-note);
+  font-weight: 500; font-style: italic;
+  letter-spacing: var(--tracking-body); color: var(--text-muted);
+}
+.hci-micro {
+  font-size: var(--fs-micro); line-height: var(--lh-micro);
+  font-weight: 500; letter-spacing: var(--tracking-micro);
+}
+.hci-mono {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.02em;
+  color: var(--text-subtle);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SURFACES
+   ───────────────────────────────────────────────────────────── */
+.surface-solid {
+  background: var(--surface-solid);
+  border: var(--border-hard);
+  backdrop-filter: var(--surface-blur);
+}
+.surface-frosted {
+  background: var(--surface-frosted);
+  border: var(--border-hard);
+  backdrop-filter: var(--surface-blur);
+  -webkit-backdrop-filter: var(--surface-blur);
+}
+.elevation-e2 {
+  background: var(--surface-e2);
+  backdrop-filter: var(--surface-blur-e2);
+  -webkit-backdrop-filter: var(--surface-blur-e2);
+  border: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BUTTONS
+   ───────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  min-width: var(--btn-min-width);
+  padding: var(--btn-py) var(--btn-px);
+  font-family: var(--font-sans);
+  font-size: var(--fs-tight); line-height: var(--lh-tight);
+  font-weight: 600; letter-spacing: var(--tracking-tight);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  backdrop-filter: var(--btn-blur);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-default { background: var(--black); color: var(--white); }
+.btn-light   { background: var(--white); color: var(--black); }
+.btn:hover, .btn-default:hover, .btn-light:hover {
+  background: transparent; color: var(--white);
+  border-color: var(--white);
+}
+.btn-disabled {
+  background: #595959; color: #b3b3b3; border: none;
+  cursor: not-allowed;
+}
+.btn-disabled:hover { background: #595959; color: #b3b3b3; border: none; }
+.btn-tag {
+  background: transparent; color: var(--white);
+  border: 1px solid var(--white);
+  min-width: 0; padding: 8px 16px;
+  font-size: var(--fs-label); letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}

@@ -1,0 +1,39 @@
+import Link from "next/link";
+import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
+
+function Arrow() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+const TILES = [
+  { href: "/classes", title: "Studio classes", sub: "Browse the schedule and book a spot" },
+  { href: "/account", title: "My account", sub: "Membership, status, and activity" },
+  { href: "/login", title: "Sign in", sub: "Access your member portal" },
+];
+
+export default function Home() {
+  return (
+    <AppPage>
+      <AppContent>
+        <PageTitle eyebrow="Member portal" title="Book your next class" align="start" size="hero" />
+        <div className="hp-tiles">
+          {TILES.map((t) => (
+            <Link key={t.href} href={t.href} className="hp-tile">
+              <div>
+                <div className="hp-tile-title">{t.title}</div>
+                <div className="hp-tile-sub">{t.sub}</div>
+              </div>
+              <span className="hp-tile-arrow">
+                <Arrow />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </AppContent>
+    </AppPage>
+  );
+}
