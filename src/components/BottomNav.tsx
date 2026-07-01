@@ -9,7 +9,7 @@ type IconName = "home" | "schedule" | "barcode" | "account" | "explore";
 
 const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: string[] }> = [
   { href: "/", label: "Home", icon: "home", match: ["/"] },
-  { href: "/classes", label: "Schedule", icon: "schedule", match: ["/classes"] },
+  { href: "/classes", label: "Schedule", icon: "schedule", match: ["/classes", "/play"] },
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
   { href: "/account", label: "Account", icon: "account", match: ["/account"] },
   { href: "/explore", label: "Explore", icon: "explore", match: ["/explore"] },
@@ -17,7 +17,7 @@ const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: st
 
 const DESKTOP_ITEMS: Array<{ href: string; label: string; match: string[] }> = [
   { href: "/", label: "Home", match: ["/"] },
-  { href: "/classes", label: "Schedule", match: ["/classes"] },
+  { href: "/classes", label: "Schedule", match: ["/classes", "/play"] },
   { href: "/reservations", label: "My Reservations", match: ["/reservations"] },
   { href: "/explore", label: "Search", match: ["/explore"] },
   { href: "/account", label: "Account", match: ["/account"] },
