@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import TopBar from "./TopBar";
 
 function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -7,8 +6,6 @@ function cx(...classes: Array<string | false | undefined>) {
 
 export function AppPage({
   children,
-  backHref,
-  over = false,
   className,
 }: {
   children: ReactNode;
@@ -17,8 +14,7 @@ export function AppPage({
   className?: string;
 }) {
   return (
-    <div className={cx("hp-detail has-fixed-topbar", className)}>
-      <TopBar backHref={backHref} over={over} />
+    <div className={cx("hp-detail", className)}>
       {children}
     </div>
   );

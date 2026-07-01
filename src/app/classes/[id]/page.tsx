@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import TopBar from "@/components/TopBar";
 import Roster from "@/components/Roster";
 import SignupButton from "@/components/SignupButton";
 import { getClass, getRoster } from "@/lib/clubready";
@@ -32,9 +31,7 @@ export default async function ClassDetailPage(props: PageProps<"/classes/[id]">)
   };
 
   return (
-    <div className="hp-detail has-fixed-topbar hp-rise">
-      <TopBar backHref="/classes" over />
-
+    <div className="hp-detail hp-rise">
       <div className="hp-hero" style={heroStyle}>
         <h1 className="hp-hero-title">{cls.Title}</h1>
       </div>

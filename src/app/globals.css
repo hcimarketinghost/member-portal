@@ -99,9 +99,6 @@ html, body {
 }
 
 /* ── Top bar: centered logo + top-left back (kiosk logo bar) ──── */
-.hp-detail.has-fixed-topbar {
-  padding-top: 72px;
-}
 .hp-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
   height: 72px;
