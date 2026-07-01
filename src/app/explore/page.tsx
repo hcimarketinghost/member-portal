@@ -19,23 +19,23 @@ const SECTIONS: CatSection[] = [
   {
     title: "Classes",
     items: [
-      { label: "Strength", href: "/classes" },
-      { label: "Conditioning", href: "/classes" },
-      { label: "Cycle", href: "/classes" },
-      { label: "Yoga & Mobility", href: "/classes" },
+      { label: "Strength", href: "/explore/strength" },
+      { label: "Conditioning", href: "/explore/conditioning" },
+      { label: "Cycle", href: "/explore/cycle" },
+      { label: "Yoga & Mobility", href: "/explore/yoga-mobility" },
       { label: "Pilates", href: "/explore/pilates" },
-      { label: "Bootcamp", href: "/classes" },
+      { label: "Bootcamp", href: "/explore/bootcamp" },
     ],
   },
   {
     title: "Sports",
     items: [
-      { label: "Basketball", href: "#" },
-      { label: "Volleyball", href: "#" },
-      { label: "Pickleball", href: "#" },
-      { label: "Soccer", href: "#" },
-      { label: "Baseball", href: "#" },
-      { label: "Turf Field", href: "#" },
+      { label: "Basketball", href: "/explore/basketball" },
+      { label: "Volleyball", href: "/explore/volleyball" },
+      { label: "Pickleball", href: "/explore/pickleball" },
+      { label: "Soccer", href: "/explore/soccer" },
+      { label: "Baseball", href: "/explore/baseball" },
+      { label: "Turf Field", href: "/explore/turf-field" },
     ],
   },
   {
@@ -43,17 +43,17 @@ const SECTIONS: CatSection[] = [
     items: [
       { label: "Personal Training", href: "/explore/personal-training" },
       { label: "Athlete Performance", href: "/explore/athlete-performance" },
-      { label: "Small Group Training", href: "#" },
-      { label: "Recovery & Mobility", href: "#" },
+      { label: "Small Group Training", href: "/explore/small-group-training" },
+      { label: "Recovery & Mobility", href: "/explore/recovery-mobility" },
     ],
   },
   {
     title: "Club Services",
     items: [
-      { label: "Events", href: "#" },
-      { label: "KidCare", href: "#" },
-      { label: "Café & Nutrition", href: "#" },
-      { label: "Facility Tour", href: "#" },
+      { label: "Events", href: "/explore/events" },
+      { label: "KidCare", href: "/explore/kidcare" },
+      { label: "Café & Nutrition", href: "/explore/cafe-nutrition" },
+      { label: "Facility Tour", href: "/explore/facility-tour" },
     ],
   },
 ];

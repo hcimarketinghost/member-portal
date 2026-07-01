@@ -8,9 +8,10 @@ const DEFAULT_HERO: CSSProperties = {
 };
 
 function BackIcon() {
+  // Mirror of the studio-list row chevron (points="9 18 15 12 9 6"), flipped.
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M15 5l-7 7 7 7" />
+      <polyline points="15 18 9 12 15 6" />
     </svg>
   );
 }

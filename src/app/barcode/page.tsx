@@ -95,7 +95,7 @@ export default async function BarcodePage() {
         <section className="hp-member-card">
           <div className="hp-member-card-top">
             <div>
-              <div className="hp-h2">{memberName}</div>
+              <div className="hp-profile-name">{memberName}</div>
             </div>
           </div>
 

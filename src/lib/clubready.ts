@@ -30,6 +30,19 @@ export type ClassScheduleItem = {
   MaxSpots: number;
 };
 
+/** Non-class facility blocks (Turf / Court open play) shown in the same list. */
+export type OpenPlayItem = {
+  Id: string;
+  Title: string;
+  StartTime: string;
+  EndTime: string;
+  Location: string;
+};
+
+export type ScheduleEntry =
+  | ({ kind: "class" } & ClassScheduleItem)
+  | ({ kind: "open" } & OpenPlayItem);
+
 export type RosterMember = {
   user_id: number;
   name: string;
@@ -193,6 +206,30 @@ export async function getClassSchedule(): Promise<ClassScheduleItem[]> {
 export async function getClass(scheduleId: number): Promise<ClassScheduleItem | undefined> {
   const classes = await getClassSchedule();
   return classes.find((c) => c.ScheduleId === scheduleId);
+}
+
+// TODO: source from the live "open play" val alongside the class schedule.
+const MOCK_OPEN_PLAY: OpenPlayItem[] = [
+  { Id: "turf-open", Title: "Turf Open Play", StartTime: "8:00 AM", EndTime: "4:00 PM", Location: "Turf" },
+  { Id: "court-open", Title: "Court Open Play", StartTime: "8:00 AM", EndTime: "9:00 PM", Location: "Courts 1–4" },
+];
+
+function scheduleMinutes(time: string): number {
+  const m = /(\d+):(\d+)\s*(AM|PM)/i.exec(time);
+  if (!m) return 0;
+  let hours = Number(m[1]) % 12;
+  if (/PM/i.test(m[3])) hours += 12;
+  return hours * 60 + Number(m[2]);
+}
+
+/** Classes + open-play blocks merged into one time-sorted list. */
+export async function getSchedule(): Promise<ScheduleEntry[]> {
+  const classes = await getClassSchedule();
+  const entries: ScheduleEntry[] = [
+    ...classes.map((c) => ({ kind: "class" as const, ...c })),
+    ...MOCK_OPEN_PLAY.map((o) => ({ kind: "open" as const, ...o })),
+  ];
+  return entries.sort((a, b) => scheduleMinutes(a.StartTime) - scheduleMinutes(b.StartTime));
 }
 
 /** ClassRosterRequest — the booked members for a class instance */

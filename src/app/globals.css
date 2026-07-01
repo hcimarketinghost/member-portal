@@ -11,8 +11,9 @@
    ────────────────────────────────────────────────────────────── */
 
 .hp {
-  --surface: #181818;
-  --inset: #222324;
+  --surface: #181818;   /* the one material grey — cards, panels, filled controls */
+  --inset: #181818;     /* alias of surface; kept so existing refs stay unified */
+  --raised: #262626;    /* one step lighter — only for controls sitting ON a surface */
   --glass: rgba(18, 18, 18, 0.86);
   --glass-strong: rgba(255, 255, 255, 0.1);
   --hairline: rgba(255, 255, 255, 0.08);
@@ -51,29 +52,27 @@ html, body {
 
 /* ── Screen shell ─────────────────────────────────────────────── */
 .hp-shell { width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max)); margin: 0 auto; padding: 0; }
-.hp-screen { padding-bottom: 152px; }
+.hp-screen { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
 
 /* ── Fixed app dock ───────────────────────────────────────────── */
 .hp-desktopnav {
   display: none;
 }
 .hp-appnav {
-  position: fixed; left: 50%; bottom: max(8px, env(safe-area-inset-bottom));
-  transform: translateX(-50%); z-index: 50;
-  width: min(560px, calc(100vw - 28px));
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
   pointer-events: auto;
 }
 .hp-appnav-cluster {
   --active-index: 0;
   position: relative; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0; padding: 6px; border-radius: var(--radius-card);
-  background: var(--glass); border: 0;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  gap: 0; padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: var(--glass); border: 0; border-top: 1px solid var(--hairline);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
   overflow: hidden;
 }
 .hp-appnav-selection {
-  position: absolute; top: 6px; bottom: 6px; left: 6px; z-index: 0;
+  position: absolute; top: 6px; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); left: 6px; z-index: 0;
   width: calc((100% - 12px) / 5); border-radius: var(--radius-control);
   background: #fff;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
@@ -149,11 +148,10 @@ html, body {
   }
 }
 @media (max-width: 460px) {
-  .hp-screen { padding-bottom: 132px; }
-  .hp-appnav { width: calc(100vw - 20px); }
-  .hp-appnav-cluster { padding: 5px; }
+  .hp-screen { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .hp-appnav-cluster { padding: 5px 5px calc(5px + env(safe-area-inset-bottom, 0px)); }
   .hp-appnav-link { min-height: 54px; padding: 5px 4px; font-size: 9px; }
-  .hp-appnav-selection { top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 5); }
+  .hp-appnav-selection { top: 5px; bottom: calc(5px + env(safe-area-inset-bottom, 0px)); left: 5px; width: calc((100% - 10px) / 5); }
   .hp-appnav svg { width: 21px; height: 21px; }
 }
 
@@ -213,10 +211,10 @@ html, body {
   font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none;
   color: var(--text-2); margin-bottom: var(--gap-dense);
 }
-/* Heading 1 — page title (h1). Fixed 50px, does not scale per breakpoint. */
+/* Heading 1 — page title (h1). 40px on phone, 46px from tablet up. */
 .hp-h1 {
-  font-size: 50px; line-height: 1.2; font-weight: 700;
-  letter-spacing: -0.06em; color: var(--text); text-wrap: balance;
+  font-size: 40px; line-height: 1.1; font-weight: 700;
+  letter-spacing: -0.04em; color: var(--text); text-wrap: balance;
 }
 /* Home H1 — hex + wordmark on mobile, plain "Home" on desktop (nav carries
    the wordmark there). */
@@ -227,15 +225,15 @@ html, body {
   .hp-home-brand { display: none; }
   .hp-home-plain { display: inline; }
 }
-/* Heading 2 — section title (h2) */
+/* Heading 2 — small grey section label (Apple grouped-list style). */
 .hp-h2 {
-  font-size: 2rem; line-height: 0.9; font-weight: 600;
-  letter-spacing: -0.04em; color: var(--text); text-wrap: balance;
+  font-size: 16px; line-height: 1.25; font-weight: 600;
+  letter-spacing: -0.01em; color: var(--text-2); text-wrap: balance;
 }
-/* Heading 3 — card / small section / metric heading (h3) */
+/* Heading 3 — prominent subsection / row heading (h3). */
 .hp-h3 {
-  font-size: 1.25rem; line-height: 0.9; font-weight: 600;
-  letter-spacing: -0.03em; color: var(--text);
+  font-size: 1.5rem; line-height: 1.1; font-weight: 600;
+  letter-spacing: -0.02em; color: var(--text);
 }
 /* Heading 4b — supporting headline / subheadline (h4) */
 .hp-h4 {
@@ -258,15 +256,14 @@ html, body {
 
 /* Tablet — 810px to 1199.98px */
 @media (min-width: 810px) {
-  .hp-h2 { font-size: 2.25rem; }
-  .hp-h3 { font-size: 1.43rem; }
+  .hp-h1 { font-size: 46px; }
+  .hp-h3 { font-size: 1.6rem; }
   .hp-h4 { font-size: 1.38rem; }
   .hp-body, .hp-sub { font-size: 18px; line-height: 1.2; }
 }
 /* Desktop — 1200px and up */
 @media (min-width: 1200px) {
-  .hp-h2 { font-size: 2.5rem; }
-  .hp-h3 { font-size: 1.58rem; }
+  .hp-h3 { font-size: 1.75rem; }
   .hp-h4 { font-size: 1.5rem; }
   .hp-body, .hp-sub { font-size: 18px; line-height: 1.4; }
 }
@@ -323,8 +320,8 @@ html, body {
 .hp-account-stats .hp-label {
   font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--text-2);
 }
-/* Section group: H2 sits tight to its card; --account-layout gap spaces groups. */
-.hp-account-group > .hp-h2 { margin-bottom: 12px; }
+/* Section group: grey label hugs its card; --account-layout gap spaces groups. */
+.hp-account-group > .hp-h2 { margin-bottom: 8px; }
 
 /* ── Grouped action menu (icon · label · chevron) ─────────────── */
 .hp-account-actions {
@@ -413,7 +410,7 @@ html, body {
 .hp-tile-sub { font-size: 14px; font-weight: 400; letter-spacing: -0.01em; color: var(--text-2); margin-top: 4px; }
 .hp-tile-arrow {
   width: 48px; height: 48px; flex-shrink: 0; border-radius: var(--radius-card);
-  background: var(--inset); border: 0;
+  background: var(--raised); border: 0;
   display: flex; align-items: center; justify-content: center; color: var(--text);
 }
 .hp-tile-arrow svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
@@ -479,7 +476,7 @@ html, body {
 .hp-daytabs::-webkit-scrollbar { display: none; }
 .hp-daytab {
   flex: 1 1 0; min-width: 96px; min-height: 72px; padding: 14px 20px; border-radius: var(--radius-control);
-  border: 0; background: #2a2a2a; color: #f5f5f7;
+  border: 0; background: var(--surface); color: #f5f5f7;
   font-family: inherit; font-size: clamp(20px, 1.7vw, 26px); font-weight: 600; letter-spacing: -0.02em; cursor: pointer;
   text-align: center; line-height: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
   transition: background .15s ease, color .15s ease;
@@ -487,6 +484,36 @@ html, body {
 }
 .hp-daytab.is-active { background: #fff; color: #000; }
 .hp-daytab-date { font-size: clamp(13px, 1.05vw, 16px); font-weight: 500; opacity: 0.72; letter-spacing: 0; }
+
+/* ── Schedule header + filter ─────────────────────────────────── */
+.hp-schedule-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.hp-filter-btn {
+  display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
+  min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-control);
+  background: var(--inset); color: var(--text); cursor: pointer;
+  font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+}
+.hp-filter-btn svg {
+  width: 20px; height: 20px; fill: none; stroke: currentColor;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
+@media (hover: hover) { .hp-filter-btn:hover { background: #2b2b2b; } }
+
+/* Open-play rows share the class row grid, minus instructor/capacity/link. */
+.hp-ri-thumb-icon { background: var(--inset); color: #f5f5f7; }
+.hp-ri-thumb-icon svg {
+  width: 30px; height: 30px; fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+/* Invisible chevron-sized spacer so open-play rows keep the same last column
+   width as class rows — otherwise the flexible columns shift. */
+.hp-ri-chevron--empty { background: transparent; }
+@media (max-width: 680px) {
+  .hp-row-item.is-open .hp-ri-instructor { display: none; }
+  .hp-row-item.is-open .hp-ri-chevron--empty { display: none; }
+  .hp-row-item.is-open .hp-ri-time { grid-row: 2; }
+  .hp-row-item.is-open .hp-ri-location { grid-row: 3; }
+}
 
 /* ── Class schedule row-list (kiosk feed rows) ────────────────── */
 .hp-list { width: 100%; }
@@ -564,16 +591,16 @@ html, body {
   background: linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,.5) 70%, #000 100%);
 }
 .hp-hero > * { position: relative; z-index: 1; }
+/* Matches the studio-list row chevron (.hp-ri-chevron), just left-pointing. */
 .hp-hero-back {
   position: absolute; z-index: 2;
   top: calc(env(safe-area-inset-top, 0px) + 14px); left: var(--hci-x);
-  width: 44px; height: 44px; border-radius: 50%;
+  width: 52px; height: 52px; border-radius: var(--radius-card);
   display: flex; align-items: center; justify-content: center;
-  border: 0; background: rgba(0, 0, 0, 0.42); color: #fff; cursor: pointer; text-decoration: none;
-  backdrop-filter: blur(10px) saturate(130%); -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border: 0; background: var(--inset); color: #f5f5f7; cursor: pointer; text-decoration: none;
 }
 .hp-hero-back svg {
-  width: 22px; height: 22px; fill: none; stroke: currentColor;
+  width: 26px; height: 26px; display: block; fill: none; stroke: currentColor;
   stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
 }
 .hp-hero-heading {
@@ -625,6 +652,7 @@ html, body {
 }
 .hp-signup:disabled { color: #6a6a6a; cursor: default; }
 .hp-signup svg { width: 22px; height: 22px; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 640px) { .hp-signup { width: 100%; justify-content: center; } }
 
 /* Roster rows */
 .hp-roster { display: flex; flex-direction: column; gap: 12px; padding-bottom: 32px; }
@@ -645,7 +673,7 @@ html, body {
   font-family: inherit; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
 }
-.hp-member-action.is-checked { background: var(--inset); color: #7a7a7a; cursor: default; }
+.hp-member-action.is-checked { background: var(--raised); color: #7a7a7a; cursor: default; }
 .hp-roster-empty { padding: clamp(32px, 8vh, 64px) 0; text-align: center; color: #a8a8ae; font-size: 16px; font-weight: 600; }
 
 /* ── Member barcode screen ────────────────────────────────────── */
@@ -679,7 +707,7 @@ html, body {
 
 /* ── Explore category tiles ───────────────────────────────────── */
 .hp-explore-section { margin-top: 40px; }
-.hp-explore-section .hp-h2 { margin-bottom: 16px; }
+.hp-explore-section .hp-h2 { margin-bottom: 10px; }
 .hp-cat-grid {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
 }

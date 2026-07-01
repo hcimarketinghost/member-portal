@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
-import { getClassSchedule } from "@/lib/clubready";
+import { AppContent, AppHeader, AppPage } from "@/components/AppPage";
+import { getSchedule } from "@/lib/clubready";
 
 const DAYS = [
   { label: "Today", date: "2", active: true },
@@ -12,12 +12,28 @@ const DAYS = [
   { label: "Wed", date: "8", active: false },
 ];
 
-const SCHEDULE_MODES = ["Classes", "Courts", "Turf"];
-
 function Chevron() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 5h18l-7 8v6l-4 2v-8L3 5Z" />
+    </svg>
+  );
+}
+
+function FieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <path d="M12 6v12M3 12h4M17 12h4" />
+      <circle cx="12" cy="12" r="2" />
     </svg>
   );
 }
@@ -28,20 +44,20 @@ function capacityText(freeSpots: number, maxSpots: number) {
 }
 
 export default async function ClassesPage() {
-  const classes = await getClassSchedule();
+  const entries = await getSchedule();
 
   return (
     <AppPage>
       <AppContent>
-        <PageTitle title="Schedule" />
-
-        <div className="hp-segmented" aria-label="Schedule type">
-          {SCHEDULE_MODES.map((mode) => (
-            <button key={mode} type="button" className={mode === "Classes" ? "is-active" : ""}>
-              {mode}
+        <AppHeader>
+          <div className="hp-schedule-head">
+            <h1 className="hp-h1">Schedule</h1>
+            <button type="button" className="hp-filter-btn" aria-label="Filter schedule">
+              <FilterIcon />
+              <span>Filter</span>
             </button>
-          ))}
-        </div>
+          </div>
+        </AppHeader>
 
         <div className="hp-daytabs">
           {DAYS.map((d) => (
@@ -53,7 +69,30 @@ export default async function ClassesPage() {
         </div>
 
         <div className="hp-list">
-          {classes.map((c) => {
+          {entries.map((e) => {
+            if (e.kind === "open") {
+              return (
+                <div key={e.Id} className="hp-row-item is-open">
+                  <span className="hp-ri-thumb hp-ri-thumb-icon" aria-hidden="true">
+                    <FieldIcon />
+                  </span>
+                  <span className="hp-ri-titleblock">
+                    <span className="hp-ri-titleline">
+                      <span className="hp-ri-title">{e.Title}</span>
+                      <span className="hp-ri-capacity">Drop-in</span>
+                    </span>
+                  </span>
+                  <span className="hp-ri-meta hp-ri-instructor" aria-hidden="true" />
+                  <span className="hp-ri-meta hp-ri-time hp-tabnum">
+                    {e.StartTime}&ndash;{e.EndTime}
+                  </span>
+                  <span className="hp-ri-meta hp-ri-location">{e.Location}</span>
+                  <span className="hp-ri-chevron hp-ri-chevron--empty" aria-hidden="true" />
+                </div>
+              );
+            }
+
+            const c = e;
             const full = c.FreeSpots <= 0;
             const initials = `${c.InstructorFirstName[0] ?? ""}${c.InstructorLastName[0] ?? ""}`;
             const instructorShort = `${c.InstructorFirstName} ${c.InstructorLastName[0] ?? ""}.`;
