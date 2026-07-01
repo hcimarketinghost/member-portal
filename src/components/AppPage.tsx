@@ -23,18 +23,14 @@ export function AppPage({
 export function AppContent({
   children,
   className,
-  maxWidth,
   style,
 }: {
   children: ReactNode;
   className?: string;
-  maxWidth?: CSSProperties["maxWidth"];
   style?: CSSProperties;
 }) {
-  const contentStyle = maxWidth === undefined ? style : { ...style, maxWidth };
-
   return (
-    <div className={cx("hp-shell hp-screen hp-rise", className)} style={contentStyle}>
+    <div className={cx("hp-shell hp-screen hp-rise", className)} style={style}>
       {children}
     </div>
   );

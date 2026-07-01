@@ -11,10 +11,10 @@ export default async function AccountPage() {
 
   return (
     <AppPage>
-      <AppContent maxWidth={560}>
+      <AppContent>
         <PageTitle title="My account" />
 
-        <section className="hp-card">
+        <section className="hp-card hp-account-profile">
           <div className="hp-member-card-top">
             <div className="hp-detail-instructor">
               <span className="hp-member-avatar">{initials}</span>
@@ -25,11 +25,10 @@ export default async function AccountPage() {
                 <div className="hp-label">{account.Email}</div>
               </div>
             </div>
-            <span className="hp-member-status">{account.CustomStatusText}</span>
           </div>
         </section>
 
-        <div id="account-details" className="hp-card">
+        <div id="account-details" className="hp-card hp-account-stats">
           <Row label="Membership" value={account.MembershipTypeName} first />
           <Row label="Status" value={account.CustomStatusText} />
           <Row label="Renews" value={account.MembershipExpiresDate} tabnum />

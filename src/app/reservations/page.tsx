@@ -4,7 +4,7 @@ import EmptyState from "@/components/EmptyState";
 export default function ReservationsPage() {
   return (
     <AppPage backHref="/">
-      <AppContent maxWidth={640}>
+      <AppContent>
         <PageTitle title="Your reservations" />
         <EmptyState
           body="Upcoming class bookings and court reservations will appear here."

@@ -4,7 +4,7 @@ import LoginForm from "@/components/LoginForm";
 export default function LoginPage() {
   return (
     <AppPage backHref="/">
-      <AppContent maxWidth={420}>
+      <AppContent>
         <PageTitle title="Sign in" />
         <LoginForm />
       </AppContent>

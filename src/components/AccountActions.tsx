@@ -47,7 +47,7 @@ export default function AccountActions() {
   return (
     <section className="hp-account-actions" aria-label="Account actions">
       <ActionMenu items={ACTIONS} ariaLabel="Account" />
-      <button type="button" className="hp-account-auth" onClick={handleAuthAction}>
+      <button type="button" className={`hp-account-auth ${signedIn ? "is-secondary" : ""}`} onClick={handleAuthAction}>
         {signedIn ? "Log Out" : "Log In"}
       </button>
     </section>

@@ -96,9 +96,7 @@ export default async function BarcodePage() {
           <div className="hp-member-card-top">
             <div>
               <div className="hp-h2">{memberName}</div>
-              <div className="hp-label">Barcode and wallet pass</div>
             </div>
-            <span className="hp-member-status">{account.CustomStatusText}</span>
           </div>
 
           <div className="hp-barcode-panel">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { CSSProperties } from "react";
+import Logo from "./Logo";
 
 type IconName = "home" | "schedule" | "barcode" | "account" | "explore";
 
@@ -12,6 +13,14 @@ const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: st
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
   { href: "/account", label: "Account", icon: "account", match: ["/account"] },
   { href: "/explore", label: "Explore", icon: "explore", match: ["/explore"] },
+];
+
+const DESKTOP_ITEMS: Array<{ href: string; label: string; match: string[] }> = [
+  { href: "/", label: "Member Home", match: ["/"] },
+  { href: "/classes", label: "Schedule", match: ["/classes"] },
+  { href: "/reservations", label: "My Reservations", match: ["/reservations"] },
+  { href: "/explore", label: "Search", match: ["/explore"] },
+  { href: "/account", label: "Account", match: ["/account"] },
 ];
 
 function Icon({ name }: { name: IconName }) {
@@ -66,24 +75,49 @@ export default function BottomNav() {
   );
 
   return (
-    <nav className="hp-appnav" aria-label="Member portal">
-      <div className="hp-appnav-cluster" style={{ "--active-index": activeIndex } as CSSProperties}>
-        <span className="hp-appnav-selection" aria-hidden="true" />
-        {MAIN_ITEMS.map((item) => {
-          const active = isActive(pathname, item.match);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`hp-appnav-link ${active ? "is-active" : ""}`}
-              aria-current={active ? "page" : undefined}
-            >
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      <nav className="hp-desktopnav" aria-label="Member portal">
+        <div className="hp-desktopnav-inner">
+          <Link href="/" className="hp-desktopnav-logo" aria-label="Member home">
+            <Logo height={30} />
+          </Link>
+          <div className="hp-desktopnav-links">
+            {DESKTOP_ITEMS.map((item) => {
+              const active = isActive(pathname, item.match);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`hp-desktopnav-link ${active ? "is-active" : ""}`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+
+      <nav className="hp-appnav" aria-label="Member portal">
+        <div className="hp-appnav-cluster" style={{ "--active-index": activeIndex } as CSSProperties}>
+          <span className="hp-appnav-selection" aria-hidden="true" />
+          {MAIN_ITEMS.map((item) => {
+            const active = isActive(pathname, item.match);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`hp-appnav-link ${active ? "is-active" : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
+                <Icon name={item.icon} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 }
