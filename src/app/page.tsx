@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
+import { AppContent, AppHeader, AppPage } from "@/components/AppPage";
+import Logo from "@/components/Logo";
 
 function Arrow() {
   return (
@@ -19,7 +20,12 @@ export default function Home() {
   return (
     <AppPage>
       <AppContent>
-        <PageTitle title="Book your next class" />
+        <AppHeader>
+          <h1 className="hp-h1 hp-h1-brand">
+            <Logo height={44} />
+            <span>Member Portal</span>
+          </h1>
+        </AppHeader>
         <div className="hp-tiles">
           {TILES.map((t) => (
             <Link key={t.href} href={t.href} className="hp-tile">

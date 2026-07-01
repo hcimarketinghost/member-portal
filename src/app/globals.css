@@ -218,6 +218,9 @@ html, body {
   font-size: 50px; line-height: 1.2; font-weight: 700;
   letter-spacing: -0.06em; color: var(--text); text-wrap: balance;
 }
+/* Brand H1 — hex mark + wordmark (home) */
+.hp-h1-brand { display: flex; align-items: center; gap: 14px; }
+.hp-h1-brand svg { height: 0.86em; width: auto; flex-shrink: 0; }
 /* Heading 2 — section title (h2) */
 .hp-h2 {
   font-size: 2rem; line-height: 0.9; font-weight: 600;
@@ -310,6 +313,12 @@ html, body {
 .hp-account-stats .hp-row { padding: 14px 0; }
 .hp-account-stats .hp-row:first-child { padding-top: 0; }
 .hp-account-stats .hp-row:last-child { padding-bottom: 0; }
+/* Labels match the menu-item text (17px/600), just grey. */
+.hp-account-stats .hp-label {
+  font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--text-2);
+}
+/* Section group: H2 sits tight to its card; --account-layout gap spaces groups. */
+.hp-account-group > .hp-h2 { margin-bottom: 12px; }
 
 /* ── Grouped action menu (icon · label · chevron) ─────────────── */
 .hp-account-actions {
@@ -646,7 +655,7 @@ html, body {
 }
 .hp-cat-tile {
   position: relative; display: flex; align-items: flex-end;
-  aspect-ratio: 4 / 3; padding: 16px; border-radius: 12px; overflow: hidden;
+  aspect-ratio: 3 / 2; padding: 16px; border-radius: 12px; overflow: hidden;
   color: #fff; text-decoration: none; isolation: isolate;
   background-color: #1a1d22; background-size: cover; background-position: center;
   transition: transform .2s ease;
@@ -717,9 +726,9 @@ html, body {
 
 .hp-login-submit {
   margin-top: 16px; width: 100%; min-height: 60px;
-  border: 0; border-radius: var(--radius-card); background: #f5f5f7; color: #000;
-  font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.08em;
-  text-transform: uppercase; cursor: pointer; transition: opacity .15s ease;
+  border: 0; border-radius: var(--radius-control); background: #f5f5f7; color: #000;
+  font-family: inherit; font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+  cursor: pointer; transition: opacity .15s ease;
 }
 .hp-login-submit:disabled { opacity: 0.6; cursor: default; }
 @media (hover: hover) { .hp-login-submit:not(:disabled):hover { opacity: 0.85; } }
@@ -755,7 +764,9 @@ html, body {
   }
   .hp-login-logo { margin-bottom: 44px; }
 }
-@media (min-width: 960px) { .hp-login { min-height: calc(100dvh - 48px); } }
+/* Pull up under the body's nav padding (48px at >=960px) so the gradient
+   covers the full viewport — no black band where the nav would sit. */
+@media (min-width: 960px) { .hp-login { min-height: 100dvh; margin-top: -48px; } }
 
 /* ── Rise animation ───────────────────────────────────────────── */
 @keyframes hp-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

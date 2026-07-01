@@ -90,7 +90,7 @@ export default async function BarcodePage() {
   return (
     <AppPage>
       <AppContent className="hp-card-shell">
-        <PageTitle title="Member card" />
+        <PageTitle title="Member Card" />
 
         <section className="hp-member-card">
           <div className="hp-member-card-top">

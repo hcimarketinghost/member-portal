@@ -5,7 +5,7 @@ export default function ReservationsPage() {
   return (
     <AppPage backHref="/">
       <AppContent>
-        <PageTitle title="Your reservations" />
+        <PageTitle title="Your Reservations" />
         <EmptyState
           body="Upcoming class bookings and court reservations will appear here."
           action={{ href: "/classes", label: "Browse classes" }}

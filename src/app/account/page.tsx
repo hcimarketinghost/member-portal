@@ -29,30 +29,39 @@ export default async function AccountPage() {
             </div>
           </header>
 
-          <section id="account-details" className="hp-card hp-account-stats" aria-label="Membership">
-            <Row label="Membership" value="Individual" />
-            <Row label="Status" value={account.CustomStatusText} />
-            <Row label="Renews" value={account.MembershipExpiresDate} tabnum />
-            {account.PastDueAmount > 0 && (
-              <Row label="Past due" value={`$${account.PastDueAmount.toFixed(2)}`} tabnum />
-            )}
-          </section>
+          <div className="hp-account-group">
+            <h2 className="hp-h2">Membership</h2>
+            <section id="account-details" className="hp-card hp-account-stats" aria-label="Membership">
+              <Row label="Membership" value="Individual" />
+              <Row label="Status" value={account.CustomStatusText} />
+              <Row label="Renews" value={account.MembershipExpiresDate} tabnum />
+              {account.PastDueAmount > 0 && (
+                <Row label="Past due" value={`$${account.PastDueAmount.toFixed(2)}`} tabnum />
+              )}
+            </section>
+          </div>
 
-          <ActionMenu
-            ariaLabel="Member tools"
-            items={[
-              { href: "/barcode", label: "Member card", icon: "card" },
-              { href: "/reservations", label: "Your reservations", icon: "calendar" },
-            ]}
-          />
+          <div className="hp-account-group">
+            <h2 className="hp-h2">Tools</h2>
+            <ActionMenu
+              ariaLabel="Member tools"
+              items={[
+                { href: "/barcode", label: "Member card", icon: "card" },
+                { href: "/reservations", label: "Your reservations", icon: "calendar" },
+              ]}
+            />
+          </div>
 
-          <ActionMenu
-            ariaLabel="Support"
-            items={[
-              { href: "/help", label: "Help", icon: "help" },
-              { href: REFERRAL_URL, label: "Refer a friend", icon: "share", external: true },
-            ]}
-          />
+          <div className="hp-account-group">
+            <h2 className="hp-h2">Support</h2>
+            <ActionMenu
+              ariaLabel="Support"
+              items={[
+                { href: "/help", label: "Help", icon: "help" },
+                { href: REFERRAL_URL, label: "Refer a friend", icon: "share", external: true },
+              ]}
+            />
+          </div>
 
           <AccountActions />
         </div>
