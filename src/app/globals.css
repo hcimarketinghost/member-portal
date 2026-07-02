@@ -100,6 +100,10 @@ html, body {
   .hp-screen {
     padding-bottom: 64px;
   }
+  /* Breathing room below the fixed 48px nav — headers sat too tight to it. */
+  .hp-app-header {
+    padding-top: 44px;
+  }
   .hp-appnav {
     display: none;
   }
@@ -190,7 +194,7 @@ html, body {
    H1c · H2 · H3 · H4b · New Paragraph.
    ────────────────────────────────────────────────────────────────── */
 .hp-app-header {
-  padding: 16px 0 var(--gap-section);
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 0 var(--gap-section);
   text-align: left;
 }
 .hp-app-header.is-center {
@@ -203,10 +207,11 @@ html, body {
   font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none;
   color: var(--text-2); margin-bottom: var(--gap-dense);
 }
-/* Heading 1 — page title (h1). 40px on phone, 46px from tablet up. */
+/* Heading 1 — page title (h1). Apple large-title feel: SemiBold, not Bold,
+   ~34px on phone, stepping up on larger screens. */
 .hp-h1 {
-  font-size: 40px; line-height: 1.1; font-weight: 700;
-  letter-spacing: -0.04em; color: var(--text); text-wrap: balance;
+  font-size: 34px; line-height: 1.08; font-weight: 600;
+  letter-spacing: -0.03em; color: var(--text); text-wrap: balance;
 }
 /* Home H1 — hex + wordmark on mobile, plain "Home" on desktop (nav carries
    the wordmark there). */
@@ -248,7 +253,7 @@ html, body {
 
 /* Tablet — 810px to 1199.98px */
 @media (min-width: 810px) {
-  .hp-h1 { font-size: 46px; }
+  .hp-h1 { font-size: 40px; }
   .hp-h3 { font-size: 1.6rem; }
   .hp-h4 { font-size: 1.38rem; }
   .hp-body, .hp-sub { font-size: 18px; line-height: 1.2; }
@@ -669,8 +674,10 @@ html, body {
     margin-top: -48px;
     padding-bottom: 72px;
   }
+  /* Cap to the viewport (minus nav) so the CTA never falls below the fold,
+     with a sensible floor on very short windows. */
   .hp-home-hero {
-    min-height: max(860px, 100dvh);
+    min-height: clamp(560px, calc(100dvh - 40px), 780px);
   }
   .hp-home-hero-img {
     width: 100%;
@@ -678,7 +685,8 @@ html, body {
     transform: none;
   }
   .hp-home-hero-content {
-    padding-top: 64px;
+    padding-top: 100px;
+    padding-bottom: 56px;
   }
 }
 @media (max-width: 460px) {

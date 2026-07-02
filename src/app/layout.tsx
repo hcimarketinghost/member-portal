@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -10,6 +10,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "HCI Member Portal",
   description: "Hill Country Indoor Sports & Fitness — member class booking and account",
+};
+
+// viewport-fit=cover lets full-bleed content (the home hero) extend up behind
+// the status bar; safe-area-inset-* padding keeps text clear of it.
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
