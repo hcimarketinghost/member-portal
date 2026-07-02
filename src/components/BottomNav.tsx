@@ -2,14 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { CSSProperties } from "react";
+import {
+  HomeIcon as HomeOutline,
+  CalendarDaysIcon as CalendarOutline,
+  UserIcon as UserOutline,
+  MagnifyingGlassIcon as SearchOutline,
+} from "@heroicons/react/24/outline";
+import {
+  HomeIcon as HomeSolid,
+  CalendarDaysIcon as CalendarSolid,
+  UserIcon as UserSolid,
+  MagnifyingGlassIcon as SearchSolid,
+} from "@heroicons/react/24/solid";
+import type { ComponentType, SVGProps } from "react";
 import Logo from "./Logo";
 
 type IconName = "home" | "schedule" | "barcode" | "account" | "explore";
 
 const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: string[] }> = [
   { href: "/", label: "Home", icon: "home", match: ["/"] },
-  { href: "/classes", label: "Schedule", icon: "schedule", match: ["/classes", "/play"] },
+  { href: "/schedule", label: "Schedule", icon: "schedule", match: ["/schedule", "/classes", "/play"] },
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
   { href: "/account", label: "Account", icon: "account", match: ["/account"] },
   { href: "/explore", label: "Explore", icon: "explore", match: ["/explore"] },
@@ -17,50 +29,44 @@ const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: st
 
 const DESKTOP_ITEMS: Array<{ href: string; label: string; match: string[] }> = [
   { href: "/", label: "Home", match: ["/"] },
-  { href: "/classes", label: "Schedule", match: ["/classes", "/play"] },
+  { href: "/schedule", label: "Schedule", match: ["/schedule", "/classes", "/play"] },
   { href: "/reservations", label: "My Reservations", match: ["/reservations"] },
   { href: "/explore", label: "Search", match: ["/explore"] },
   { href: "/account", label: "Account", match: ["/account"] },
 ];
 
-function Icon({ name }: { name: IconName }) {
-  if (name === "home") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 11.5 12 4l8 7.5V20H6v-8" />
-      </svg>
-    );
-  }
+type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
-  if (name === "schedule") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 3v4M17 3v4M4.5 9h15M6 5h12a2 2 0 0 1 2 2v11.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-      </svg>
-    );
-  }
-
-  if (name === "barcode") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 5v14M7 5v14M11 5v14M14 5v14M20 5v14M17 5v14" />
-      </svg>
-    );
-  }
-
-  if (name === "account") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20c.8-3.2 3.4-5.3 7.5-5.3s6.7 2.1 7.5 5.3" />
-      </svg>
-    );
-  }
-
+// Barcode isn't in the Heroicons set, so we hand-author an outline/solid pair
+// that matches Heroicons' 24×24 conventions (outline strokes, solid fills).
+function BarcodeOutline(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m15.5 15.5 4 4M10.5 17a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13ZM18 4.5v3M16.5 6h3" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" {...props}>
+      <path d="M4 5v14M7.5 5v14M11 5v14M14.5 5v14M17 5v14M20 5v14" />
     </svg>
   );
+}
+
+function BarcodeSolid(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M3 5h2v14H3zM7 5h1.5v14H7zM10.5 5h2v14h-2zM14.5 5h1.5v14h-1.5zM17.5 5h2.5v14h-2.5z" />
+    </svg>
+  );
+}
+
+const ICONS: Record<IconName, { outline: HeroIcon; solid: HeroIcon }> = {
+  home: { outline: HomeOutline, solid: HomeSolid },
+  schedule: { outline: CalendarOutline, solid: CalendarSolid },
+  barcode: { outline: BarcodeOutline, solid: BarcodeSolid },
+  account: { outline: UserOutline, solid: UserSolid },
+  explore: { outline: SearchOutline, solid: SearchSolid },
+};
+
+function Icon({ name, active }: { name: IconName; active: boolean }) {
+  const { outline: Outline, solid: Solid } = ICONS[name];
+  const Glyph = active ? Solid : Outline;
+  return <Glyph aria-hidden="true" />;
 }
 
 function isActive(pathname: string, match: string[]) {
@@ -72,11 +78,6 @@ export default function BottomNav() {
 
   // Login is a standalone, full-screen screen — no app chrome.
   if (pathname === "/login") return null;
-
-  const activeIndex = Math.max(
-    0,
-    MAIN_ITEMS.findIndex((item) => isActive(pathname, item.match)),
-  );
 
   return (
     <>
@@ -105,8 +106,7 @@ export default function BottomNav() {
       </nav>
 
       <nav className="hp-appnav" aria-label="Member portal">
-        <div className="hp-appnav-cluster" style={{ "--active-index": activeIndex } as CSSProperties}>
-          <span className="hp-appnav-selection" aria-hidden="true" />
+        <div className="hp-appnav-cluster">
           {MAIN_ITEMS.map((item) => {
             const active = isActive(pathname, item.match);
             return (
@@ -116,7 +116,7 @@ export default function BottomNav() {
                 className={`hp-appnav-link ${active ? "is-active" : ""}`}
                 aria-current={active ? "page" : undefined}
               >
-                <Icon name={item.icon} />
+                <Icon name={item.icon} active={active} />
                 <span>{item.label}</span>
               </Link>
             );

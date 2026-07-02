@@ -24,9 +24,14 @@ export default function SignupButton({
   scheduleId: number;
   disabled: boolean;
 }) {
-  const [state, setState] = useState<"idle" | "booking" | "done">("idle");
+  const [state, setState] = useState<"idle" | "confirm" | "booking" | "done">("idle");
 
   async function handleSignup() {
+    if (state === "idle") {
+      setState("confirm");
+      return;
+    }
+
     setState("booking");
     const res = await fetch("/api/bookings", {
       method: "POST",
@@ -45,7 +50,15 @@ export default function SignupButton({
       aria-label="Signup for class"
     >
       <UserPlusIcon />
-      {state === "done" ? "Booked" : state === "booking" ? "Booking…" : disabled ? "Class Is Full" : "Signup For Class"}
+      {state === "done"
+        ? "Booked"
+        : state === "booking"
+          ? "Booking…"
+          : state === "confirm"
+            ? "Confirm Booking"
+            : disabled
+              ? "Class Is Full"
+              : "Signup For Class"}
     </button>
   );
 }

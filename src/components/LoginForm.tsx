@@ -29,7 +29,7 @@ export default function LoginForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: identifier, password }),
     });
-    window.location.href = "/account";
+    window.location.href = getPostLoginUrl();
   }
 
   return (
@@ -80,4 +80,19 @@ export default function LoginForm() {
       </p>
     </form>
   );
+}
+
+function getPostLoginUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get("next");
+  const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+  const url = new URL(target, window.location.origin);
+
+  params.forEach((value, key) => {
+    if (key !== "next" && !url.searchParams.has(key)) {
+      url.searchParams.set(key, value);
+    }
+  });
+
+  return `${url.pathname}${url.search}`;
 }
