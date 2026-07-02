@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-export type ActionIcon = "card" | "calendar" | "user" | "help" | "share";
+export type ActionIcon = "card" | "calendar" | "user" | "help" | "share" | "bell";
 
 export type ActionMenuItem = {
   href: string;
@@ -42,6 +42,12 @@ const ICONS: Record<ActionIcon, ReactNode> = {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 15V4M8 8l4-4 4 4" />
       <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+    </svg>
+  ),
+  bell: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M10.3 21a2 2 0 0 0 3.4 0" />
     </svg>
   ),
 };

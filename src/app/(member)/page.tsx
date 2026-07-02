@@ -1,40 +1,11 @@
 import Link from "next/link";
+import {
+  ClockIcon,
+  PhoneIcon,
+  MapPinIcon,
+  UserPlusIcon,
+} from "@heroicons/react/24/outline";
 import { AppContent, AppPage } from "@/components/AppPage";
-
-function MailIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 6h16v12H4V6Z" />
-      <path d="m4 7 8 6 8-6" />
-    </svg>
-  );
-}
-
-function PhoneIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6.5 4.5 9 3l3 5-2 1.5c.8 1.6 2 2.8 3.5 3.5L15 11l5 3-1.5 2.5c-.6 1-1.8 1.5-3 1.2-4.8-1.1-8.1-4.4-9.2-9.2-.3-1.2.2-2.4 1.2-3Z" />
-    </svg>
-  );
-}
-
-function PinIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
-      <circle cx="12" cy="9" r="2.5" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8" />
-      <path d="M12 8v5l3 2" />
-    </svg>
-  );
-}
 
 function ArrowIcon() {
   return (
@@ -89,26 +60,23 @@ const RESOURCES = [
 export default function Home() {
   return (
     <AppPage>
-      <AppContent>
-        <header className="hp-app-header hp-home-header">
-          <h1 className="hp-h1">Home</h1>
-          <Link href="/account" className="hp-home-mail" aria-label="Account messages">
-            <MailIcon />
-            <span />
-          </Link>
-        </header>
-
-        <section className="hp-home-hero-card" aria-label="Welcome">
-          <img className="hp-home-hero-img" src="/hci-home-hero.jpg" alt="" />
-          <div className="hp-home-hero-shade" />
-          <div className="hp-home-hero-content">
+      <section className="hp-home-hero" aria-label="Member home">
+        <img className="hp-home-hero-img" src="/hci-home-hero.jpg" alt="" />
+        <div className="hp-home-hero-shade" />
+        <div className="hp-home-hero-content">
+          <div className="hp-home-hero-bar">
+            <h1 className="hp-h1 hp-home-hero-title">Home</h1>
+          </div>
+          <div className="hp-home-hero-foot">
             <h2 className="hp-home-welcome">Welcome, Victor</h2>
             <Link href="/schedule" className="hp-btn hp-home-hook">
               Book a class
             </Link>
           </div>
-        </section>
+        </div>
+      </section>
 
+      <AppContent>
         <div className="hp-home-sections">
         <div className="hp-home-section">
           <h2 className="hp-home-section-title">Today at HCI</h2>
@@ -128,7 +96,6 @@ export default function Home() {
           <h2 className="hp-home-section-title">Featured</h2>
           <Link href="/explore" className="hp-home-spotlight">
             <div className="hp-home-spotlight-copy">
-              <p className="hp-home-spotlight-eyebrow">This week</p>
               <h3 className="hp-home-spotlight-title">Everything happening at HCI</h3>
               <p className="hp-home-spotlight-caption">
                 Classes, courts, and turf — explore what&rsquo;s on and book your spot.

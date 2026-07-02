@@ -46,6 +46,7 @@ export default async function AccountPage() {
             <ActionMenu
               ariaLabel="Member tools"
               items={[
+                { href: "/notifications", label: "Notifications", icon: "bell" },
                 { href: "/barcode", label: "Member card", icon: "card" },
                 { href: "/reservations", label: "Your reservations", icon: "calendar" },
               ]}

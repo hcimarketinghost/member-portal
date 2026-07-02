@@ -54,10 +54,9 @@ html, body {
 .hp-shell { width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max)); margin: 0 auto; padding: 0; }
 .hp-screen { padding-bottom: 152px; }
 
-/* ── Fixed app dock ───────────────────────────────────────────── */
-.hp-desktopnav {
-  display: none;
-}
+/* ── Floating app toolbar ─────────────────────────────────────────
+   One pill for all breakpoints: bottom-center on mobile, top-center on
+   desktop (see the ≥960 override). Same tabs everywhere. */
 .hp-appnav {
   position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom));
   transform: translateX(-50%); z-index: 50;
@@ -66,10 +65,10 @@ html, body {
 }
 .hp-appnav-cluster {
   position: relative; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0; padding: 6px; border-radius: var(--radius-card);
-  background: var(--glass); border: 0;
+  gap: 0; padding: 6px; border-radius: 8px;
+  background: rgba(18, 18, 18, 0.7); border: 0;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
+  backdrop-filter: blur(8px) saturate(50%); -webkit-backdrop-filter: blur(8px) saturate(50%);
   overflow: hidden;
 }
 .hp-appnav-link {
@@ -94,53 +93,53 @@ html, body {
   .hp-appnav svg { width: 26px; height: 26px; }
 }
 @media (min-width: 960px) {
-  .hp {
-    padding-top: 48px;
-  }
   .hp-screen {
     padding-bottom: 64px;
   }
-  /* Breathing room below the fixed 48px nav — headers sat too tight to it. */
-  .hp-app-header {
-    padding-top: 44px;
-  }
+  /* Toolbar floats top-center on desktop, hugging its content (not full width). */
   .hp-appnav {
+    top: 16px;
+    bottom: auto;
+    width: auto;
+  }
+  /* Desktop tabs are text-only with an Apple-style active pill; the search
+     (Explore) tab stays icon-only. */
+  .hp-appnav-cluster {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .hp-appnav-link {
+    flex-direction: row;
+    min-height: 34px;
+    gap: 0;
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    border-radius: 8px;
+  }
+  .hp-appnav-link svg {
     display: none;
   }
-  .hp-desktopnav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-    display: flex; align-items: center; height: 48px;
-    background: rgba(0, 0, 0, 0.8);
-    overflow: hidden;
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  }
-  .hp-desktopnav-inner {
-    width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
-    height: 48px; margin: 0 auto; padding: 13px 8px 12px 16px;
-    display: flex; align-items: center; justify-content: space-between; gap: 20px;
-  }
-  .hp-desktopnav-logo {
-    display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; flex: 1 1 0; min-width: 0;
-  }
-  .hp-desktopnav-wordmark {
-    font-size: 16px; font-weight: 600; letter-spacing: -0.02em; color: #fff; white-space: nowrap;
-  }
-  .hp-desktopnav-links {
-    display: flex; align-items: center; justify-content: center; gap: 50px; width: auto;
-  }
-  .hp-desktopnav-link {
-    color: #fff; text-decoration: none;
-    font-size: 16px; line-height: 1.4; font-weight: 600; letter-spacing: -0.04em;
-    transition: color .15s ease, opacity .15s ease;
-    white-space: nowrap;
-  }
-  .hp-desktopnav-link.is-active {
+  .hp-appnav-link:not(.is-active):hover {
     color: #fff;
   }
-}
-@media (min-width: 960px) and (hover: hover) {
-  .hp-desktopnav-link:hover {
-    color: rgba(255, 255, 255, 0.5);
+  /* Selected tab is simply white text (no pill). */
+  .hp-appnav-link.is-active {
+    color: #fff;
+  }
+  .hp-appnav-link.is-search {
+    padding: 8px 12px;
+  }
+  .hp-appnav-link.is-search span {
+    display: none;
+  }
+  .hp-appnav-link.is-search svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
   }
 }
 @media (max-width: 460px) {
@@ -414,23 +413,16 @@ html, body {
 }
 
 /* ── Hub tiles (home) ─────────────────────────────────────────── */
-/* Home uses the universal page shell (hp-app-header title + hp-shell content).
-   The hero is a contained card below the "Home" title — not a full-bleed
-   screen — so Home matches every other page's structure. */
-.hp-home-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.hp-home-hero-card {
+/* Hybrid home hero: full-bleed photo that bleeds to the very top (behind the
+   status bar via viewport-fit=cover). The "Home" title + mail sit overlaid at
+   the top; the "Welcome" greeting + CTA anchor at the bottom. Sections below
+   use the standard shell. */
+.hp-home-hero {
   position: relative;
-  min-height: 460px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 24px;
-  border-radius: 18px;
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  min-height: clamp(500px, 74vh, 690px);
   overflow: hidden;
   isolation: isolate;
   color: #fff;
@@ -442,7 +434,7 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center bottom;
   display: block;
   pointer-events: none;
   user-select: none;
@@ -451,9 +443,32 @@ html, body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.58) 100%);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 26%, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.6) 100%);
 }
 .hp-home-hero-content {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+  width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 0 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+}
+.hp-home-hero-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hp-home-hero-title {
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+}
+.hp-home-hero-foot {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -479,10 +494,12 @@ html, body {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-card);
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--hairline);
+  color: #fff;
+  background: rgba(18, 18, 18, 0.7);
+  border: 0;
   text-decoration: none;
+  backdrop-filter: blur(8px) saturate(50%);
+  -webkit-backdrop-filter: blur(8px) saturate(50%);
 }
 .hp-home-mail svg {
   width: 24px;
@@ -534,14 +551,6 @@ html, body {
   display: grid;
   gap: 8px;
   max-width: 30ch;
-}
-.hp-home-spotlight-eyebrow {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
 }
 .hp-home-spotlight-title {
   margin: 0;
@@ -713,8 +722,8 @@ html, body {
   font-weight: 500;
 }
 @media (min-width: 720px) {
-  /* Desktop hero: text + CTA left-aligned (they share the left edge). */
-  .hp-home-hero-content {
+  /* Desktop hero: greeting + CTA left-aligned (they share the left edge). */
+  .hp-home-hero-foot {
     align-items: flex-start;
     text-align: left;
   }
@@ -930,15 +939,21 @@ html, body {
 }
 .hp-hero > * { position: relative; z-index: 1; }
 /* Matches the studio-list row chevron (.hp-ri-chevron), just left-pointing. */
+/* Same glass material as the notification button, and fixed so it stays pinned
+   top-left while the detail page scrolls. */
 .hp-hero-back {
-  position: absolute; z-index: 2;
+  position: fixed; z-index: 45;
   top: calc(env(safe-area-inset-top, 0px) + 14px); left: var(--hci-x);
-  width: 52px; height: 52px; border-radius: var(--radius-card);
+  width: 48px; height: 48px; border-radius: var(--radius-card);
   display: flex; align-items: center; justify-content: center;
-  border: 0; background: var(--inset); color: #f5f5f7; cursor: pointer; text-decoration: none;
+  color: #fff; cursor: pointer; text-decoration: none;
+  background: rgba(18, 18, 18, 0.7);
+  border: 0;
+  backdrop-filter: blur(8px) saturate(50%);
+  -webkit-backdrop-filter: blur(8px) saturate(50%);
 }
 .hp-hero-back svg {
-  width: 26px; height: 26px; display: block; fill: none; stroke: currentColor;
+  width: 24px; height: 24px; display: block; fill: none; stroke: currentColor;
   stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
 }
 .hp-hero-heading {
@@ -1270,5 +1285,29 @@ html, body {
 }
 
 /* ── Rise animation ───────────────────────────────────────────── */
-@keyframes hp-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.hp-rise { animation: hp-rise .32s cubic-bezier(.32,.72,.36,1) both; }
+/* Page-transition fade-up intentionally disabled — pages render immediately. */
+.hp-rise { animation: none; }
+
+/* ── Desktop top-area overrides ───────────────────────────────────
+   Placed at the end so they win on source order — the base .hp-app-header /
+   .hp-home-hero-bar / .hp-schedule-head rules are defined later than the nav
+   media query and were resetting these. On desktop the floating toolbar is the
+   top chrome: per-page titles are dropped, content clears the toolbar, and the
+   notification/filter buttons stay pinned top-right. */
+@media (min-width: 960px) {
+  .hp-app-header {
+    padding-top: 92px;
+  }
+  .hp-app-header .hp-h1,
+  .hp-home-hero-title {
+    display: none;
+  }
+  .hp-home-hero-bar,
+  .hp-schedule-head {
+    justify-content: flex-end;
+  }
+  /* Full-viewport immersive hero on desktop (toolbar floats over the top). */
+  .hp-home-hero {
+    min-height: 100dvh;
+  }
+}

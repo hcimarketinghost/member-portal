@@ -15,7 +15,6 @@ import {
   MagnifyingGlassIcon as SearchSolid,
 } from "@heroicons/react/24/solid";
 import type { ComponentType, SVGProps } from "react";
-import Logo from "./Logo";
 
 type IconName = "home" | "schedule" | "barcode" | "account" | "explore";
 
@@ -25,14 +24,6 @@ const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: st
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
   { href: "/account", label: "Account", icon: "account", match: ["/account"] },
   { href: "/explore", label: "Explore", icon: "explore", match: ["/explore"] },
-];
-
-const DESKTOP_ITEMS: Array<{ href: string; label: string; match: string[] }> = [
-  { href: "/", label: "Home", match: ["/"] },
-  { href: "/schedule", label: "Schedule", match: ["/schedule", "/classes", "/play"] },
-  { href: "/reservations", label: "My Reservations", match: ["/reservations"] },
-  { href: "/explore", label: "Search", match: ["/explore"] },
-  { href: "/account", label: "Account", match: ["/account"] },
 ];
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -79,50 +70,26 @@ export default function BottomNav() {
   // Login is a standalone, full-screen screen — no app chrome.
   if (pathname === "/login") return null;
 
+  // One floating toolbar for every breakpoint — bottom-center on mobile,
+  // top-center on desktop (positioned via CSS). Same tabs everywhere.
   return (
-    <>
-      <nav className="hp-desktopnav" aria-label="Member portal">
-        <div className="hp-desktopnav-inner">
-          <Link href="/" className="hp-desktopnav-logo" aria-label="Member home">
-            <Logo height={30} />
-            <span className="hp-desktopnav-wordmark">Member Portal</span>
-          </Link>
-          <div className="hp-desktopnav-links">
-            {DESKTOP_ITEMS.map((item) => {
-              const active = isActive(pathname, item.match);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`hp-desktopnav-link ${active ? "is-active" : ""}`}
-                  aria-current={active ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
-
-      <nav className="hp-appnav" aria-label="Member portal">
-        <div className="hp-appnav-cluster">
-          {MAIN_ITEMS.map((item) => {
-            const active = isActive(pathname, item.match);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`hp-appnav-link ${active ? "is-active" : ""}`}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon name={item.icon} active={active} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-    </>
+    <nav className="hp-appnav" aria-label="Member portal">
+      <div className="hp-appnav-cluster">
+        {MAIN_ITEMS.map((item) => {
+          const active = isActive(pathname, item.match);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`hp-appnav-link ${active ? "is-active" : ""} ${item.icon === "explore" ? "is-search" : ""}`}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon name={item.icon} active={active} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
