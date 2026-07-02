@@ -1,19 +1,12 @@
 import Link from "next/link";
 import {
+  ChevronRightIcon,
   ClockIcon,
   PhoneIcon,
   MapPinIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { AppContent, AppPage } from "@/components/AppPage";
-
-function ArrowIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 6l6 6-6 6" />
-    </svg>
-  );
-}
 
 const TODAY = [
   {
@@ -47,13 +40,13 @@ const RESOURCES = [
     href: "https://maps.apple.com/?address=13875%20Bee%20Cave%20Pkwy,%20Bee%20Cave,%20TX%2078738",
     title: "Directions",
     sub: "13875 Bee Cave Pkwy",
-    icon: PinIcon,
+    icon: MapPinIcon,
   },
   {
     href: "https://www.hillcountryindoor.com/referral",
     title: "Refer a Friend",
     sub: "Share HCI with someone",
-    icon: MailIcon,
+    icon: UserPlusIcon,
   },
 ];
 
@@ -119,7 +112,7 @@ export default function Home() {
                     <span className="hp-home-resource-sub">{item.sub}</span>
                   </span>
                   <span className="hp-home-resource-arrow">
-                    <ArrowIcon />
+                    <ChevronRightIcon aria-hidden="true" />
                   </span>
                 </Link>
               );
