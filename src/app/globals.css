@@ -414,30 +414,35 @@ html, body {
 }
 
 /* ── Hub tiles (home) ─────────────────────────────────────────── */
-.hp-home-screen {
-  min-height: 100dvh;
-  padding-bottom: 152px;
-  overflow: hidden;
+/* Home uses the universal page shell (hp-app-header title + hp-shell content).
+   The hero is a contained card below the "Home" title — not a full-bleed
+   screen — so Home matches every other page's structure. */
+.hp-home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
-.hp-home-hero {
+.hp-home-hero-card {
   position: relative;
-  width: 100vw;
-  min-height: clamp(520px, 76vh, 720px);
-  margin-left: 50%;
-  transform: translateX(-50%);
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  border-radius: 18px;
   overflow: hidden;
   isolation: isolate;
+  color: #fff;
 }
 .hp-home-hero-img {
   position: absolute;
   inset: 0;
   z-index: -2;
-  width: max(100%, 620px);
+  width: 100%;
   height: 100%;
-  left: 50%;
-  transform: translateX(-50%);
   object-fit: cover;
-  object-position: center bottom;
+  object-position: center;
   display: block;
   pointer-events: none;
   user-select: none;
@@ -446,49 +451,38 @@ html, body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0%, rgba(0, 0, 0, 0.02) 46%, rgba(0, 0, 0, 0.12) 72%, #000 100%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0) 36%, rgba(0, 0, 0, 0) 64%, rgba(0, 0, 0, 0.16) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 38%, rgba(0, 0, 0, 0.58) 100%);
 }
 .hp-home-hero-content {
-  position: relative;
-  z-index: 1;
-  width: calc(100% - var(--hci-x) - var(--hci-x));
-  min-height: inherit;
-  margin: 0 auto;
-  padding: max(16px, calc(env(safe-area-inset-top, 0px) + 14px)) 0 42px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 32px;
-}
-.hp-home-hero-top {
-  position: relative;
-  min-height: 52px;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: center;
 }
 .hp-home-welcome {
   margin: 0;
-  max-width: 720px;
+  font-size: clamp(28px, 7vw, 40px);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
   color: #fff;
-  text-wrap: initial;
-  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.24);
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.3);
 }
 .hp-home-mail {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 52px;
-  height: 52px;
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-card);
-  color: #fff;
-  background: rgba(0, 0, 0, 0.38);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
   text-decoration: none;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(18px) saturate(130%);
-  -webkit-backdrop-filter: blur(18px) saturate(130%);
 }
 .hp-home-mail svg {
   width: 24px;
@@ -509,13 +503,64 @@ html, body {
   background: #ff3b30;
 }
 .hp-home-hook {
-  background: rgba(245, 245, 247, 0.92);
+  background: rgba(245, 245, 247, 0.94);
   backdrop-filter: blur(14px) saturate(120%);
   -webkit-backdrop-filter: blur(14px) saturate(120%);
 }
+/* ── Featured spotlight (Apple Music "The Songs That Matter" card) ── */
+.hp-home-spotlight {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 320px;
+  padding: 22px;
+  border-radius: 18px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  text-decoration: none;
+  background:
+    radial-gradient(125% 90% at 80% 4%, rgba(166, 253, 0, 0.32), transparent 55%),
+    linear-gradient(158deg, #1b2410 0%, #0c0f08 58%, #000 100%);
+}
+.hp-home-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.55) 100%);
+}
+.hp-home-spotlight-copy {
+  display: grid;
+  gap: 8px;
+  max-width: 30ch;
+}
+.hp-home-spotlight-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+.hp-home-spotlight-title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+.hp-home-spotlight-caption {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.32;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
 .hp-home-sections {
-  width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
-  margin: 0 auto;
+  width: 100%;
+  margin-top: 28px;
   display: grid;
   gap: 34px;
 }
@@ -532,10 +577,25 @@ html, body {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+/* Apple Music-style peeking rail: cards snap, the next one peeks in from the
+   right, and the rail bleeds to the screen edge while the first card stays
+   aligned with the section title. */
 .hp-home-cardrail {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 78%);
   gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--hci-x);
+  margin-inline: calc(var(--hci-x) * -1);
+  padding-inline: var(--hci-x);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.hp-home-cardrail::-webkit-scrollbar {
+  display: none;
 }
 .hp-home-feature {
   position: relative;
@@ -653,14 +713,13 @@ html, body {
   font-weight: 500;
 }
 @media (min-width: 720px) {
-  .hp-home-hero {
-    min-height: min(72vh, 760px);
-  }
-  .hp-home-hero-img {
-    width: 100%;
+  /* Desktop hero: text + CTA left-aligned (they share the left edge). */
+  .hp-home-hero-content {
+    align-items: flex-start;
+    text-align: left;
   }
   .hp-home-cardrail {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-columns: minmax(0, 300px);
   }
   .hp-home-resource-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -669,48 +728,14 @@ html, body {
     font-size: 20px;
   }
 }
-@media (min-width: 960px) {
-  .hp-home-screen {
-    margin-top: -48px;
-    padding-bottom: 72px;
-  }
-  /* Cap to the viewport (minus nav) so the CTA never falls below the fold,
-     with a sensible floor on very short windows. */
-  .hp-home-hero {
-    min-height: clamp(560px, calc(100dvh - 40px), 780px);
-  }
-  .hp-home-hero-img {
-    width: 100%;
-    left: 0;
-    transform: none;
-  }
-  .hp-home-hero-content {
-    padding-top: 100px;
-    padding-bottom: 56px;
-  }
-}
-@media (max-width: 460px) {
-  .hp-home-screen {
-    padding-bottom: 132px;
-  }
-  .hp-home-hero {
-    min-height: 535px;
-  }
-  .hp-home-hero-img {
-    width: calc(100% + 140px);
-  }
-  .hp-home-hook {
-    width: 100%;
-  }
-}
 @media (max-width: 360px) {
   .hp-home-cardrail {
-    grid-template-columns: 1fr;
+    grid-auto-columns: minmax(0, 85%);
   }
 }
 @media (min-width: 1080px) {
   .hp-home-cardrail {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-columns: minmax(0, 320px);
     gap: 16px;
   }
 }

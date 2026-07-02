@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppContent, AppPage } from "@/components/AppPage";
 
 function MailIcon() {
   return (
@@ -87,25 +88,28 @@ const RESOURCES = [
 
 export default function Home() {
   return (
-    <main className="hp-home-screen hp-rise">
-      <section className="hp-home-hero" aria-label="Hill Country Indoor member home">
-        <img className="hp-home-hero-img" src="/hci-home-hero.jpg" alt="" />
-        <div className="hp-home-hero-shade" />
-        <div className="hp-home-hero-content">
-          <div className="hp-home-hero-top">
-            <h1 className="hp-h1 hp-home-welcome">Welcome, Victor</h1>
-            <Link href="/account" className="hp-home-mail" aria-label="Account messages">
-              <MailIcon />
-              <span />
+    <AppPage>
+      <AppContent>
+        <header className="hp-app-header hp-home-header">
+          <h1 className="hp-h1">Home</h1>
+          <Link href="/account" className="hp-home-mail" aria-label="Account messages">
+            <MailIcon />
+            <span />
+          </Link>
+        </header>
+
+        <section className="hp-home-hero-card" aria-label="Welcome">
+          <img className="hp-home-hero-img" src="/hci-home-hero.jpg" alt="" />
+          <div className="hp-home-hero-shade" />
+          <div className="hp-home-hero-content">
+            <h2 className="hp-home-welcome">Welcome, Victor</h2>
+            <Link href="/schedule" className="hp-btn hp-home-hook">
+              Book a class
             </Link>
           </div>
-          <Link href="/schedule" className="hp-btn hp-home-hook">
-            Book a class
-          </Link>
-        </div>
-      </section>
+        </section>
 
-      <section className="hp-home-sections">
+        <div className="hp-home-sections">
         <div className="hp-home-section">
           <h2 className="hp-home-section-title">Today at HCI</h2>
           <div className="hp-home-cardrail" aria-label="Today at HCI">
@@ -118,6 +122,19 @@ export default function Home() {
               </Link>
             ))}
           </div>
+        </div>
+
+        <div className="hp-home-section">
+          <h2 className="hp-home-section-title">Featured</h2>
+          <Link href="/explore" className="hp-home-spotlight">
+            <div className="hp-home-spotlight-copy">
+              <p className="hp-home-spotlight-eyebrow">This week</p>
+              <h3 className="hp-home-spotlight-title">Everything happening at HCI</h3>
+              <p className="hp-home-spotlight-caption">
+                Classes, courts, and turf — explore what&rsquo;s on and book your spot.
+              </p>
+            </div>
+          </Link>
         </div>
 
         <div className="hp-home-section">
@@ -142,7 +159,8 @@ export default function Home() {
             })}
           </div>
         </div>
-      </section>
-    </main>
+        </div>
+      </AppContent>
+    </AppPage>
   );
 }
