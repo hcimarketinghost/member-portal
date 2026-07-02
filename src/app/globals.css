@@ -252,16 +252,13 @@ html, body {
 
 /* Tablet — 810px to 1199.98px */
 @media (min-width: 810px) {
-  .hp-h1 { font-size: 40px; }
   .hp-h3 { font-size: 1.6rem; }
   .hp-h4 { font-size: 1.38rem; }
-  .hp-body, .hp-sub { font-size: 18px; line-height: 1.2; }
 }
 /* Desktop — 1200px and up */
 @media (min-width: 1200px) {
   .hp-h3 { font-size: 1.75rem; }
   .hp-h4 { font-size: 1.5rem; }
-  .hp-body, .hp-sub { font-size: 18px; line-height: 1.4; }
 }
 
 /* ── Buttons ──────────────────────────────────────────────────── */
@@ -412,123 +409,86 @@ html, body {
 }
 
 /* ── Hub tiles (home) ─────────────────────────────────────────── */
-/* Hybrid home hero: full-bleed photo that bleeds to the very top (behind the
-   status bar via viewport-fit=cover). The "Home" title + mail sit overlaid at
-   the top; the "Welcome" greeting + CTA anchor at the bottom. Sections below
-   use the standard shell. */
-.hp-home-hero {
-  position: relative;
-  width: 100vw;
-  margin-left: 50%;
-  transform: translateX(-50%);
-  min-height: clamp(500px, 74vh, 690px);
-  overflow: hidden;
-  isolation: isolate;
-  color: #fff;
+.hp-home-dashboard {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  display: grid;
+  gap: 28px;
 }
-.hp-home-hero-img {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center bottom;
-  display: block;
-  pointer-events: none;
-  user-select: none;
+.hp-home-intro {
+  display: grid;
+  gap: 6px;
 }
-.hp-home-hero-shade {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 26%, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.6) 100%);
-}
-.hp-home-hero-content {
-  position: relative;
-  z-index: 1;
-  min-height: inherit;
-  width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
-  margin: 0 auto;
-  padding: calc(env(safe-area-inset-top, 0px) + 16px) 0 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
-}
-.hp-home-hero-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.hp-home-hero-title {
-  color: #fff;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
-}
-.hp-home-hero-foot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  text-align: center;
-}
-.hp-home-welcome {
+.hp-home-intro .hp-h1 {
   margin: 0;
-  font-size: clamp(28px, 7vw, 40px);
-  line-height: 1.05;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  color: #fff;
-  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.3);
 }
-.hp-home-mail {
-  position: relative;
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+.hp-home-intro .hp-sub {
+  margin: 0;
+  font-weight: 600;
+}
+.hp-home-action-grid {
+  display: grid;
+  gap: 10px;
+}
+.hp-home-action-grid.is-primary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.hp-home-action {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+.hp-home-action-icon,
+.hp-home-action-arrow {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-card);
-  color: #fff;
-  background: rgba(18, 18, 18, 0.7);
-  border: 0;
-  text-decoration: none;
-  backdrop-filter: blur(8px) saturate(50%);
-  -webkit-backdrop-filter: blur(8px) saturate(50%);
+  color: var(--text);
 }
-.hp-home-mail svg {
-  width: 24px;
-  height: 24px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.hp-home-action-icon {
+  width: 34px;
+  height: 34px;
 }
-.hp-home-mail span {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #ff3b30;
+.hp-home-action-icon svg {
+  width: 30px;
+  height: 30px;
 }
-.hp-home-hook {
-  background: rgba(245, 245, 247, 0.94);
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
+.hp-home-action-arrow svg {
+  width: 21px;
+  height: 21px;
+  color: var(--text-3);
+}
+.hp-home-action-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.hp-home-action-title {
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.hp-home-action-sub {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 500;
 }
 /* ── Featured spotlight (Apple Music "The Songs That Matter" card) ── */
 .hp-home-spotlight {
   position: relative;
   display: flex;
   align-items: flex-end;
-  min-height: 320px;
+  width: min(100%, 250px);
+  aspect-ratio: 4 / 5;
   padding: 22px;
   border-radius: 18px;
   overflow: hidden;
@@ -553,22 +513,21 @@ html, body {
 }
 .hp-home-spotlight-title {
   margin: 0;
-  font-size: 26px;
-  line-height: 1.05;
+  font-size: 17px;
+  line-height: 1.1;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
   color: #fff;
 }
 .hp-home-spotlight-caption {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.32;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.8);
 }
 .hp-home-sections {
   width: 100%;
-  margin-top: 28px;
   display: grid;
   gap: 34px;
 }
@@ -577,21 +536,22 @@ html, body {
   display: grid;
   gap: 12px;
 }
+.hp-home-featured-section {
+  justify-items: start;
+}
 .hp-home-section-title {
   margin: 0;
   color: var(--text-2);
-  font-size: 20px;
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 /* Apple Music-style peeking rail: cards snap, the next one peeks in from the
    right, and the rail bleeds to the screen edge while the first card stays
    aligned with the section title. */
 .hp-home-cardrail {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 78%);
+  display: flex;
   gap: 12px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -607,6 +567,7 @@ html, body {
 }
 .hp-home-feature {
   position: relative;
+  flex: 0 0 min(78%, 300px);
   display: flex;
   align-items: flex-end;
   aspect-ratio: 3 / 2;
@@ -645,10 +606,10 @@ html, body {
 }
 .hp-home-feature h3 {
   margin: 0;
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: 17px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 .hp-home-feature p {
@@ -659,86 +620,27 @@ html, body {
   font-weight: 700;
   white-space: nowrap;
 }
-.hp-home-resource-grid {
-  display: grid;
-  gap: 10px;
-}
-.hp-home-resource {
-  min-height: 76px;
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 24px;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--text);
-  text-decoration: none;
-}
-.hp-home-resource-icon,
-.hp-home-resource-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text);
-}
-.hp-home-resource-icon {
-  width: 34px;
-  height: 34px;
-}
-.hp-home-resource-icon svg,
-.hp-home-resource-arrow svg {
-  width: 30px;
-  height: 30px;
-}
-.hp-home-resource-arrow svg {
-  width: 21px;
-  height: 21px;
-  color: var(--text-3);
-}
-.hp-home-resource-copy {
-  min-width: 0;
-  display: grid;
-  gap: 4px;
-}
-.hp-home-resource-title {
-  color: var(--text);
-  font-size: 17px;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-.hp-home-resource-sub {
-  color: var(--text-2);
-  font-size: 14px;
-  line-height: 1.25;
-  font-weight: 500;
-}
 @media (min-width: 720px) {
-  /* Desktop hero: greeting + CTA left-aligned (they share the left edge). */
-  .hp-home-hero-foot {
-    align-items: flex-start;
-    text-align: left;
+  .hp-home-spotlight {
+    width: 250px;
   }
-  .hp-home-cardrail {
-    grid-auto-columns: minmax(0, 300px);
-  }
-  .hp-home-resource-grid {
+  .hp-home-section:last-child .hp-home-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .hp-home-feature h3 {
-    font-size: 20px;
+}
+@media (max-width: 720px) {
+  .hp-home-action-grid.is-primary {
+    grid-template-columns: 1fr;
   }
 }
 @media (max-width: 360px) {
-  .hp-home-cardrail {
-    grid-auto-columns: minmax(0, 85%);
+  .hp-home-feature {
+    flex-basis: min(85%, 300px);
   }
 }
 @media (min-width: 1080px) {
-  .hp-home-cardrail {
-    grid-auto-columns: minmax(0, 320px);
-    gap: 16px;
+  .hp-home-dashboard {
+    padding-top: 92px;
   }
 }
 
@@ -848,6 +750,12 @@ html, body {
 
 /* ── Schedule header + filter ─────────────────────────────────── */
 .hp-schedule-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.hp-schedule-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
 .hp-filter-btn {
   display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
   min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--radius-control);
@@ -858,7 +766,38 @@ html, body {
   width: 20px; height: 20px; fill: none; stroke: currentColor;
   stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
 }
-@media (hover: hover) { .hp-filter-btn:hover { background: #2b2b2b; } }
+.hp-schedule-nav {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.hp-schedule-nav-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--inset);
+  color: var(--text);
+  cursor: pointer;
+}
+.hp-schedule-nav-btn:disabled {
+  color: var(--text-3);
+  cursor: default;
+  opacity: 0.42;
+}
+.hp-schedule-nav-btn svg {
+  width: 21px;
+  height: 21px;
+}
+@media (hover: hover) {
+  .hp-filter-btn:hover,
+  .hp-schedule-nav-btn:not(:disabled):hover {
+    background: #2b2b2b;
+  }
+}
 
 /* Open-play rows share the class row grid, minus instructor/capacity/link. */
 .hp-ri-thumb-icon { background: var(--inset); color: #f5f5f7; }
@@ -897,7 +836,7 @@ html, body {
   display: flex; align-items: baseline; gap: 10px; min-width: 0; max-width: 100%;
 }
 .hp-ri-title {
-  font-size: clamp(18px, 1.35vw, 21px); line-height: 1.12; font-weight: 600; letter-spacing: -0.02em;
+  font-size: 17px; line-height: 1.12; font-weight: 600; letter-spacing: -0.01em;
   color: #f5f5f7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
   flex: 0 1 auto;
 }
@@ -938,7 +877,6 @@ html, body {
   .hp-ri-mobile-meta { display: block; grid-column: 1; grid-row: 2; }
   .hp-ri-location   { grid-column: 1; grid-row: 3; }
   .hp-ri-chevron    { grid-column: 2; grid-row: 1 / 5; align-self: center; width: 48px; height: 48px; }
-  .hp-ri-title { font-size: 20px; }
   .hp-ri-meta { font-size: 15px; white-space: normal; }
   .hp-row-item.is-open .hp-ri-time {
     display: block;
@@ -985,8 +923,8 @@ html, body {
   color: rgba(255, 255, 255, 0.82); margin-bottom: 10px;
 }
 .hp-hero-title {
-  color: #fff; font-size: clamp(38px, 12vw, 72px); line-height: 0.94; font-weight: 700;
-  letter-spacing: -0.04em;
+  color: #fff; font-size: 34px; line-height: 1.08; font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 /* ── Info page body (templatized) ─────────────────────────────── */
@@ -1006,7 +944,7 @@ html, body {
   background: rgba(255, 255, 255, 0.92); color: #07110f;
   display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800;
 }
-.hp-detail-instructor-name { font-size: clamp(22px, 6vw, 30px); font-weight: 600; letter-spacing: -0.02em; color: #fff; }
+.hp-detail-instructor-name { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
 .hp-detail-desc { font-size: 17px; line-height: 1.45; font-weight: 400; letter-spacing: -0.01em; color: #f5f5f7; }
 
 @media (min-width: 720px) {
@@ -1016,12 +954,13 @@ html, body {
 /* Roster head */
 .hp-roster-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 18px; }
 .hp-roster-titlegroup { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
-.hp-roster-title { font-size: clamp(28px, 8vw, 44px); line-height: 1; font-weight: 700; letter-spacing: -0.03em; color: #fff; }
+.hp-roster-title { font-size: 17px; line-height: 1.1; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
 .hp-roster-spots { font-size: 14px; font-weight: 700; letter-spacing: 0.01em; color: var(--text-2); white-space: nowrap; }
 .hp-signup {
   display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; min-height: 52px; padding: 0 22px;
   border: 0; border-radius: var(--radius-control); background: var(--inset); color: var(--text);
   font-family: inherit; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; cursor: pointer;
+  text-decoration: none;
 }
 .hp-signup:disabled { color: #6a6a6a; cursor: default; }
 .hp-signup svg { width: 22px; height: 22px; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -1039,7 +978,7 @@ html, body {
   background: rgba(255, 255, 255, 0.92); color: #07110f;
   display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800;
 }
-.hp-member-name { font-size: clamp(18px, 5vw, 24px); font-weight: 800; letter-spacing: -0.01em; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hp-member-name { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hp-member-action {
   margin-left: auto; flex-shrink: 0; min-height: 48px; min-width: 116px; padding: 0 22px;
   border: 0; border-radius: var(--radius-control); background: #fff; color: #000;
@@ -1103,7 +1042,7 @@ html, body {
 }
 .hp-cat-title {
   position: relative; z-index: 1;
-  font-size: 1.25rem; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em;
+  font-size: 17px; line-height: 1.1; font-weight: 600; letter-spacing: -0.01em;
   text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
 }
 @media (hover: hover) { .hp-cat-tile:hover { transform: translateY(-2px); } }
@@ -1229,6 +1168,74 @@ html, body {
   display: grid;
   gap: 18px;
 }
+.hp-book-detail {
+  padding: 36px 0 48px;
+}
+.hp-book-confirm-panel {
+  width: min(100%, 560px);
+  display: grid;
+  gap: 20px;
+}
+.hp-book-confirm-head {
+  display: grid;
+  gap: 6px;
+}
+.hp-book-confirm-head .hp-h2,
+.hp-book-confirm-head .hp-sub {
+  margin: 0;
+}
+.hp-book-person {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+.hp-book-person-avatar {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #07110f;
+  font-size: 18px;
+  font-weight: 800;
+}
+.hp-book-person-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.hp-book-person-label {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.hp-book-person-name {
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.hp-book-person-email {
+  min-width: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hp-book-confirm-panel .hp-book-meta {
+  padding: 18px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
 .hp-book-summary {
   display: grid;
   gap: 22px;
@@ -1243,10 +1250,10 @@ html, body {
   color: var(--text-2);
 }
 .hp-book-title {
-  font-size: clamp(28px, 8vw, 42px);
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  font-size: 17px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--text);
 }
 .hp-book-meta {
@@ -1315,25 +1322,9 @@ html, body {
 .hp-rise { animation: none; }
 
 /* ── Desktop top-area overrides ───────────────────────────────────
-   Placed at the end so they win on source order — the base .hp-app-header /
-   .hp-home-hero-bar / .hp-schedule-head rules are defined later than the nav
-   media query and were resetting these. On desktop the floating toolbar is the
-   top chrome: per-page titles are dropped, content clears the toolbar, and the
-   notification/filter buttons stay pinned top-right. */
+   Content clears the floating toolbar while keeping page titles visible. */
 @media (min-width: 960px) {
   .hp-app-header {
     padding-top: 92px;
-  }
-  .hp-app-header .hp-h1,
-  .hp-home-hero-title {
-    display: none;
-  }
-  .hp-home-hero-bar,
-  .hp-schedule-head {
-    justify-content: flex-end;
-  }
-  /* Full-viewport immersive hero on desktop (toolbar floats over the top). */
-  .hp-home-hero {
-    min-height: 100dvh;
   }
 }

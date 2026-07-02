@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  ChevronLeftIcon,
   ChevronRightIcon,
+  FunnelIcon,
   RectangleGroupIcon,
 } from "@heroicons/react/24/outline";
 import type { ScheduleEntry } from "@/lib/clubready";
@@ -31,7 +33,17 @@ function entriesForDay(entries: ScheduleEntry[], dateIso: string) {
 
 export default function ScheduleView({ entries }: { entries: ScheduleEntry[] }) {
   const [selectedDay, setSelectedDay] = useState(DAYS[0].iso);
+  const selectedDayIndex = DAYS.findIndex((day) => day.iso === selectedDay);
   const selectedEntries = useMemo(() => entriesForDay(entries, selectedDay), [entries, selectedDay]);
+  const canGoPrevious = selectedDayIndex > 0;
+  const canGoNext = selectedDayIndex >= 0 && selectedDayIndex < DAYS.length - 1;
+
+  function shiftDay(direction: -1 | 1) {
+    const nextDay = DAYS[selectedDayIndex + direction];
+    if (nextDay) {
+      setSelectedDay(nextDay.iso);
+    }
+  }
 
   return (
     <>
@@ -53,6 +65,32 @@ export default function ScheduleView({ entries }: { entries: ScheduleEntry[] }) 
               </button>
             );
           })}
+        </div>
+        <div className="hp-schedule-controls" aria-label="Schedule controls">
+          <button type="button" className="hp-filter-btn" aria-label="Filter schedule">
+            <FunnelIcon aria-hidden="true" />
+            <span>Filter</span>
+          </button>
+          <div className="hp-schedule-nav" aria-label="Change day">
+            <button
+              type="button"
+              className="hp-schedule-nav-btn"
+              aria-label="Previous day"
+              disabled={!canGoPrevious}
+              onClick={() => shiftDay(-1)}
+            >
+              <ChevronLeftIcon aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="hp-schedule-nav-btn"
+              aria-label="Next day"
+              disabled={!canGoNext}
+              onClick={() => shiftDay(1)}
+            >
+              <ChevronRightIcon aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
 
