@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Card from "./Card";
 
 type EmptyStateAction = {
   href: string;
@@ -37,10 +38,10 @@ export default function EmptyState({
   action?: EmptyStateAction;
 }) {
   return (
-    <section className="hp-card hp-empty-state">
+    <Card as="section" className="hp-empty-state">
       {title && <h2 className="hp-empty-title">{title}</h2>}
       <p className="hp-body">{body}</p>
       {action && <EmptyStateLink action={action} />}
-    </section>
+    </Card>
   );
 }

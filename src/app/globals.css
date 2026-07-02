@@ -29,7 +29,9 @@
 
   /* Side padding — 16px on mobile + tablet, 100px on desktop (≥1200px) */
   --hci-x: 16px;
-  --content-max: 1240px;
+  /* Content is full-width minus the side gutters — no fixed cap. Screens that
+     want a narrower column override this locally (e.g. .hp-card-shell). */
+  --content-max: 100%;
 
   /* Section rhythm — mirrors hillcountryindoor.com */
   --gap-section: 24px;   /* content gap between blocks inside a section */
@@ -64,12 +66,17 @@ html, body {
   pointer-events: auto;
 }
 .hp-appnav-cluster {
-  position: relative; min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0; padding: 6px; border-radius: 8px;
+  position: relative; min-width: 0; box-sizing: border-box;
+  padding: 6px; border-radius: 8px;
   background: rgba(18, 18, 18, 0.7); border: 0;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(8px) saturate(50%); -webkit-backdrop-filter: blur(8px) saturate(50%);
   overflow: hidden;
+}
+/* Hex logo — desktop bar only; hidden in the mobile/tablet pill. */
+.hp-appnav-logo { display: none; }
+.hp-appnav-links {
+  min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0;
 }
 .hp-appnav-link {
   position: relative; z-index: 1;
@@ -96,36 +103,68 @@ html, body {
   .hp-screen {
     padding-bottom: 64px;
   }
-  /* Toolbar floats top-center on desktop, hugging its content (not full width). */
+  /* Glass bar mirroring hillcountryindoor.com's Desktop nav: hex logo left,
+     names + search right. Full viewport width no matter the content margins —
+     8px gutter above and to the sides, exactly like the marketing site. */
   .hp-appnav {
-    top: 16px;
+    top: 8px;
     bottom: auto;
-    width: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: none;
+    transform: none;
+    padding: 0 8px;
+    box-sizing: border-box;
   }
-  /* Desktop tabs are text-only with an Apple-style active pill; the search
-     (Explore) tab stays icon-only. */
+  /* Inner bar fills the strip: 16px left / 10px right / 10px top-bottom
+     internal padding, space-between layout. */
   .hp-appnav-cluster {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    padding: 10px 10px 10px 16px;
+    overflow: visible;
+  }
+  .hp-appnav-logo {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    transition: color 140ms ease;
+  }
+  .hp-appnav-logo:hover {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  /* Names + search cluster on the right. */
+  .hp-appnav-links {
     display: flex;
     align-items: center;
     gap: 2px;
   }
+  /* Nav H3: Inter 600, 16px/1.4em, -0.04em tracking, Core White. */
   .hp-appnav-link {
     flex-direction: row;
     min-height: 34px;
     gap: 0;
-    padding: 8px 16px;
-    font-size: 15px;
+    padding: 8px 14px;
+    font-size: 16px;
+    line-height: 1.4;
     font-weight: 600;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.04em;
+    color: #fff;
     border-radius: 8px;
   }
   .hp-appnav-link svg {
     display: none;
   }
+  /* Marketing-site hover: white → 50% white. */
   .hp-appnav-link:not(.is-active):hover {
-    color: #fff;
+    color: rgba(255, 255, 255, 0.5);
   }
-  /* Selected tab is simply white text (no pill). */
+  /* Selected tab stays full white (no pill). */
   .hp-appnav-link.is-active {
     color: #fff;
   }
@@ -141,6 +180,9 @@ html, body {
     height: 20px;
     stroke-width: 2;
   }
+  .hp-appnav-link.is-search:hover {
+    color: rgba(255, 255, 255, 0.5);
+  }
 }
 @media (max-width: 460px) {
   .hp-screen { padding-bottom: 132px; }
@@ -150,42 +192,6 @@ html, body {
   .hp-appnav svg { width: 22px; height: 22px; }
 }
 
-/* ── Top bar: centered logo + top-left back (kiosk logo bar) ──── */
-.hp-topbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
-  height: 72px;
-  overflow: visible;
-  background: transparent;
-  transition: background .18s ease, box-shadow .18s ease, backdrop-filter .18s ease;
-}
-.hp-topbar.is-scrolled {
-  background: rgba(0, 0, 0, 0.72);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
-}
-.hp-topbar.is-over {
-  background: transparent;
-  box-shadow: none;
-}
-.hp-topbar.is-over.is-scrolled {
-  background: rgba(0, 0, 0, 0.42);
-  box-shadow: none;
-  backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
-}
-.hp-logo-link { display: flex; color: #fff; }
-.hp-back {
-  position: absolute; left: var(--hci-x); top: 50%; transform: translateY(-50%);
-  width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
-  border: 0; border-radius: var(--radius-card); background: var(--glass);
-  color: var(--text); cursor: pointer; text-decoration: none;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
-}
-.hp-back svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-/* Frosted variant — over a hero image */
-.hp-back.is-over {
-  background: rgba(0, 0, 0, 0.38);
-}
 /* ── Typography ────────────────────────────────────────────────────
    Scale mirrors hillcountryindoor.com. Mobile-first: base values are
    the Phone slot (≤809.98px); Tablet (≥810px) and Desktop (≥1200px)
@@ -276,19 +282,31 @@ html, body {
   }
 }
 @media (hover: hover) {
+  /* No outline ring on hover — just a subtle dim, matching the auth button. */
   .hp-btn:hover {
-    opacity: 1;
-    background: transparent;
-    color: #fff;
-    box-shadow: inset 0 0 0 2px #fff;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    opacity: 0.9;
   }
 }
 .hp-btn:disabled { background: var(--inset); color: #6a6a6a; cursor: default; opacity: 1; }
 .hp-btn-inset { background: var(--inset); color: var(--text); }
 @media (hover: hover) { .hp-btn-inset:hover { opacity: 1; background: #2b2b2b; } }
 .hp-btn svg { width: 22px; height: 22px; display: block; }
+
+/* Icon button — glass rounded-square holding a single line icon (back chevron,
+   close X). One shared material so every square icon control matches. Callers
+   add positioning deltas (e.g. .hp-hero-back pins it fixed top-left). */
+.hp-iconbtn {
+  flex-shrink: 0; width: 48px; height: 48px; border-radius: var(--radius-card);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; cursor: pointer; text-decoration: none;
+  background: rgba(18, 18, 18, 0.7); border: 0;
+  backdrop-filter: blur(8px) saturate(50%);
+  -webkit-backdrop-filter: blur(8px) saturate(50%);
+}
+.hp-iconbtn svg {
+  width: 24px; height: 24px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+}
 
 /* ── Cards / surfaces ─────────────────────────────────────────── */
 .hp-card { background: var(--surface); border-radius: var(--radius-card); padding: 24px; }
@@ -345,7 +363,8 @@ html, body {
   text-decoration: none; font-size: 17px; font-weight: 600; letter-spacing: -0.01em;
   transition: background .12s ease;
 }
-.hp-action-label { flex: 1 1 auto; min-width: 0; }
+.hp-action-copy { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
+.hp-action-sub { color: var(--text-2); font-size: 14px; line-height: 1.25; font-weight: 500; }
 .hp-action-icon, .hp-action-chevron { flex-shrink: 0; display: flex; }
 .hp-action + .hp-action::before {
   content: ""; position: absolute; top: 0; left: 56px; right: 0; height: 1px;
@@ -396,12 +415,37 @@ html, body {
 .hp-design-section-wide {
   grid-column: 1 / -1;
 }
-.hp-section-title {
-  font-size: 14px; font-weight: 700; letter-spacing: 0; color: var(--text-2);
-  margin-bottom: 10px;
+/* ── Section (owned by components/Section.tsx) ────────────────────
+   One titled-block primitive for every page. Title visual matches the
+   former home-page style (16px/600); reconciled from the old
+   .hp-home-section-title + dev-page .hp-section-title pair. */
+.hp-section {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
 }
+.hp-section-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+}
+.hp-section-title {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.hp-section-action {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text-2); text-decoration: none;
+  transition: color 140ms ease;
+}
+.hp-section-action:hover { color: #fff; }
 .hp-design-stack {
   display: grid; gap: 12px;
+}
+.hp-design-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 }
 @media (max-width: 760px) {
   .hp-design-grid { grid-template-columns: 1fr; }
@@ -425,14 +469,16 @@ html, body {
   margin: 0;
   font-weight: 600;
 }
-.hp-home-action-grid {
+/* Action grid variant (ActionList variant="grid") — separate card tiles.
+   Child classes are shared with the list variant; deltas scoped here. */
+.hp-action-grid {
   display: grid;
   gap: 10px;
 }
-.hp-home-action-grid.is-primary {
+.hp-action-grid.is-primary {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.hp-home-action {
+.hp-action-tile {
   min-height: 76px;
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) 24px;
@@ -443,44 +489,43 @@ html, body {
   background: var(--surface);
   color: var(--text);
   text-decoration: none;
+  transition: background .12s ease;
 }
-.hp-home-action-icon,
-.hp-home-action-arrow {
+/* Same tactile hover as the list rows — tiles are opaque, so lift to the
+   one-step-lighter surface token rather than a translucent overlay. */
+@media (hover: hover) { .hp-action-tile:hover { background: var(--raised); } }
+.hp-action-tile:active { background: #2e2e2e; }
+.hp-action-tile .hp-action-icon,
+.hp-action-tile .hp-action-chevron {
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text);
 }
-.hp-home-action-icon {
+.hp-action-tile .hp-action-icon {
   width: 34px;
   height: 34px;
 }
-.hp-home-action-icon svg {
+.hp-action-tile .hp-action-icon svg {
   width: 30px;
   height: 30px;
 }
-.hp-home-action-arrow svg {
+.hp-action-tile .hp-action-chevron svg {
   width: 21px;
   height: 21px;
   color: var(--text-3);
 }
-.hp-home-action-copy {
+.hp-action-tile .hp-action-copy {
   min-width: 0;
   display: grid;
   gap: 4px;
 }
-.hp-home-action-title {
+.hp-action-tile .hp-action-title {
   color: var(--text);
   font-size: 17px;
   line-height: 1.1;
   font-weight: 600;
   letter-spacing: -0.01em;
-}
-.hp-home-action-sub {
-  color: var(--text-2);
-  font-size: 14px;
-  line-height: 1.25;
-  font-weight: 500;
 }
 /* ── Featured spotlight (Apple Music "The Songs That Matter" card) ── */
 .hp-home-spotlight {
@@ -531,21 +576,8 @@ html, body {
   display: grid;
   gap: 34px;
 }
-.hp-home-section {
-  min-width: 0;
-  display: grid;
-  gap: 12px;
-}
 .hp-home-featured-section {
   justify-items: start;
-}
-.hp-home-section-title {
-  margin: 0;
-  color: var(--text-2);
-  font-size: 16px;
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: -0.01em;
 }
 /* Apple Music-style peeking rail: cards snap, the next one peeks in from the
    right, and the rail bleeds to the screen edge while the first card stays
@@ -624,12 +656,12 @@ html, body {
   .hp-home-spotlight {
     width: 250px;
   }
-  .hp-home-section:last-child .hp-home-action-grid {
+  .hp-home-sections .hp-section:last-child .hp-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 720px) {
-  .hp-home-action-grid.is-primary {
+  .hp-action-grid.is-primary {
     grid-template-columns: 1fr;
   }
 }
@@ -638,7 +670,9 @@ html, body {
     flex-basis: min(85%, 300px);
   }
 }
-@media (min-width: 1080px) {
+/* Clear the fixed desktop top bar — must switch at the same 960px breakpoint
+   where the nav moves to the top, or content slides under it on tablet. */
+@media (min-width: 960px) {
   .hp-home-dashboard {
     padding-top: 92px;
   }
@@ -896,23 +930,11 @@ html, body {
   background: linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,.5) 70%, #000 100%);
 }
 .hp-hero > * { position: relative; z-index: 1; }
-/* Matches the studio-list row chevron (.hp-ri-chevron), just left-pointing. */
-/* Same glass material as the notification button, and fixed so it stays pinned
-   top-left while the detail page scrolls. */
+/* Back chevron — the shared .hp-iconbtn material, pinned fixed top-left so it
+   stays put while the detail page scrolls. */
 .hp-hero-back {
   position: fixed; z-index: 45;
   top: calc(env(safe-area-inset-top, 0px) + 14px); left: var(--hci-x);
-  width: 48px; height: 48px; border-radius: var(--radius-card);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; cursor: pointer; text-decoration: none;
-  background: rgba(18, 18, 18, 0.7);
-  border: 0;
-  backdrop-filter: blur(8px) saturate(50%);
-  -webkit-backdrop-filter: blur(8px) saturate(50%);
-}
-.hp-hero-back svg {
-  width: 24px; height: 24px; display: block; fill: none; stroke: currentColor;
-  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
 }
 .hp-hero-heading {
   width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max));
@@ -992,9 +1014,9 @@ html, body {
 .hp-card-shell {
   --content-max: 560px;
 }
+/* Card modifier — surface/radius come from .hp-card; deltas only. */
 .hp-member-card {
   display: grid; gap: 18px; padding: clamp(20px, 5vw, 28px);
-  border-radius: var(--radius-card); background: var(--surface);
 }
 .hp-member-card-top {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
@@ -1315,6 +1337,79 @@ html, body {
     border: 1px solid var(--hairline);
     box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
   }
+}
+
+/* ── Sheet — reusable drawer / bottom sheet (see components/Sheet.tsx) ──
+   Dimmed + blurred backdrop over the page; iOS-style bottom sheet on mobile
+   (tall detent, grabber, drag-to-dismiss), centered floating panel ≥720px.
+   Exit: sheet slides down (inline transform + transition) while the backdrop
+   fades — both driven by an `is-exiting` flag from the component. */
+.hp-sheet-backdrop {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(14px) saturate(80%);
+  -webkit-backdrop-filter: blur(14px) saturate(80%);
+  animation: hp-sheet-fade 200ms ease;
+  opacity: 1; transition: opacity 200ms ease;
+}
+.hp-sheet-backdrop.is-exiting { opacity: 0; }
+/* Mobile: bottom sheet at a tall detent (gap at top). Content stacks from the
+   top; extra height falls below. */
+.hp-sheet {
+  width: 100%; height: 90dvh; box-sizing: border-box;
+  display: flex; flex-direction: column;
+  padding: 6px 20px calc(20px + env(safe-area-inset-bottom));
+  border-radius: 18px 18px 0 0;
+  background: #0c0d0f; border: 1px solid var(--hairline); border-bottom: 0;
+  box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.55);
+  animation: hp-sheet-rise 320ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 340ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+.hp-sheet:focus { outline: 0; }
+/* Grab zone — the drag handle. Full width so the grabber is an easy target;
+   the scrollable body below keeps normal touch scrolling. */
+.hp-sheet-grab { flex-shrink: 0; padding: 4px 0 10px; touch-action: none; cursor: grab; }
+.hp-sheet-grab:active { cursor: grabbing; }
+.hp-sheet-grabber {
+  width: 38px; height: 5px; margin: 0 auto; border-radius: 3px;
+  background: rgba(255, 255, 255, 0.24);
+}
+.hp-sheet-head { display: grid; gap: 5px; }
+.hp-sheet-title {
+  margin: 0; font-size: 22px; line-height: 1.1; font-weight: 600;
+  letter-spacing: -0.02em; color: var(--text);
+}
+.hp-sheet-sub { margin: 0; font-size: 14px; line-height: 1.3; font-weight: 500; color: var(--text-2); }
+.hp-sheet-body {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; touch-action: pan-y;
+  display: grid; gap: 16px; align-content: start;
+}
+.hp-sheet-class {
+  display: grid; gap: 14px; padding: 18px;
+  border-radius: var(--radius-card); background: var(--surface);
+}
+.hp-sheet-class-title { font-size: 17px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+/* Button is the panel's clear CTA — full width even on desktop, where a bare
+   .hp-btn would otherwise cap at 309px. */
+.hp-sheet .hp-btn { width: 100%; max-width: none; }
+@keyframes hp-sheet-fade { from { opacity: 0; } }
+@keyframes hp-sheet-rise { from { transform: translateY(100%); } }
+@keyframes hp-sheet-pop { from { transform: translateY(14px) scale(0.985); opacity: 0; } }
+@media (min-width: 720px) {
+  /* Desktop: static centered floating panel — auto height, no drag, no grabber. */
+  .hp-sheet-backdrop { align-items: center; padding: 32px; }
+  .hp-sheet {
+    width: min(100%, 460px); height: auto; max-height: min(88dvh, 720px);
+    padding: 26px 26px 28px;
+    border-radius: 16px; border-bottom: 1px solid var(--hairline);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6);
+    animation: hp-sheet-pop 240ms cubic-bezier(0.32, 0.72, 0.22, 1);
+    transition: none;
+  }
+  .hp-sheet-grab { display: none; }
+  .hp-sheet-body { overflow-y: auto; }
 }
 
 /* ── Rise animation ───────────────────────────────────────────── */

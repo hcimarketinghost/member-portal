@@ -1,5 +1,5 @@
 import AccountActions from "@/components/AccountActions";
-import ActionMenu from "@/components/ActionMenu";
+import { ActionList } from "@/components/ActionRow";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import { getAccount } from "@/lib/clubready";
 
@@ -43,23 +43,23 @@ export default async function AccountPage() {
 
           <div className="hp-account-group">
             <h2 className="hp-h2">Tools</h2>
-            <ActionMenu
+            <ActionList
               ariaLabel="Member tools"
               items={[
-                { href: "/notifications", label: "Notifications", icon: "bell" },
-                { href: "/barcode", label: "Member card", icon: "card" },
-                { href: "/reservations", label: "Your reservations", icon: "calendar" },
+                { href: "/notifications", title: "Notifications", icon: "bell" },
+                { href: "/barcode", title: "Member card", icon: "card" },
+                { href: "/reservations", title: "Your reservations", icon: "calendar" },
               ]}
             />
           </div>
 
           <div className="hp-account-group">
             <h2 className="hp-h2">Support</h2>
-            <ActionMenu
+            <ActionList
               ariaLabel="Support"
               items={[
-                { href: "/help", label: "Help", icon: "help" },
-                { href: REFERRAL_URL, label: "Refer a friend", icon: "share", external: true },
+                { href: "/help", title: "Help", icon: "help" },
+                { href: REFERRAL_URL, title: "Refer a friend", icon: "share", external: true },
               ]}
             />
           </div>

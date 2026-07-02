@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "./Logo";
 import {
   HomeIcon as HomeOutline,
   CalendarDaysIcon as CalendarOutline,
@@ -70,25 +71,31 @@ export default function BottomNav() {
   // Login is a standalone, full-screen screen — no app chrome.
   if (pathname === "/login") return null;
 
-  // One floating toolbar for every breakpoint — bottom-center on mobile,
-  // top-center on desktop (positioned via CSS). Same tabs everywhere.
+  // One floating toolbar per breakpoint. Mobile/tablet: bottom-center pill of
+  // 5 tabs. Desktop (≥960): full-width glass bar — hex logo left, tab names +
+  // search grouped right — mirroring hillcountryindoor.com's Desktop nav.
   return (
     <nav className="hp-appnav" aria-label="Member portal">
       <div className="hp-appnav-cluster">
-        {MAIN_ITEMS.map((item) => {
-          const active = isActive(pathname, item.match);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`hp-appnav-link ${active ? "is-active" : ""} ${item.icon === "explore" ? "is-search" : ""}`}
-              aria-current={active ? "page" : undefined}
-            >
-              <Icon name={item.icon} active={active} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        <Link href="/" className="hp-appnav-logo" aria-label="HCI — home">
+          <Logo height={30} />
+        </Link>
+        <div className="hp-appnav-links">
+          {MAIN_ITEMS.map((item) => {
+            const active = isActive(pathname, item.match);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`hp-appnav-link ${active ? "is-active" : ""} ${item.icon === "explore" ? "is-search" : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
+                <Icon name={item.icon} active={active} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

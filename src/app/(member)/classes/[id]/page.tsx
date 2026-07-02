@@ -1,11 +1,12 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import BookSheet from "@/components/BookSheet";
 import InfoPage from "@/components/InfoPage";
 import Roster from "@/components/Roster";
-import SignupButton from "@/components/SignupButton";
-import { getClass, getRoster } from "@/lib/clubready";
+import { getAccount, getClass, getRoster } from "@/lib/clubready";
 
 export default async function ClassDetailPage(props: PageProps<"/classes/[id]">) {
-  const { id } = await props.params;
+  const [{ id }, searchParams] = await Promise.all([props.params, props.searchParams]);
   const scheduleId = Number(id);
   const cls = await getClass(scheduleId);
 
@@ -13,11 +14,19 @@ export default async function ClassDetailPage(props: PageProps<"/classes/[id]">)
     notFound();
   }
 
-  const roster = await getRoster(scheduleId);
+  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const [roster, account] = await Promise.all([
+    getRoster(scheduleId),
+    userId ? getAccount(userId) : null,
+  ]);
+
   const full = cls.FreeSpots <= 0;
   const instructorInitials = `${cls.InstructorFirstName[0] ?? ""}${cls.InstructorLastName[0] ?? ""}`;
   const instructorShort = `${cls.InstructorFirstName} ${cls.InstructorLastName[0] ?? ""}.`;
   const spotsLabel = `${roster.length}/${cls.MaxSpots} Spots`;
+
+  const bookParam = searchParams.book;
+  const openBook = (Array.isArray(bookParam) ? bookParam[0] : bookParam) === "1";
 
   const metaRows: [string, string][] = [
     ["Date", cls.DateLabel],
@@ -54,7 +63,27 @@ export default async function ClassDetailPage(props: PageProps<"/classes/[id]">)
             <div className="hp-roster-title">Class List</div>
             <div className="hp-roster-spots">{spotsLabel}</div>
           </div>
-          <SignupButton scheduleId={cls.ScheduleId} disabled={full} />
+          <BookSheet
+            scheduleId={cls.ScheduleId}
+            full={full}
+            defaultOpen={openBook}
+            cls={{
+              title: cls.Title,
+              date: cls.DateLabel,
+              time: `${cls.StartTime} – ${cls.EndTime}`,
+              place: cls.Location,
+              spots: `${Math.max(0, cls.FreeSpots)}/${cls.MaxSpots} spots open`,
+            }}
+            member={
+              account
+                ? {
+                    name: `${account.FirstName} ${account.LastName}`,
+                    email: account.Email,
+                    initials: `${account.FirstName[0] ?? ""}${account.LastName[0] ?? ""}`,
+                  }
+                : null
+            }
+          />
         </div>
 
       <Roster members={roster} />

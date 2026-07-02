@@ -1,6 +1,6 @@
-import Link from "next/link";
-import type { CSSProperties } from "react";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
+import { CategoryGrid, CategoryTile } from "@/components/CategoryTile";
+import SearchField from "@/components/SearchField";
 
 type CatItem = { label: string; href: string; image?: string };
 type CatSection = { title: string; items: CatItem[] };
@@ -58,18 +58,8 @@ const SECTIONS: CatSection[] = [
   },
 ];
 
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m15.5 15.5 4 4M10.5 17a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z" />
-    </svg>
-  );
-}
-
-function tileStyle(item: CatItem, index: number): CSSProperties {
-  return {
-    backgroundImage: item.image ? `url(${item.image})` : TONES[index % TONES.length],
-  };
+function tileTone(item: CatItem, index: number): string {
+  return item.image ? `url(${item.image})` : TONES[index % TONES.length];
 }
 
 export default function ExplorePage() {
@@ -80,26 +70,21 @@ export default function ExplorePage() {
       <AppContent>
         <PageTitle title="Explore" />
 
-        <label className="hp-search-field">
-          <SearchIcon />
-          <input type="search" placeholder="Search HCI" />
-        </label>
+        <SearchField />
 
         {SECTIONS.map((section) => (
           <section key={section.title} className="hp-explore-section">
             <h2 className="hp-h2">{section.title}</h2>
-            <div className="hp-cat-grid">
+            <CategoryGrid>
               {section.items.map((item) => (
-                <Link
+                <CategoryTile
                   key={item.label}
                   href={item.href}
-                  className="hp-cat-tile"
-                  style={tileStyle(item, toneIndex++)}
-                >
-                  <span className="hp-cat-title">{item.label}</span>
-                </Link>
+                  label={item.label}
+                  tone={tileTone(item, toneIndex++)}
+                />
               ))}
-            </div>
+            </CategoryGrid>
           </section>
         ))}
       </AppContent>

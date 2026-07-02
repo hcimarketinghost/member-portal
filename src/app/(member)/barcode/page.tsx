@@ -1,4 +1,5 @@
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
+import Card from "@/components/Card";
 import { getAccount } from "@/lib/clubready";
 
 const CURRENT_USER_ID = 34822497;
@@ -92,7 +93,7 @@ export default async function BarcodePage() {
       <AppContent className="hp-card-shell">
         <PageTitle title="Member Card" />
 
-        <section className="hp-member-card">
+        <Card as="section" className="hp-member-card">
           <div className="hp-member-card-top">
             <div>
               <div className="hp-profile-name">{memberName}</div>
@@ -107,7 +108,7 @@ export default async function BarcodePage() {
           <a className="hp-btn" href={walletHref}>
             Add to Apple Wallet
           </a>
-        </section>
+        </Card>
       </AppContent>
     </AppPage>
   );

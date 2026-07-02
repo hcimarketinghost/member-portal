@@ -40,7 +40,7 @@ export default function InfoPage({
   return (
     <div className="hp-detail hp-rise">
       <div className="hp-hero" style={hero ?? DEFAULT_HERO}>
-        <Link href={backHref} className="hp-hero-back" aria-label="Back">
+        <Link href={backHref} className="hp-iconbtn hp-hero-back" aria-label="Back">
           <BackIcon />
         </Link>
         <div className="hp-hero-heading">
