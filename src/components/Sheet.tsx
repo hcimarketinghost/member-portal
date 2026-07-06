@@ -37,6 +37,7 @@ export default function Sheet({
   children: ReactNode;
 }) {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef<{ y: number } | null>(null);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -123,13 +124,45 @@ export default function Sheet({
     };
   }, [mounted, dismissible, onClose]);
 
+  // While a drag is active, block native touch scrolling so the sheet follows
+  // the finger instead of the page. Must be a non-passive listener — React's
+  // synthetic onTouchMove can't call preventDefault.
+  useEffect(() => {
+    if (!mounted) return;
+    const el = sheetRef.current;
+    if (!el) return;
+    const onTouchMove = (event: TouchEvent) => {
+      if (dragStart.current) event.preventDefault();
+    };
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => el.removeEventListener("touchmove", onTouchMove);
+  }, [mounted]);
+
   const isMobile = () =>
     typeof window !== "undefined" && window.matchMedia("(max-width: 719px)").matches;
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (!dismissible || exiting || !isMobile()) return;
+    const target = event.target as Element;
+    // The whole sheet is a drag surface, except controls (they keep their
+    // taps) and a body that genuinely scrolls (it keeps native scrolling —
+    // the grabber still dismisses).
+    if (target.closest("button, a, input, select, textarea")) return;
+    const body = bodyRef.current;
+    if (
+      body &&
+      body.contains(target) &&
+      body.scrollHeight > body.clientHeight + 1
+    ) {
+      return;
+    }
     dragStart.current = { y: event.clientY };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer may already be gone (or synthetic); dragging still works
+      // because the handlers sit on the sheet root.
+    }
     setDragging(true);
   }
 
@@ -178,17 +211,17 @@ export default function Sheet({
           animation: exiting ? "none" : undefined,
         }}
         onTransitionEnd={onSheetTransitionEnd}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
-        <div
-          className="hp-sheet-grab"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-        >
+        <div className="hp-sheet-grab">
           <div className="hp-sheet-grabber" aria-hidden="true" />
         </div>
-        <div className="hp-sheet-body">{children}</div>
+        <div className="hp-sheet-body" ref={bodyRef}>
+          {children}
+        </div>
       </div>
     </div>
   );
