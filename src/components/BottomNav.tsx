@@ -19,11 +19,12 @@ import type { ComponentType, SVGProps } from "react";
 
 type IconName = "home" | "schedule" | "barcode" | "account" | "explore";
 
+// Account lives in the TopBar profile chip (mobile) / the desktop bar's
+// profile chip — not a tab.
 const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: string[] }> = [
   { href: "/", label: "Home", icon: "home", match: ["/"] },
   { href: "/schedule", label: "Schedule", icon: "schedule", match: ["/schedule", "/classes", "/play"] },
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
-  { href: "/account", label: "Account", icon: "account", match: ["/account"] },
   { href: "/explore", label: "Explore", icon: "explore", match: ["/explore"] },
 ];
 
@@ -65,15 +66,16 @@ function isActive(pathname: string, match: string[]) {
   return match.some((path) => (path === "/" ? pathname === "/" : pathname.startsWith(path)));
 }
 
-export default function BottomNav() {
+export default function BottomNav({ memberName = null }: { memberName?: string | null }) {
   const pathname = usePathname();
 
   // Login is a standalone, full-screen screen — no app chrome.
   if (pathname === "/login") return null;
 
   // One floating toolbar per breakpoint. Mobile/tablet: bottom-center pill of
-  // 5 tabs. Desktop (≥960): full-width glass bar — hex logo left, tab names +
-  // search grouped right — mirroring hillcountryindoor.com's Desktop nav.
+  // 4 tabs. Desktop (≥960): full-width glass bar — hex logo left, tab names +
+  // search + profile chip grouped right — mirroring hillcountryindoor.com's
+  // Desktop nav.
   return (
     <nav className="hp-appnav" aria-label="Member portal">
       <div className="hp-appnav-cluster">
@@ -95,6 +97,14 @@ export default function BottomNav() {
               </Link>
             );
           })}
+          <Link
+            href={memberName ? "/account" : "/login"}
+            className="hp-appnav-profile"
+            aria-label={memberName ? "Your account" : "Log in"}
+          >
+            <UserOutline aria-hidden="true" />
+            <span>{memberName ?? "Log in"}</span>
+          </Link>
         </div>
       </div>
     </nav>

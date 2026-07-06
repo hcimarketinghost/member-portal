@@ -76,8 +76,10 @@ html, body {
 /* Hex logo — desktop bar only; hidden in the mobile/tablet pill. */
 .hp-appnav-logo { display: none; }
 .hp-appnav-links {
-  min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0;
+  min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
 }
+/* Profile chip — desktop bar only; mobile carries it in the top pills. */
+.hp-appnav-profile { display: none; }
 .hp-appnav-link {
   position: relative; z-index: 1;
   min-width: 0; color: rgba(255, 255, 255, 0.55); text-decoration: none;
@@ -183,6 +185,16 @@ html, body {
   .hp-appnav-link.is-search:hover {
     color: rgba(255, 255, 255, 0.5);
   }
+  .hp-appnav-profile {
+    display: flex; align-items: center; gap: 8px;
+    min-height: 34px; margin-left: 8px; padding: 8px 14px;
+    border-radius: 8px; background: var(--glass-strong);
+    color: #fff; text-decoration: none;
+    font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+    transition: background 140ms ease;
+  }
+  .hp-appnav-profile:hover { background: rgba(255, 255, 255, 0.16); }
+  .hp-appnav-profile svg { display: block; width: 18px; height: 18px; }
 }
 @media (max-width: 460px) {
   .hp-screen { padding-bottom: 132px; }
@@ -190,6 +202,44 @@ html, body {
   .hp-appnav-cluster { padding: 5px; }
   .hp-appnav-link { min-height: 54px; padding: 5px 4px; font-size: 9px; }
   .hp-appnav svg { width: 22px; height: 22px; }
+}
+
+/* ── Floating top pills (mobile/tablet — see components/TopBar.tsx) ──
+   Hex home pill left, profile chip right, both on the bottom-nav glass.
+   Content scrolls behind; top-level screens clear them via the
+   body:has() padding below. Desktop uses the ≥960 glass bar instead. */
+.hp-topbar {
+  position: fixed; z-index: 50;
+  top: max(14px, env(safe-area-inset-top, 0px));
+  left: 14px; right: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  pointer-events: none;
+}
+.hp-topbar-hex,
+.hp-topbar-profile {
+  pointer-events: auto;
+  display: flex; align-items: center; justify-content: center;
+  height: 48px; border-radius: var(--radius-card);
+  background: rgba(18, 18, 18, 0.7);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px) saturate(50%);
+  -webkit-backdrop-filter: blur(8px) saturate(50%);
+  color: #fff; text-decoration: none;
+}
+.hp-topbar-hex { width: 48px; }
+.hp-topbar-hex svg { display: block; }
+.hp-topbar-profile {
+  gap: 8px; padding: 0 16px;
+  font-size: 14px; font-weight: 700; letter-spacing: -0.01em;
+}
+.hp-topbar-profile svg { width: 20px; height: 20px; }
+@media (max-width: 959px) {
+  /* Top-level screens start below the pills; detail screens don't render
+     them (no .hp-topbar in the DOM), so heroes stay flush to the top. */
+  body:has(.hp-topbar) .hp-screen { padding-top: 56px; }
+}
+@media (min-width: 960px) {
+  .hp-topbar { display: none; }
 }
 
 /* ── Typography ────────────────────────────────────────────────────
