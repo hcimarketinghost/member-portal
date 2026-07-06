@@ -66,6 +66,20 @@ export type BookingResult = {
   Message: string;
 };
 
+export type Reservation = {
+  BookingId: number;
+  ScheduleId: number;
+  UserId: number;
+  BookedAt: string;
+};
+
+export type ReservationEntry = Reservation & { Class: ClassScheduleItem };
+
+export type CancelResult = {
+  Success: boolean;
+  Message: string;
+};
+
 export type Account = {
   UserId: number;
   FirstName: string;
@@ -317,6 +331,19 @@ const MOCK_ACCOUNT: Account = {
   ClassAttendanceCount: 24,
 };
 
+// Booked classes live in module state so the mock behaves like a real account
+// across requests; parked on globalThis so a dev-server HMR pass doesn't wipe
+// them. Seeded with two upcoming bookings so the reservations screen has rows.
+const store = globalThis as typeof globalThis & {
+  __hciReservations?: Reservation[];
+  __hciCancellations?: { BookingId: number; Reason: string; CancelledAt: string }[];
+};
+const RESERVATIONS = (store.__hciReservations ??= [
+  { BookingId: 508211, ScheduleId: 50325121, UserId: MOCK_ACCOUNT.UserId, BookedAt: "2026-06-29T14:02:00Z" },
+  { BookingId: 508342, ScheduleId: 50325127, UserId: MOCK_ACCOUNT.UserId, BookedAt: "2026-07-01T09:41:00Z" },
+]);
+const CANCELLATIONS = (store.__hciCancellations ??= []);
+
 /** GetClassScheduleRequestV2 — GET /v2/{ApiKey}/club/{StoreId}/classschedule */
 export async function getClassSchedule(): Promise<ClassScheduleItem[]> {
   // TODO: replace with
@@ -369,7 +396,7 @@ export async function getBookingStatus(
     CanBook: !full,
     ConsumesCredit: true,
     AvailableCredits: 3,
-    IsBooked: false,
+    IsBooked: RESERVATIONS.some((r) => r.ScheduleId === scheduleId && r.UserId === userId),
     IsWaitListed: false,
     CancelHours: 0,
     LeadTime: 0,
@@ -384,10 +411,77 @@ export async function createBooking(
   allowWaitList: boolean
 ): Promise<BookingResult> {
   const status = await getBookingStatus(scheduleId, userId);
+  if (status.IsBooked) {
+    return { Message: "You're already booked for this class." };
+  }
   if (!status.CanBook && !allowWaitList) {
     return { Message: "This class is full." };
   }
-  return { BookingId: Math.floor(Math.random() * 1_000_000), Message: "Success" };
+
+  const booking: Reservation = {
+    BookingId: Math.floor(Math.random() * 1_000_000),
+    ScheduleId: scheduleId,
+    UserId: userId,
+    BookedAt: new Date().toISOString(),
+  };
+  RESERVATIONS.push(booking);
+
+  // Keep the rest of the mock coherent: the member shows up on the class
+  // roster and the class loses a free spot.
+  const cls = await getClass(scheduleId);
+  if (cls) cls.FreeSpots = Math.max(0, cls.FreeSpots - 1);
+  const account = await getAccount(userId);
+  const roster = (MOCK_ROSTER[scheduleId] ??= []);
+  if (!roster.some((m) => m.user_id === userId)) {
+    roster.push({
+      user_id: userId,
+      name: `${account.FirstName} ${account.LastName}`,
+      signed_in: false,
+    });
+  }
+
+  return { BookingId: booking.BookingId, Message: "Success" };
+}
+
+/** Upcoming bookings for a member, joined to their class details. */
+export async function getReservations(userId: number): Promise<ReservationEntry[]> {
+  const classes = await getClassSchedule();
+  return RESERVATIONS.filter((r) => r.UserId === userId)
+    .map((r) => ({ ...r, Class: classes.find((c) => c.ScheduleId === r.ScheduleId) }))
+    .filter((r): r is ReservationEntry => Boolean(r.Class))
+    .sort((a, b) =>
+      a.Class.Date === b.Class.Date
+        ? scheduleMinutes(a.Class.StartTime) - scheduleMinutes(b.Class.StartTime)
+        : a.Class.Date < b.Class.Date
+          ? -1
+          : 1
+    );
+}
+
+/** CancelClassBookingRequest — the member releases their spot. */
+export async function cancelBooking(
+  bookingId: number,
+  userId: number,
+  reason: string
+): Promise<CancelResult> {
+  const index = RESERVATIONS.findIndex(
+    (r) => r.BookingId === bookingId && r.UserId === userId
+  );
+  if (index === -1) {
+    return { Success: false, Message: "We couldn't find that booking." };
+  }
+
+  const [removed] = RESERVATIONS.splice(index, 1);
+  CANCELLATIONS.push({ BookingId: bookingId, Reason: reason, CancelledAt: new Date().toISOString() });
+
+  const cls = await getClass(removed.ScheduleId);
+  if (cls) cls.FreeSpots = Math.min(cls.MaxSpots, cls.FreeSpots + 1);
+  const roster = MOCK_ROSTER[removed.ScheduleId];
+  if (roster) {
+    MOCK_ROSTER[removed.ScheduleId] = roster.filter((m) => m.user_id !== userId);
+  }
+
+  return { Success: true, Message: "Booking cancelled." };
 }
 
 /** UserAccountInfoRequest — GET /users/{UserId} */

@@ -37,11 +37,15 @@ export default function EmptyState({
   body: string;
   action?: EmptyStateAction;
 }) {
+  // The action sits below the card — an inset button inside the grey surface
+  // would be grey-on-grey.
   return (
-    <Card as="section" className="hp-empty-state">
-      {title && <h2 className="hp-empty-title">{title}</h2>}
-      <p className="hp-body">{body}</p>
+    <section className="hp-empty-state">
+      <Card className="hp-empty-card">
+        {title && <h2 className="hp-empty-title">{title}</h2>}
+        <p className="hp-body">{body}</p>
+      </Card>
       {action && <EmptyStateLink action={action} />}
-    </Card>
+    </section>
   );
 }

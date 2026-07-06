@@ -23,12 +23,15 @@ const DISMISS_DISTANCE = 110;
 export default function Sheet({
   open,
   onClose,
+  onExited,
   dismissible = true,
   labelledBy,
   children,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Fires once the exit animation completes and the sheet has unmounted. */
+  onExited?: () => void;
   dismissible?: boolean;
   labelledBy?: string;
   children: ReactNode;
@@ -50,6 +53,7 @@ export default function Sheet({
     setMounted(false);
     setExiting(false);
     setDragY(0);
+    onExited?.();
   };
 
   // Mount on open; on close, slide out from wherever we are (rest or mid-drag).
