@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { HeaderProfileButton } from "@/components/MemberChrome";
 
 function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -47,7 +48,10 @@ export function AppHeader({
 }) {
   return (
     <header className={cx("hp-app-header", align === "center" && "is-center", className)}>
-      {children}
+      <div className="hp-app-header-row">
+        <div className="hp-app-header-copy">{children}</div>
+        {align === "start" && <HeaderProfileButton />}
+      </div>
     </header>
   );
 }

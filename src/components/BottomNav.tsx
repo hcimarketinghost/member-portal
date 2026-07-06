@@ -3,25 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "./Logo";
+import { useMemberChrome } from "@/components/MemberChrome";
 import {
   HomeIcon as HomeOutline,
   CalendarDaysIcon as CalendarOutline,
-  UserIcon as UserOutline,
   MagnifyingGlassIcon as SearchOutline,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeSolid,
   CalendarDaysIcon as CalendarSolid,
-  UserIcon as UserSolid,
   MagnifyingGlassIcon as SearchSolid,
 } from "@heroicons/react/24/solid";
 import type { ComponentType, SVGProps } from "react";
 
-type IconName = "home" | "schedule" | "barcode" | "account" | "explore";
+type IconName = "home" | "schedule" | "barcode" | "explore";
 
-// Account lives in the TopBar profile chip (mobile) / the desktop bar's
-// profile chip — not a tab.
-const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: string[] }> = [
+// Bottom mobile toolbar and desktop sidebar share this one list.
+export const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: string[] }> = [
   { href: "/", label: "Home", icon: "home", match: ["/"] },
   { href: "/schedule", label: "Schedule", icon: "schedule", match: ["/schedule", "/classes", "/play"] },
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
@@ -52,7 +50,6 @@ const ICONS: Record<IconName, { outline: HeroIcon; solid: HeroIcon }> = {
   home: { outline: HomeOutline, solid: HomeSolid },
   schedule: { outline: CalendarOutline, solid: CalendarSolid },
   barcode: { outline: BarcodeOutline, solid: BarcodeSolid },
-  account: { outline: UserOutline, solid: UserSolid },
   explore: { outline: SearchOutline, solid: SearchSolid },
 };
 
@@ -66,16 +63,16 @@ function isActive(pathname: string, match: string[]) {
   return match.some((path) => (path === "/" ? pathname === "/" : pathname.startsWith(path)));
 }
 
-export default function BottomNav({ memberName = null }: { memberName?: string | null }) {
+export default function BottomNav() {
   const pathname = usePathname();
+  const chrome = useMemberChrome();
+  const member = chrome?.member ?? null;
 
   // Login is a standalone, full-screen screen — no app chrome.
   if (pathname === "/login") return null;
 
-  // One floating toolbar per breakpoint. Mobile/tablet: bottom-center pill of
-  // 4 tabs. Desktop (≥960): full-width glass bar — hex logo left, tab names +
-  // search + profile chip grouped right — mirroring hillcountryindoor.com's
-  // Desktop nav.
+  // Mobile/tablet: bottom-center 4-tab pill.
+  // Desktop (≥960): fixed Apple Music-style left sidebar using the same items.
   return (
     <nav className="hp-appnav" aria-label="Member portal">
       <div className="hp-appnav-cluster">
@@ -97,15 +94,24 @@ export default function BottomNav({ memberName = null }: { memberName?: string |
               </Link>
             );
           })}
-          <Link
-            href={memberName ? "/account" : "/login"}
-            className="hp-appnav-profile"
-            aria-label={memberName ? "Your account" : "Log in"}
-          >
-            <UserOutline aria-hidden="true" />
-            <span>{memberName ?? "Log in"}</span>
-          </Link>
         </div>
+        {member ? (
+          <button type="button" className="hp-appnav-profile" onClick={chrome?.openAccount} aria-label="Open account">
+            <span className="hp-appnav-avatar" aria-hidden="true">{member.initials}</span>
+            <span className="hp-appnav-profile-copy">
+              <span className="hp-appnav-profile-name">{member.fullName}</span>
+              <span className="hp-appnav-profile-sub">Account</span>
+            </span>
+          </button>
+        ) : (
+          <Link href="/login" className="hp-appnav-profile" aria-label="Log in">
+            <span className="hp-appnav-avatar" aria-hidden="true">?</span>
+            <span className="hp-appnav-profile-copy">
+              <span className="hp-appnav-profile-name">Log in</span>
+              <span className="hp-appnav-profile-sub">Member access</span>
+            </span>
+          </Link>
+        )}
       </div>
     </nav>
   );

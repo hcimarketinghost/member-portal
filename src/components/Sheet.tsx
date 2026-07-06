@@ -65,6 +65,8 @@ export default function Sheet({
         clearTimeout(exitTimer.current);
         exitTimer.current = null;
       }
+      // Intentional: this effect is the sheet's controlled mount/exit state machine.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMounted(true);
       setExiting(false);
       setDragging(false);

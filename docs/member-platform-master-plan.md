@@ -1,6 +1,6 @@
 # HCI Member Platform Master Plan
 
-Last updated: 2026-07-02
+Last updated: 2026-07-06
 
 ## Executive Direction
 
@@ -41,7 +41,7 @@ Current important routes:
 - `/explore/[slug]` - informational category page
 - `/barcode` - member card/check-in barcode
 - `/account` - account/profile/tools
-- `/reservations` - empty-state reservations page
+- `/reservations` - booked classes in schedule-row style with per-row Details/Cancel (cancel sheet asks a reason); empty state when no bookings
 - `/help` - support page
 - `/refer` - redirects to the HCI referral URL
 
@@ -50,7 +50,7 @@ Current API routes:
 - `/api/auth/login` - mock login; sets `hci_member_user_id`
 - `/api/auth/status` - checks cookie presence
 - `/api/auth/logout` - clears cookie
-- `/api/bookings` - mock class booking against a hard-coded current user
+- `/api/bookings` - POST mock class booking; DELETE cancels a booking with `{ bookingId, reason }`. Mock reservations store lives on `globalThis` in `src/lib/clubready.ts`
 
 Current route protection:
 
@@ -60,7 +60,8 @@ Current route protection:
 Current component shape:
 
 - `AppPage`, `AppContent`, `AppHeader`, `PageTitle` provide basic page primitives.
-- `BottomNav` currently contains both mobile bottom app nav and desktop member top nav.
+- `BottomNav` contains the mobile 4-tab bottom pill (Home, Schedule, Barcode, Explore) and the desktop member top nav with a profile chip; `TopBar` adds mobile floating top pills (hex logo + profile/login chip). Account is reached via the profile chip, not a tab.
+- `Sheet` is the shared drawer (bottom sheet on mobile, centered panel on desktop) with body scroll-lock and whole-surface drag-to-dismiss; `BookSheet` (booking) and `ReservationList` (cancel flow) build on it, both using `HexLoader` (animated hex mark) for in-flight states.
 - `InfoPage` is a shared hero/detail layout for class detail and informational pages.
 - `ActionMenu`, `EmptyState`, `Roster`, `SignupButton`, `LoginForm`, `AccountActions`, `Logo` are reusable primitives.
 - Class schedule rows and class detail content are still mostly embedded directly in pages rather than separated into reusable domain components.

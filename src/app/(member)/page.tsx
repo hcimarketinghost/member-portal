@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AppContent, AppPage } from "@/components/AppPage";
+import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import { ActionList, type ActionRowItem } from "@/components/ActionRow";
 import Section from "@/components/Section";
 
@@ -71,10 +71,9 @@ export default function Home() {
     <AppPage>
       <AppContent>
         <div className="hp-home-dashboard">
-          <header className="hp-home-intro">
-            <h1 className="hp-h1">Home</h1>
-            <p className="hp-sub">Welcome back, Victor</p>
-          </header>
+          <PageTitle title="Home">
+            <p className="hp-sub hp-home-welcome">Welcome back, Victor</p>
+          </PageTitle>
 
           <ActionList
             variant="grid"

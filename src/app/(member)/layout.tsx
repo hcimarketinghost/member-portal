@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import BottomNav from "@/components/BottomNav";
-import TopBar from "@/components/TopBar";
+import { MemberChromeProvider } from "@/components/MemberChrome";
 import { getAccount } from "@/lib/clubready";
 
 export default async function MemberAppLayout({
@@ -10,13 +10,24 @@ export default async function MemberAppLayout({
 }>) {
   const userId = Number((await cookies()).get("hci_member_user_id")?.value);
   const account = userId ? await getAccount(userId) : null;
-  const memberName = account?.FirstName ?? null;
+  const member = account
+    ? {
+        firstName: account.FirstName,
+        lastName: account.LastName,
+        fullName: `${account.FirstName} ${account.LastName}`,
+        initials: `${account.FirstName[0] ?? ""}${account.LastName[0] ?? ""}`,
+        email: account.Email,
+        membershipTypeName: account.MembershipTypeName,
+        membershipExpiresDate: account.MembershipExpiresDate,
+        customStatusText: account.CustomStatusText,
+        pastDueAmount: account.PastDueAmount,
+      }
+    : null;
 
   return (
-    <>
-      <TopBar memberName={memberName} />
+    <MemberChromeProvider member={member}>
       {children}
-      <BottomNav memberName={memberName} />
-    </>
+      <BottomNav />
+    </MemberChromeProvider>
   );
 }

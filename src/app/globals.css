@@ -27,8 +27,10 @@
   --radius-card: 8px;
   --radius-control: 4px;
 
-  /* Side padding — 16px on mobile + tablet, 100px on desktop (≥1200px) */
+  /* Side padding — 16px on mobile + tablet; desktop shifts beside sidebar. */
   --hci-x: 16px;
+  --hp-sidebar-width: 0px;
+  --hp-sidebar-gap: 0px;
   /* Content is full-width minus the side gutters — no fixed cap. Screens that
      want a narrower column override this locally (e.g. .hp-card-shell). */
   --content-max: 100%;
@@ -39,7 +41,7 @@
 }
 
 @media (min-width: 1200px) {
-  .hp { --hci-x: 100px; }
+  .hp { --hci-x: 32px; }
 }
 
 html, body {
@@ -56,9 +58,8 @@ html, body {
 .hp-shell { width: min(calc(100% - var(--hci-x) - var(--hci-x)), var(--content-max)); margin: 0 auto; padding: 0; }
 .hp-screen { padding-bottom: 152px; }
 
-/* ── Floating app toolbar ─────────────────────────────────────────
-   One pill for all breakpoints: bottom-center on mobile, top-center on
-   desktop (see the ≥960 override). Same tabs everywhere. */
+/* ── App navigation ───────────────────────────────────────────────
+   Mobile: lower 4-tab pill. Desktop: fixed left sidebar. */
 .hp-appnav {
   position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom));
   transform: translateX(-50%); z-index: 50;
@@ -73,12 +74,12 @@ html, body {
   backdrop-filter: blur(8px) saturate(50%); -webkit-backdrop-filter: blur(8px) saturate(50%);
   overflow: hidden;
 }
-/* Hex logo — desktop bar only; hidden in the mobile/tablet pill. */
+/* Hex logo — desktop sidebar only; hidden in the mobile/tablet pill. */
 .hp-appnav-logo { display: none; }
 .hp-appnav-links {
   min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0;
 }
-/* Profile chip — desktop bar only; mobile carries it in the top pills. */
+/* Profile chip — desktop sidebar only. */
 .hp-appnav-profile { display: none; }
 .hp-appnav-link {
   position: relative; z-index: 1;
@@ -102,37 +103,49 @@ html, body {
   .hp-appnav svg { width: 26px; height: 26px; }
 }
 @media (min-width: 960px) {
+  .hp {
+    --hp-sidebar-width: 260px;
+    --hp-sidebar-gap: 32px;
+    --hci-x: 32px;
+  }
+  body:has(.hp-appnav) .hp-shell {
+    width: min(
+      calc(100vw - var(--hp-sidebar-width) - var(--hp-sidebar-gap) - var(--hci-x) - var(--hci-x)),
+      var(--content-max)
+    );
+    margin-left: calc(var(--hp-sidebar-width) + var(--hp-sidebar-gap));
+    margin-right: var(--hci-x);
+  }
   .hp-screen {
     padding-bottom: 64px;
   }
-  /* Glass bar mirroring hillcountryindoor.com's Desktop nav: hex logo left,
-     names + search right. Full viewport width no matter the content margins —
-     8px gutter above and to the sides, exactly like the marketing site. */
   .hp-appnav {
-    top: 8px;
+    top: 16px;
     bottom: auto;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-width: none;
+    left: 16px;
+    right: auto;
+    width: var(--hp-sidebar-width);
+    height: calc(100dvh - 32px);
     transform: none;
-    padding: 0 8px;
-    box-sizing: border-box;
   }
-  /* Inner bar fills the strip: 16px left / 10px right / 10px top-bottom
-     internal padding, space-between layout. */
   .hp-appnav-cluster {
+    height: 100%;
     width: 100%;
+    box-sizing: border-box;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: space-between;
-    gap: 0;
-    padding: 10px 10px 10px 16px;
+    gap: 24px;
+    padding: 20px;
+    border: 1px solid var(--hairline-strong);
+    border-radius: 18px;
     overflow: visible;
   }
   .hp-appnav-logo {
     display: flex;
     align-items: center;
+    align-self: flex-start;
     color: #fff;
     text-decoration: none;
     transition: color 140ms ease;
@@ -140,61 +153,100 @@ html, body {
   .hp-appnav-logo:hover {
     color: rgba(255, 255, 255, 0.5);
   }
-  /* Names + search cluster on the right. */
-  .hp-appnav-links {
-    display: flex;
-    align-items: center;
-    gap: 2px;
+  .hp-appnav-logo svg {
+    width: auto;
+    height: 34px;
   }
-  /* Nav H3: Inter 600, 16px/1.4em, -0.04em tracking, Core White. */
+  .hp-appnav-links {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding-top: 20px;
+  }
   .hp-appnav-link {
     flex-direction: row;
-    min-height: 34px;
-    gap: 0;
-    padding: 8px 14px;
-    font-size: 16px;
-    line-height: 1.4;
+    justify-content: flex-start;
+    min-height: 46px;
+    gap: 12px;
+    padding: 0 12px;
+    font-size: 15px;
+    line-height: 1.2;
     font-weight: 600;
-    letter-spacing: -0.04em;
-    color: #fff;
+    letter-spacing: -0.02em;
+    color: var(--text-2);
     border-radius: 8px;
   }
   .hp-appnav-link svg {
-    display: none;
+    display: block;
+    width: 22px;
+    height: 22px;
   }
-  /* Marketing-site hover: white → 50% white. */
   .hp-appnav-link:not(.is-active):hover {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
   }
-  /* Selected tab stays full white (no pill). */
   .hp-appnav-link.is-active {
     color: #fff;
-  }
-  .hp-appnav-link.is-search {
-    padding: 8px 12px;
-  }
-  .hp-appnav-link.is-search span {
-    display: none;
-  }
-  .hp-appnav-link.is-search svg {
-    display: block;
-    width: 20px;
-    height: 20px;
-    stroke-width: 2;
-  }
-  .hp-appnav-link.is-search:hover {
-    color: rgba(255, 255, 255, 0.5);
+    background: var(--raised);
   }
   .hp-appnav-profile {
-    display: flex; align-items: center; gap: 8px;
-    min-height: 34px; margin-left: 8px; padding: 8px 14px;
-    border-radius: 8px; background: var(--glass-strong);
-    color: #fff; text-decoration: none;
-    font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+    text-align: left;
+    text-decoration: none;
+    font-family: inherit;
+    cursor: pointer;
     transition: background 140ms ease;
   }
-  .hp-appnav-profile:hover { background: rgba(255, 255, 255, 0.16); }
-  .hp-appnav-profile svg { display: block; width: 18px; height: 18px; }
+  .hp-appnav-profile:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .hp-appnav-avatar {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(155deg, #565b63 0%, #34373c 52%, #212327 100%);
+    color: #f5f5f7;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .hp-appnav-profile-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .hp-appnav-profile-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hp-appnav-profile-sub {
+    color: var(--text-2);
+    font-size: 12px;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 }
 @media (max-width: 460px) {
   .hp-screen { padding-bottom: 132px; }
@@ -202,44 +254,6 @@ html, body {
   .hp-appnav-cluster { padding: 5px; }
   .hp-appnav-link { min-height: 54px; padding: 5px 4px; font-size: 9px; }
   .hp-appnav svg { width: 22px; height: 22px; }
-}
-
-/* ── Floating top pills (mobile/tablet — see components/TopBar.tsx) ──
-   Hex home pill left, profile chip right, both on the bottom-nav glass.
-   Content scrolls behind; top-level screens clear them via the
-   body:has() padding below. Desktop uses the ≥960 glass bar instead. */
-.hp-topbar {
-  position: fixed; z-index: 50;
-  top: max(14px, env(safe-area-inset-top, 0px));
-  left: 14px; right: 14px;
-  display: flex; align-items: center; justify-content: space-between;
-  pointer-events: none;
-}
-.hp-topbar-hex,
-.hp-topbar-profile {
-  pointer-events: auto;
-  display: flex; align-items: center; justify-content: center;
-  height: 48px; border-radius: var(--radius-card);
-  background: rgba(18, 18, 18, 0.7);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(8px) saturate(50%);
-  -webkit-backdrop-filter: blur(8px) saturate(50%);
-  color: #fff; text-decoration: none;
-}
-.hp-topbar-hex { width: 48px; }
-.hp-topbar-hex svg { display: block; }
-.hp-topbar-profile {
-  gap: 8px; padding: 0 16px;
-  font-size: 14px; font-weight: 700; letter-spacing: -0.01em;
-}
-.hp-topbar-profile svg { width: 20px; height: 20px; }
-@media (max-width: 959px) {
-  /* Top-level screens start below the pills; detail screens don't render
-     them (no .hp-topbar in the DOM), so heroes stay flush to the top. */
-  body:has(.hp-topbar) .hp-screen { padding-top: 56px; }
-}
-@media (min-width: 960px) {
-  .hp-topbar { display: none; }
 }
 
 /* ── Typography ────────────────────────────────────────────────────
@@ -254,6 +268,55 @@ html, body {
 }
 .hp-app-header.is-center {
   text-align: center;
+}
+.hp-app-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hp-app-header-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 6px;
+}
+.hp-app-header-copy .hp-h1,
+.hp-app-header-copy .hp-h2,
+.hp-app-header-copy .hp-sub {
+  margin: 0;
+}
+.hp-header-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(155deg, #565b63 0%, #34373c 52%, #212327 100%);
+  color: #f5f5f7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  cursor: pointer;
+}
+.hp-header-avatar:focus {
+  outline: 0;
+}
+.hp-header-avatar:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 0 0 2px rgba(255, 255, 255, 0.36);
+}
+@media (min-width: 960px) {
+  .hp-header-avatar {
+    display: none;
+  }
 }
 .hp-profile-header {
   display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -368,6 +431,9 @@ html, body {
 
 /* ── Account profile ──────────────────────────────────────────── */
 .hp-account-layout { display: grid; gap: 20px; }
+.hp-account-drawer-layout {
+  padding-bottom: 10px;
+}
 .hp-profile-row {
   display: flex; align-items: center; gap: 16px;
 }
@@ -509,7 +575,6 @@ html, body {
 
 /* ── Hub tiles (home) ─────────────────────────────────────────── */
 .hp-home-dashboard {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
   display: grid;
   gap: 28px;
 }
@@ -725,14 +790,6 @@ html, body {
     flex-basis: min(85%, 300px);
   }
 }
-/* Clear the fixed desktop top bar — must switch at the same 960px breakpoint
-   where the nav moves to the top, or content slides under it on tablet. */
-@media (min-width: 960px) {
-  .hp-home-dashboard {
-    padding-top: 92px;
-  }
-}
-
 .hp-tiles { display: grid; gap: 12px; }
 .hp-tile {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -1564,9 +1621,16 @@ html, body {
 .hp-rise { animation: none; }
 
 /* ── Desktop top-area overrides ───────────────────────────────────
-   Content clears the floating toolbar while keeping page titles visible. */
+   Content starts near the top; desktop navigation is the fixed left sidebar. */
 @media (min-width: 960px) {
   .hp-app-header {
-    padding-top: 92px;
+    padding-top: 48px;
+  }
+  body:has(.hp-appnav) .hp-detail > .hp-hero {
+    width: calc(100% - var(--hp-sidebar-width) - var(--hp-sidebar-gap));
+    margin-left: calc(var(--hp-sidebar-width) + var(--hp-sidebar-gap));
+  }
+  body:has(.hp-appnav) .hp-hero-back {
+    left: calc(var(--hp-sidebar-width) + var(--hp-sidebar-gap) + var(--hci-x));
   }
 }
