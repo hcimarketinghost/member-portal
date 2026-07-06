@@ -84,17 +84,41 @@ export default function Sheet({
     [],
   );
 
-  // Scroll lock + focus + Escape while mounted.
+  // Scroll lock + focus while mounted. `overflow: hidden` alone isn't enough
+  // on iOS — touch scrolling chains through to the page when a swipe starts on
+  // the sheet's non-scrolling space — so pin the body in place and restore the
+  // scroll position on unlock. Kept separate from the Escape listener so a
+  // mid-flight `dismissible` flip can't re-run the lock and lose the position.
   useEffect(() => {
     if (!mounted) return;
-    document.body.style.overflow = "hidden";
+    const scrollY = window.scrollY;
+    const { style } = document.body;
+    style.overflow = "hidden";
+    style.position = "fixed";
+    style.top = `-${scrollY}px`;
+    style.left = "0";
+    style.right = "0";
+    style.width = "100%";
     sheetRef.current?.focus();
+    return () => {
+      style.overflow = "";
+      style.position = "";
+      style.top = "";
+      style.left = "";
+      style.right = "";
+      style.width = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [mounted]);
+
+  // Escape closes while mounted (unless dismissal is blocked).
+  useEffect(() => {
+    if (!mounted) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && dismissible) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = "";
       window.removeEventListener("keydown", onKey);
     };
   }, [mounted, dismissible, onClose]);

@@ -137,7 +137,7 @@ export default function ReservationList({ items }: { items: ReservationItem[] })
               Hang tight.
             </p>
             <p className="hp-book-pending-copy">
-              We&rsquo;re releasing your spot in {target?.title}.
+              Releasing your spot in {target?.title}&hellip;
             </p>
           </div>
         ) : phase === "done" ? (

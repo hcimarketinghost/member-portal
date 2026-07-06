@@ -134,7 +134,7 @@ export default function BookSheet({
               Hang tight.
             </p>
             <p className="hp-book-pending-copy">
-              We&rsquo;re booking your spot in {cls.title}.
+              Booking your spot in {cls.title}&hellip;
             </p>
           </div>
         ) : (
