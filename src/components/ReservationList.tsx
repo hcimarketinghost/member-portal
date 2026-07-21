@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import Avatar from "@/components/Avatar";
 import HexLoader from "@/components/HexLoader";
 import Sheet from "@/components/Sheet";
 
@@ -15,6 +16,8 @@ export type ReservationItem = {
   time: string;
   place: string;
   initials: string;
+  /** Instructor headshot; falls back to initials when absent. */
+  photo?: string;
 };
 
 const CANCEL_REASONS = [
@@ -92,7 +95,7 @@ export default function ReservationList({ items }: { items: ReservationItem[] })
       <div className="hp-list hp-schedule-list">
         {items.map((item) => (
           <div key={item.bookingId} className="hp-row-item hp-res-row">
-            <span className="hp-ri-thumb">{item.initials}</span>
+            <Avatar className="hp-ri-thumb" photo={item.photo} initials={item.initials} />
             <span className="hp-ri-titleblock">
               <span className="hp-ri-titleline">
                 <span className="hp-ri-title">{item.title}</span>

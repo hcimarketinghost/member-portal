@@ -9,6 +9,8 @@ import {
   RectangleGroupIcon,
 } from "@heroicons/react/24/outline";
 import type { ScheduleEntry } from "@/lib/clubready";
+import { instructorPhoto } from "@/lib/images";
+import Avatar from "@/components/Avatar";
 
 const MAX_DAY_TABS = 14;
 
@@ -152,10 +154,11 @@ export default function ScheduleView({ entries }: { entries: ScheduleEntry[] }) 
           const initials = `${entry.InstructorFirstName[0] ?? ""}${entry.InstructorLastName[0] ?? ""}`;
           const instructorShort = `${entry.InstructorFirstName} ${entry.InstructorLastName[0] ?? ""}.`;
           const capacity = capacityText(entry.FreeSpots, entry.MaxSpots);
+          const photo = instructorPhoto(entry.InstructorFirstName, entry.InstructorLastName);
 
           return (
             <Link key={entry.ScheduleId} href={`/classes/${entry.ScheduleId}`} className="hp-row-item">
-              <span className="hp-ri-thumb">{initials}</span>
+              <Avatar className="hp-ri-thumb" photo={photo} initials={initials} />
               <span className="hp-ri-titleblock">
                 <span className="hp-ri-titleline">
                   <span className="hp-ri-title">{entry.Title}</span>

@@ -3,6 +3,7 @@ import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import EmptyState from "@/components/EmptyState";
 import ReservationList from "@/components/ReservationList";
 import { getReservations } from "@/lib/clubready";
+import { instructorPhoto } from "@/lib/images";
 
 /**
  * Upcoming bookings come from ClubReady's booking-status-events endpoint — the
@@ -42,6 +43,7 @@ export default async function ReservationsPage() {
               time: `${r.Class.StartTime} – ${r.Class.EndTime}`,
               place: r.Class.Location,
               initials: `${r.Class.InstructorFirstName[0] ?? ""}${r.Class.InstructorLastName[0] ?? ""}`,
+              photo: instructorPhoto(r.Class.InstructorFirstName, r.Class.InstructorLastName),
             }))}
           />
         ) : (

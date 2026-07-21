@@ -1025,6 +1025,12 @@ html, body {
   background: rgba(255, 255, 255, 0.92); color: #07110f;
   display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800;
 }
+/* Instructor headshots fill their circular container; the initials underneath
+   stay as the fallback when there's no photo for that instructor. */
+.hp-ri-thumb img,
+.hp-detail-instructor-photo img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
 .hp-ri-titleblock { display: grid; gap: 4px; min-width: 0; }
 .hp-ri-titleline {
   display: flex; align-items: baseline; gap: 10px; min-width: 0; max-width: 100%;
