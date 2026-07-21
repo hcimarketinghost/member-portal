@@ -1174,6 +1174,18 @@ html, body {
 .hp-info-section { display: grid; gap: 10px; }
 .hp-info-cta { margin-top: 28px; }
 
+/* Public booking gateway CTAs. .hp-btn is pinned to 309px above 720px, so a
+   plain stack reads as left-adrift in a full-width column — centre the group
+   and let the two secondary options sit side by side once there's room. */
+.hp-book-cta { display: grid; justify-items: center; gap: 14px; }
+.hp-book-cta-note {
+  margin: 6px 0 0; font-size: 15px; font-weight: 500; letter-spacing: -0.01em; color: var(--text-2);
+}
+.hp-book-cta-alts { display: grid; gap: 10px; justify-items: center; width: 100%; }
+@media (min-width: 720px) {
+  .hp-book-cta-alts { display: flex; justify-content: center; gap: 12px; }
+}
+
 .hp-detail-meta { padding: 36px 0 48px; display: grid; row-gap: 36px; column-gap: 28px; }
 .hp-meta-list { display: flex; flex-direction: column; gap: 16px; }
 .hp-meta-row { display: grid; grid-template-columns: 72px 1fr; gap: 16px; align-items: baseline; }
