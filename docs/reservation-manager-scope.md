@@ -119,6 +119,32 @@ session credit · N left" when `ConsumesCredit`), and outside booking window
 5. Deploy with writes off → real-login test → writes on → one controlled book+cancel
    verified in staff UI → open it up.
 
+## UI trim pass — self-contained brief (Opus-suitable, no ClubReady knowledge needed)
+
+Decided 2026-07-21. The data layer is done and live; everything below is UI/IA work
+inside the existing `hp-` design system. Do NOT touch `src/lib/*` or any ClubReady call —
+if something errors against ClubReady, stop and hand back to a Fable session.
+
+1. **`/book` secondary CTAs (priority — member-visible):** "Get a free class pass" →
+   `/class-pass` and "Become a member" → `/join` likely 404 (no pages exist). Point both
+   at the live site (e.g. hillcountryindoor.com membership page) or remove until those
+   flows exist. Same check for `/day-pass`, `/try-a-class`, `/start` in proxy.ts's
+   PUBLIC_EXACT_ROUTES.
+2. **Home:** `/` still renders tiles including Explore (nav-orphaned). Either redirect
+   `/` → `/schedule` (also update BottomNav Home item + proxy) or prune tiles to
+   Book/Scan-in only.
+3. **Orphaned routes:** /explore, /play/*, /notifications, /help, SheetDemo,
+   /dev/design-system are unlinked but reachable. Decide: leave parked (harmless, gated)
+   or 404 them. Roster component on class detail renders mock members — hide it.
+4. **Account panel:** trim to name, membership type/status, log out. Remove any dead
+   actions. Account drawer-vs-page direction is in AGENTS.md "FINAL nav direction".
+5. **Victor's book-drawer UI comments** (he has a list — ask him).
+
+Constraints: tokens/spacing/voice per root CLAUDE.md + AGENTS.md (no exclamation CTAs,
+no eyebrow labels). Verify with the member-portal launch config on port 3100; a signed-in
+session can be simulated by logging in (mock mode is OFF — real login works now, or set
+a `hci_member_user_id` cookie by hand in devtools).
+
 ## Explicitly out
 
 Barcode/scan-in (route parked), Explore/content pages, notifications, PWA packaging,

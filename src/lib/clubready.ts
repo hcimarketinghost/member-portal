@@ -3,9 +3,11 @@ import "server-only";
 import {
   checkBookingStatus,
   createClassBooking,
+  getClassScheduleWindow,
   getUserAccountInfo,
   isConfigured,
   verifyLogin,
+  type CrScheduleItem,
 } from "./clubready-api";
 import { getPiqSchedule } from "./piq";
 
@@ -386,7 +388,63 @@ export async function getClassSchedule(): Promise<ClassScheduleItem[]> {
 
 export async function getClass(scheduleId: number): Promise<ClassScheduleItem | undefined> {
   const classes = await getClassSchedule();
-  return classes.find((c) => c.ScheduleId === scheduleId);
+  const fromPiq = classes.find((c) => c.ScheduleId === scheduleId);
+  if (fromPiq || USE_MOCKS || !isConfigured()) return fromPiq;
+
+  // PIQ miss — ask ClubReady directly. Booking goes to ClubReady anyway, so a
+  // class ClubReady knows about is bookable even before PIQ syncs it (observed
+  // 2026-07-21: a just-created class was in ClubReady's schedule minutes before
+  // the PIQ feed). Two 7-day windows cover the 14-day browse range.
+  try {
+    const today = new Date();
+    const iso = (offset: number) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() + offset);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+    for (const [from, to] of [
+      [iso(0), iso(6)],
+      [iso(7), iso(13)],
+    ] as const) {
+      const window = await getClassScheduleWindow(from, to);
+      const hit = window.find((c) => c.ScheduleId === scheduleId);
+      if (hit) return crToClassScheduleItem(hit);
+    }
+  } catch {
+    // Fallback is best-effort; a miss just means notFound, same as before.
+  }
+  return undefined;
+}
+
+/** ClubReady schedule row → the portal's ClassScheduleItem (adapter rules: knowledge doc §9). */
+function crToClassScheduleItem(c: CrScheduleItem): ClassScheduleItem | undefined {
+  if (!c.CanDirectlyBookPublic) return undefined;
+  const m = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(c.Date ?? "");
+  if (!m) return undefined;
+  const [, mo, d, y] = m.map(Number);
+  const title = c.Title ?? "";
+  const i = title.lastIndexOf(" - ");
+  return {
+    ClassId: c.ClassId ?? 0,
+    ScheduleId: c.ScheduleId,
+    Title: i > -1 ? title.slice(0, i).trim() : title.trim(),
+    Date: `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
+    DateLabel: new Date(Date.UTC(y, mo - 1, d)).toLocaleDateString("en-US", {
+      timeZone: "UTC",
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    }),
+    StartTime: c.StartTime ?? "",
+    EndTime: c.EndTime ?? "",
+    InstructorFirstName: c.InstructorFirstName ?? "",
+    InstructorLastName: c.InstructorLastName ?? "",
+    Location: i > -1 ? title.slice(i + 3).trim() : "",
+    Description: (c.Description ?? "").replace(/\r\n/g, "\n").trim(),
+    CanDirectlyBookPublic: true,
+    FreeSpots: c.FreeSpots ?? 0,
+    MaxSpots: c.MaxSpots ?? 0,
+  };
 }
 
 // TODO: source from the live "open play" val alongside the class schedule.

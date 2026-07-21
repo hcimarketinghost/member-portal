@@ -231,6 +231,44 @@ export async function verifyLogin(
   };
 }
 
+// ── Schedule (fallback source) ──────────────────────────────────────────────
+
+/**
+ * GetClassScheduleRequest — GET /scheduling/class-schedule. Bare array, shape
+ * captured live 2026-07-21 (knowledge doc §9). Max 7 days per request.
+ *
+ * The portal browses from the PIQ feed; this exists as the fallback for a
+ * ScheduleId PIQ hasn't synced yet (a just-created class books fine in
+ * ClubReady before PIQ knows it exists).
+ */
+export type CrScheduleItem = {
+  ClassId: number;
+  ScheduleId: number;
+  Date: string; // "7-23-2026" — M-D-YYYY, zero-padding not guaranteed
+  Title: string;
+  Description?: string;
+  StartTime: string; // "8:30 PM"
+  EndTime: string;
+  InstructorFirstName?: string;
+  InstructorLastName?: string;
+  CanDirectlyBookPublic: boolean;
+  FreeSpots: number;
+  MaxSpots: number;
+};
+
+export function getClassScheduleWindow(
+  fromDate: string,
+  toDate: string,
+  opts: { forwardedFor?: string } = {}
+): Promise<CrScheduleItem[]> {
+  return crRequest<CrScheduleItem[]>(
+    "GET",
+    "/scheduling/class-schedule",
+    { FromDate: fromDate, ToDate: toDate },
+    opts
+  );
+}
+
 // ── Account ─────────────────────────────────────────────────────────────────
 
 /**
