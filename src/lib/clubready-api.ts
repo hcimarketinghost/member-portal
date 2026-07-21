@@ -52,19 +52,6 @@ export const BookingStatusId = {
   WaitListed: 12,
 } as const;
 
-/** UserFindByLoginRequest's AuthenticationResult enum. */
-export const AuthResult = {
-  InvalidPassword: 0,
-  SuccessExpired: 11,
-  SuccessChangePassword: 12,
-  SuccessWeakPassword: 21,
-  Success: 31,
-  FailedWeakPassword: -12,
-  Locked: -21,
-  Disabled: -22,
-  Error: -1,
-} as const;
-
 type Params = Record<string, string | number | boolean | undefined>;
 
 /**
@@ -80,7 +67,7 @@ async function crRequest<T>(
   method: "GET" | "POST",
   route: string,
   params: Params,
-  opts: { forwardedFor?: string } = {}
+  opts: { forwardedFor?: string; tolerateFailure?: boolean } = {}
 ): Promise<T> {
   if (!isConfigured()) {
     throw new ClubReadyError(
@@ -129,7 +116,9 @@ async function crRequest<T>(
   }
 
   // Mode 3 — arrays never carry an envelope, so only object bodies are checked.
-  if (data && typeof data === "object" && !Array.isArray(data)) {
+  // Callers for whom Success:false is a NORMAL domain outcome (e.g. login with a
+  // wrong password) pass tolerateFailure and read the body themselves.
+  if (!opts.tolerateFailure && data && typeof data === "object" && !Array.isArray(data)) {
     const body = data as { Success?: boolean; Message?: string };
     if (body.Success === false) {
       throw new ClubReadyError(body.Message || "ClubReady reported a failure.", route, res.status);
@@ -158,20 +147,50 @@ export type VerifyLoginResult = {
  * through, so this works either way — but the login form's label is a product
  * decision that depends on the answer.
  */
+/**
+ * ServiceStack serializes enums as their NAME in JSON bodies — ClubReady's own
+ * metadata sample is `{"AuthenticationResult":"InvalidPassword",...}` — so the
+ * comparison must be by name, with the numeric values kept only as a fallback.
+ * (First deployed version compared numbers only; every real login fell through
+ * to "didn't match". Found live 2026-07-21.)
+ */
+const AUTH_NAME_BY_VALUE: Record<number, string> = {
+  0: "InvalidPassword",
+  11: "SuccessExpired",
+  12: "SuccessChangePassword",
+  21: "SuccessWeakPassword",
+  31: "Success",
+  [-12]: "FailedWeakPassword",
+  [-15]: "FailedPasswordHistory",
+  [-21]: "Locked",
+  [-22]: "Disabled",
+  [-100]: "CryptographicError",
+  [-1]: "Error",
+};
+
 export async function verifyLogin(
   userName: string,
   password: string,
   opts: { forwardedFor?: string } = {}
 ): Promise<VerifyLoginResult> {
-  type Res = { AuthenticationResult?: number; UserId?: number; HomeStoreId?: number; Message?: string };
+  type Res = {
+    AuthenticationResult?: number | string;
+    UserId?: number;
+    HomeStoreId?: number;
+    Success?: boolean;
+    Message?: string;
+  };
 
   let data: Res;
   try {
+    // tolerateFailure: a wrong password comes back as Success:false with
+    // AuthenticationResult "InvalidPassword" — a normal outcome, not an API
+    // failure to throw on.
     data = await crRequest<Res>(
       "GET",
       "/users/find/login-details",
       { UserName: userName, Password: password },
-      opts
+      { ...opts, tolerateFailure: true }
     );
   } catch (err) {
     // Never surface ClubReady's raw text to the login screen.
@@ -182,25 +201,34 @@ export async function verifyLogin(
     };
   }
 
-  const result = data.AuthenticationResult;
-  const success =
-    result === AuthResult.Success ||
-    result === AuthResult.SuccessExpired ||
-    result === AuthResult.SuccessWeakPassword;
+  const raw = data.AuthenticationResult;
+  const result = typeof raw === "number" ? AUTH_NAME_BY_VALUE[raw] : raw;
 
-  if (success && data.UserId) {
+  if (
+    (result === "Success" || result === "SuccessExpired" || result === "SuccessWeakPassword") &&
+    data.UserId
+  ) {
     return { ok: true, userId: data.UserId, homeStoreId: data.HomeStoreId };
   }
-  if (result === AuthResult.SuccessChangePassword) {
+  if (result === "SuccessChangePassword") {
     return { ok: false, reason: "must_change_password", message: "You need to reset your password before signing in." };
   }
-  if (result === AuthResult.Locked) {
+  if (result === "Locked") {
     return { ok: false, reason: "locked", message: "This account is locked. Please contact the front desk." };
   }
-  if (result === AuthResult.Disabled) {
+  if (result === "Disabled") {
     return { ok: false, reason: "disabled", message: "This account is inactive. Please contact the front desk." };
   }
-  return { ok: false, reason: "invalid", message: "That username or password didn't match." };
+  if (result === "InvalidPassword" || result === "FailedWeakPassword" || result === "FailedPasswordHistory") {
+    return { ok: false, reason: "invalid", message: "That username or password didn't match." };
+  }
+  // Unrecognized result (or missing entirely): don't masquerade as a
+  // credentials problem — that's how the enum bug hid in the first place.
+  return {
+    ok: false,
+    reason: "error",
+    message: "We couldn't sign you in right now. Please try again in a minute.",
+  };
 }
 
 // ── Account ─────────────────────────────────────────────────────────────────
