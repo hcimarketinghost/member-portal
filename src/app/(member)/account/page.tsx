@@ -1,12 +1,27 @@
+import { cookies } from "next/headers";
 import AccountPanel from "@/components/AccountPanel";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
+import EmptyState from "@/components/EmptyState";
 import { getAccount } from "@/lib/clubready";
 
-// TODO: replace with the real signed-in member's ClubReady UserId.
-const CURRENT_USER_ID = 34822497;
-
 export default async function AccountPage() {
-  const account = await getAccount(CURRENT_USER_ID);
+  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const account = userId ? await getAccount(userId) : null;
+
+  if (!account) {
+    return (
+      <AppPage>
+        <AppContent>
+          <PageTitle title="Profile" />
+          <EmptyState
+            body="We couldn't load your account details right now. Your membership is unaffected — try again in a minute."
+            action={{ href: "/schedule", label: "Back to schedule" }}
+          />
+        </AppContent>
+      </AppPage>
+    );
+  }
+
   const member = {
     firstName: account.FirstName,
     lastName: account.LastName,

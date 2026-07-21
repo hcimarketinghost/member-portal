@@ -18,18 +18,31 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    // Hollow login — no real API yet. Any submit sets the session cookie
-    // and drops you into the portal.
-    await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: identifier, password }),
-    });
-    window.location.href = getPostLoginUrl();
+    setError("");
+    // Real ClubReady auth. Only a success response carries the session cookie,
+    // so navigating on failure would just bounce back here via the proxy gate —
+    // stay put and show the reason instead.
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: identifier, password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = getPostLoginUrl();
+        return;
+      }
+      setError(data.message || "That username or password didn't match.");
+    } catch {
+      setError("We couldn't sign you in. Check your connection and try again.");
+    }
+    setSubmitting(false);
   }
 
   return (
@@ -38,7 +51,7 @@ export default function LoginForm() {
         className="hp-login-input"
         type="text"
         autoComplete="username"
-        placeholder="Email or Member #"
+        placeholder="Email or username"
         value={identifier}
         onChange={(e) => setIdentifier(e.target.value)}
       />
@@ -61,6 +74,12 @@ export default function LoginForm() {
           <EyeIcon off={!showPassword} />
         </button>
       </div>
+
+      {error ? (
+        <p className="hp-book-message is-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <button type="submit" disabled={submitting} className="hp-login-submit">
         {submitting ? "Logging in…" : "Log in"}
@@ -85,7 +104,7 @@ export default function LoginForm() {
 function getPostLoginUrl() {
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next");
-  const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+  const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/schedule";
   const url = new URL(target, window.location.origin);
 
   params.forEach((value, key) => {

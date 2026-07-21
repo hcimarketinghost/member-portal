@@ -14,6 +14,15 @@ in the root `HCI-2026/CLAUDE.md`; component conventions in
 All CRM data is **mocked** in `src/lib/clubready.ts` (server-only) until the
 ClubReady API key lands. CSS is one file, `src/app/globals.css`, prefix `hp-`.
 
+**ClubReady API: do not re-derive it.** `../ClubReady-API-Knowledge.md` is the
+single living reference for every ClubReady surface (auth, gotchas, test
+runbook). **§9 is the Scheduling API reference** — exact routes and params for
+class schedule, booking, roster, and cancellation, plus the swap-to-real-data
+checklist. Read it before writing any ClubReady call here. Two things that bite
+immediately: class-schedule is capped at a **7-day** range, and cancellation is a
+**status update** (`StatusId` 3 vs 4 by policy window), not a delete — the
+existing cancel sheet's free-text reason has nowhere to go in ClubReady's model.
+
 ## Navigation chrome (as of 2026-07-06)
 
 - **Mobile/tablet (<960px):** floating glass pills, iOS-app feel.

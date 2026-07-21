@@ -23,7 +23,9 @@ export default async function ClassDetailPage(props: PageProps<"/classes/[id]">)
   const full = cls.FreeSpots <= 0;
   const instructorInitials = `${cls.InstructorFirstName[0] ?? ""}${cls.InstructorLastName[0] ?? ""}`;
   const instructorShort = `${cls.InstructorFirstName} ${cls.InstructorLastName[0] ?? ""}.`;
-  const spotsLabel = `${roster.length}/${cls.MaxSpots} Spots`;
+  // Booked count comes from the class itself — the roster endpoint is still
+  // mocked and returns [] for real ScheduleIds.
+  const spotsLabel = `${Math.max(0, cls.MaxSpots - cls.FreeSpots)}/${cls.MaxSpots} Spots`;
 
   const bookParam = searchParams.book;
   const openBook = (Array.isArray(bookParam) ? bookParam[0] : bookParam) === "1";

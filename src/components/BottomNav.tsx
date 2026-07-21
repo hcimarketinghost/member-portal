@@ -8,22 +8,26 @@ import {
   HomeIcon as HomeOutline,
   CalendarDaysIcon as CalendarOutline,
   MagnifyingGlassIcon as SearchOutline,
+  TicketIcon as TicketOutline,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeSolid,
   CalendarDaysIcon as CalendarSolid,
   MagnifyingGlassIcon as SearchSolid,
+  TicketIcon as TicketSolid,
 } from "@heroicons/react/24/solid";
 import type { ComponentType, SVGProps } from "react";
 
-type IconName = "home" | "schedule" | "barcode" | "explore";
+type IconName = "home" | "schedule" | "barcode" | "explore" | "reservations";
 
 // Bottom mobile toolbar and desktop sidebar share this one list.
 export const MAIN_ITEMS: Array<{ href: string; label: string; icon: IconName; match: string[] }> = [
   { href: "/", label: "Home", icon: "home", match: ["/"] },
   { href: "/schedule", label: "Schedule", icon: "schedule", match: ["/schedule", "/classes", "/play"] },
+  // Hand-off screen to ClubReady's portal until an in-app reservations list
+  // has a data source (see docs/reservation-manager-scope.md).
+  { href: "/reservations", label: "Reservations", icon: "reservations", match: ["/reservations"] },
   { href: "/barcode", label: "Barcode", icon: "barcode", match: ["/barcode"] },
-  { href: "/explore", label: "Explore", icon: "explore", match: ["/explore"] },
 ];
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -51,6 +55,7 @@ const ICONS: Record<IconName, { outline: HeroIcon; solid: HeroIcon }> = {
   schedule: { outline: CalendarOutline, solid: CalendarSolid },
   barcode: { outline: BarcodeOutline, solid: BarcodeSolid },
   explore: { outline: SearchOutline, solid: SearchSolid },
+  reservations: { outline: TicketOutline, solid: TicketSolid },
 };
 
 function Icon({ name, active }: { name: IconName; active: boolean }) {
@@ -86,7 +91,7 @@ export default function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`hp-appnav-link ${active ? "is-active" : ""} ${item.icon === "explore" ? "is-search" : ""}`}
+                className={`hp-appnav-link ${active ? "is-active" : ""}`}
                 aria-current={active ? "page" : undefined}
               >
                 <Icon name={item.icon} active={active} />

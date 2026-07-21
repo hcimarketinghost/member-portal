@@ -1,41 +1,26 @@
-import { cookies } from "next/headers";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import EmptyState from "@/components/EmptyState";
-import ReservationList from "@/components/ReservationList";
-import { getReservations } from "@/lib/clubready";
 
-/** "Thursday, July 2" → "Thu, July 2" so the row meta stays one line. */
-function shortDate(dateLabel: string) {
-  return dateLabel.replace(/^([A-Za-z]{3})[a-z]*,/, "$1,");
-}
+/**
+ * Reservations are managed in ClubReady's own member portal for now — this
+ * screen is a deliberate hand-off, not a stub. ClubReady's partner API has no
+ * "list a member's bookings" endpoint (triple-verified 2026-07-21: op list,
+ * DTO sweep, partner guide — see ClubReady-API-Knowledge.md §9), so an
+ * in-portal list needs either PerformanceIQ's endpoint or our own booking
+ * mirror. Both are scoped in docs/reservation-manager-scope.md; until one
+ * lands, members manage bookings where ClubReady already shows them.
+ */
+const CLUBREADY_PORTAL_URL = "https://hcisf.clubready.com";
 
-export default async function ReservationsPage() {
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
-  const reservations = userId ? await getReservations(userId) : [];
-
+export default function ReservationsPage() {
   return (
-    <AppPage backHref="/">
+    <AppPage backHref="/schedule">
       <AppContent>
         <PageTitle title="Your Reservations" />
-        {reservations.length === 0 ? (
-          <EmptyState
-            body="Upcoming class bookings and court reservations will appear here."
-            action={{ href: "/classes", label: "Browse classes" }}
-          />
-        ) : (
-          <ReservationList
-            items={reservations.map((r) => ({
-              bookingId: r.BookingId,
-              scheduleId: r.ScheduleId,
-              title: r.Class.Title,
-              dateLabel: r.Class.DateLabel,
-              dateShort: shortDate(r.Class.DateLabel),
-              time: `${r.Class.StartTime} – ${r.Class.EndTime}`,
-              place: r.Class.Location,
-              initials: `${r.Class.InstructorFirstName[0] ?? ""}${r.Class.InstructorLastName[0] ?? ""}`,
-            }))}
-          />
-        )}
+        <EmptyState
+          body="Your class bookings live in the ClubReady member portal — the same login you use here. View, change, or cancel them there, or book your next class right from the schedule."
+          action={{ href: CLUBREADY_PORTAL_URL, label: "Open ClubReady portal", external: true }}
+        />
       </AppContent>
     </AppPage>
   );

@@ -38,7 +38,7 @@ export default function InfoPage({
   children: ReactNode;
 }) {
   return (
-    <div className="hp-detail hp-rise">
+    <div className="hp-detail hp-info-page hp-rise">
       <div className="hp-hero" style={hero ?? DEFAULT_HERO}>
         <Link href={backHref} className="hp-iconbtn hp-hero-back" aria-label="Back">
           <BackIcon />

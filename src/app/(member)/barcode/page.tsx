@@ -1,8 +1,9 @@
+import { cookies } from "next/headers";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import Card from "@/components/Card";
+import EmptyState from "@/components/EmptyState";
 import { getAccount } from "@/lib/clubready";
 
-const CURRENT_USER_ID = 34822497;
 const CODE39: Record<string, string> = {
   "0": "nnnwwnwnn",
   "1": "wnnwnnnnw",
@@ -84,7 +85,23 @@ function BarcodeSvg({ value }: { value: string }) {
 }
 
 export default async function BarcodePage() {
-  const account = await getAccount(CURRENT_USER_ID);
+  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const account = userId ? await getAccount(userId) : null;
+
+  if (!account || !account.Barcode) {
+    return (
+      <AppPage>
+        <AppContent className="hp-card-shell">
+          <PageTitle title="Member Card" />
+          <EmptyState
+            body="We couldn't load your member card right now. Try again in a minute, or scan in at the front desk."
+            action={{ href: "/schedule", label: "Back to schedule" }}
+          />
+        </AppContent>
+      </AppPage>
+    );
+  }
+
   const memberName = `${account.FirstName} ${account.LastName}`;
   const walletHref = `https://www.hillcountryindoor.com/digitalpass?email=${encodeURIComponent(account.Email)}`;
 

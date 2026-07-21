@@ -1,5 +1,23 @@
 import { cookies } from "next/headers";
 import { cancelBooking, createBooking } from "@/lib/clubready";
+import { ClubReadyError } from "@/lib/clubready-api";
+
+/**
+ * createBooking/cancelBooking throw (writes disabled, ClubReady down or
+ * rejecting) as well as returning soft failures. BookSheet renders whatever
+ * `Message` it gets back, so map the throws into that shape instead of letting
+ * them become opaque 500s.
+ */
+function messageFor(err: unknown): string {
+  if (err instanceof ClubReadyError) {
+    // Real ClubReady messages are member-appropriate ("already booked", etc.);
+    // the writes-disabled guard is ops-speak, so translate it.
+    return err.message.startsWith("Writes are disabled")
+      ? "Online booking isn't turned on yet. Please book through the front desk."
+      : err.message;
+  }
+  return "We couldn't reach the booking system. Please try again.";
+}
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -15,8 +33,12 @@ export async function POST(request: Request) {
     return Response.json({ Message: "Sign in to book this class." }, { status: 401 });
   }
 
-  const result = await createBooking(scheduleId, userId, allowWaitList);
-  return Response.json(result);
+  try {
+    const result = await createBooking(scheduleId, userId, allowWaitList);
+    return Response.json(result);
+  } catch (err) {
+    return Response.json({ Message: messageFor(err) }, { status: 503 });
+  }
 }
 
 export async function DELETE(request: Request) {
@@ -36,6 +58,10 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const result = await cancelBooking(bookingId, userId, reason);
-  return Response.json(result, { status: result.Success ? 200 : 404 });
+  try {
+    const result = await cancelBooking(bookingId, userId, reason);
+    return Response.json(result, { status: result.Success ? 200 : 404 });
+  } catch (err) {
+    return Response.json({ Success: false, Message: messageFor(err) }, { status: 503 });
+  }
 }

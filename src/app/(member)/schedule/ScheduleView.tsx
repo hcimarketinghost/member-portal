@@ -10,17 +10,43 @@ import {
 } from "@heroicons/react/24/outline";
 import type { ScheduleEntry } from "@/lib/clubready";
 
-const DAYS = [
-  { label: "Today", date: "2", iso: "2026-07-02" },
-  { label: "Fri", date: "3", iso: "2026-07-03" },
-  { label: "Sat", date: "4", iso: "2026-07-04" },
-  { label: "Sun", date: "5", iso: "2026-07-05" },
-  { label: "Mon", date: "6", iso: "2026-07-06" },
-  { label: "Tue", date: "7", iso: "2026-07-07" },
-  { label: "Wed", date: "8", iso: "2026-07-08" },
-];
+const MAX_DAY_TABS = 14;
 
-const MONTH_LABEL = "July 2026";
+type DayTab = { label: string; date: string; iso: string };
+
+/** Local-time ISO date — new Date("YYYY-MM-DD") would parse as UTC and can shift a day. */
+function localIso(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/**
+ * Day tabs derived from the feed itself — the schedule window moves every day,
+ * so the tabs can't be a hardcoded list. Days with no classes are skipped
+ * (the feed has gaps on light days), which also means a tab is never empty.
+ */
+function buildDays(entries: ScheduleEntry[]): DayTab[] {
+  const todayIso = localIso(new Date());
+  const dates = [...new Set(
+    entries.flatMap((e) => (e.kind === "class" && e.Date >= todayIso ? [e.Date] : []))
+  )]
+    .sort()
+    .slice(0, MAX_DAY_TABS);
+
+  return dates.map((iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const label =
+      iso === todayIso
+        ? "Today"
+        : new Date(y, m - 1, d).toLocaleDateString("en-US", { weekday: "short" });
+    return { label, date: String(d), iso };
+  });
+}
+
+function monthLabel(iso: string | undefined) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
 
 function capacityText(freeSpots: number, maxSpots: number) {
   const booked = Math.max(0, maxSpots - freeSpots);
@@ -32,11 +58,13 @@ function entriesForDay(entries: ScheduleEntry[], dateIso: string) {
 }
 
 export default function ScheduleView({ entries }: { entries: ScheduleEntry[] }) {
-  const [selectedDay, setSelectedDay] = useState(DAYS[0].iso);
+  const DAYS = useMemo(() => buildDays(entries), [entries]);
+  const [selectedDay, setSelectedDay] = useState(() => DAYS[0]?.iso ?? "");
   const selectedDayIndex = DAYS.findIndex((day) => day.iso === selectedDay);
   const selectedEntries = useMemo(() => entriesForDay(entries, selectedDay), [entries, selectedDay]);
   const canGoPrevious = selectedDayIndex > 0;
   const canGoNext = selectedDayIndex >= 0 && selectedDayIndex < DAYS.length - 1;
+  const MONTH_LABEL = monthLabel(DAYS[selectedDayIndex >= 0 ? selectedDayIndex : 0]?.iso);
 
   function shiftDay(direction: -1 | 1) {
     const nextDay = DAYS[selectedDayIndex + direction];

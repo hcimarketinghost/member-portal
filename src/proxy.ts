@@ -30,7 +30,7 @@ function safeNextPath(request: NextRequest) {
 
 function safeLoginNext(request: NextRequest) {
   const next = request.nextUrl.searchParams.get("next");
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/account";
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/schedule";
 
   const url = new URL(next, request.nextUrl.origin);
   request.nextUrl.searchParams.forEach((value, key) => {

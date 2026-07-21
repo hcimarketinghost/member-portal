@@ -1,16 +1,43 @@
 import "server-only";
 
+import {
+  checkBookingStatus,
+  createClassBooking,
+  getUserAccountInfo,
+  isConfigured,
+  verifyLogin,
+} from "./clubready-api";
+import { getPiqSchedule } from "./piq";
+
 /**
- * Server-only ClubReady client. Every export here is a mock stand-in for a
- * real GET/POST to clubready.com/api, shaped to match the confirmed
- * TypeScript DTOs (see ../../HCI-Member-Portal-ClubReady-Plan.md and
- * ../../HCI-ClubReady-Checkout-Assessment.md). Once the API key + StoreId
- * land, each function's body swaps to a real `fetch` call — the calling
- * pages/routes don't need to change shape.
+ * Server-only ClubReady client.
+ *
+ * Data comes from two places on purpose (see ../../ClubReady-API-Knowledge.md §9
+ * and docs/light-v1-scope.md):
+ *   • Class browsing → the public PerformanceIQ feed (./piq.ts). No API key, so
+ *     no public request path can burn or expose our ClubReady credential.
+ *   • Member actions (login, eligibility, booking) → ClubReady (./clubready-api.ts).
+ *
+ * Still mocked below: roster, account, reservations, and cancellation. Those are
+ * not laziness — ClubReady has no endpoint that lists a member's bookings, so
+ * that screen needs a storage decision first. See the notes on each function.
+ *
+ * When ClubReady is not configured these fail closed rather than pretending to
+ * work. For local UI work without a key, set CLUBREADY_USE_MOCKS=true.
  */
 
-const STORE_ID = Number(process.env.CLUBREADY_STORE_ID ?? "0");
-const API_KEY = process.env.CLUBREADY_API_KEY ?? "";
+const USE_MOCKS = process.env.CLUBREADY_USE_MOCKS === "true";
+
+function mocksOrThrow(what: string): boolean {
+  if (USE_MOCKS) return true;
+  if (!isConfigured()) {
+    throw new Error(
+      `${what} needs ClubReady credentials. Set CLUBREADY_API_KEY and CLUBREADY_STORE_ID, ` +
+        `or CLUBREADY_USE_MOCKS=true for local UI work.`
+    );
+  }
+  return false;
+}
 
 export type ClassScheduleItem = {
   ClassId: number;
@@ -344,11 +371,17 @@ const RESERVATIONS = (store.__hciReservations ??= [
 ]);
 const CANCELLATIONS = (store.__hciCancellations ??= []);
 
-/** GetClassScheduleRequestV2 — GET /v2/{ApiKey}/club/{StoreId}/classschedule */
+/**
+ * Bookable studio classes, from the public PerformanceIQ feed.
+ *
+ * Not ClubReady's own /scheduling/class-schedule: the PIQ feed needs no API key,
+ * already returns ISO datetimes and capacity counts, and covers 14 days in one
+ * call (ClubReady caps a request at 7 days). Its `ClubReadyClassID` is
+ * ClubReady's bookable `ScheduleId`, so bookings still go to ClubReady.
+ */
 export async function getClassSchedule(): Promise<ClassScheduleItem[]> {
-  // TODO: replace with
-  // fetch(`https://www.clubready.com/api/v2/${API_KEY}/club/${STORE_ID}/classschedule?FromDate=...&ToDate=...`)
-  return MOCK_CLASSES;
+  if (USE_MOCKS) return MOCK_CLASSES;
+  return getPiqSchedule();
 }
 
 export async function getClass(scheduleId: number): Promise<ClassScheduleItem | undefined> {
@@ -385,22 +418,41 @@ export async function getRoster(scheduleId: number): Promise<RosterMember[]> {
   return MOCK_ROSTER[scheduleId] ?? [];
 }
 
-/** CheckBookingStatusRequest — GET /scheduling/booking-status-check */
+/**
+ * CheckBookingStatusRequest — GET /scheduling/booking-status-check
+ *
+ * The pre-flight for the booking button. `MaxLeadTime` is HCI's 9-day booking
+ * window as ClubReady reports it — read it, never hardcode it.
+ */
 export async function getBookingStatus(
   scheduleId: number,
   userId: number
 ): Promise<BookingStatus> {
-  const cls = await getClass(scheduleId);
-  const full = !cls || cls.FreeSpots <= 0;
+  if (mocksOrThrow("Checking booking eligibility")) {
+    const cls = await getClass(scheduleId);
+    const full = !cls || cls.FreeSpots <= 0;
+    return {
+      CanBook: !full,
+      ConsumesCredit: true,
+      AvailableCredits: 3,
+      IsBooked: RESERVATIONS.some((r) => r.ScheduleId === scheduleId && r.UserId === userId),
+      IsWaitListed: false,
+      CancelHours: 0,
+      LeadTime: 0,
+      MaxLeadTime: 216,
+    };
+  }
+
+  const s = await checkBookingStatus(scheduleId, userId);
   return {
-    CanBook: !full,
-    ConsumesCredit: true,
-    AvailableCredits: 3,
-    IsBooked: RESERVATIONS.some((r) => r.ScheduleId === scheduleId && r.UserId === userId),
-    IsWaitListed: false,
-    CancelHours: 0,
-    LeadTime: 0,
-    MaxLeadTime: 216, // 9 days, per PIQ booking-policy screenshot
+    CanBook: Boolean(s.CanBook),
+    ConsumesCredit: Boolean(s.ConsumesCredit),
+    AvailableCredits: s.AvailableCredits ?? 0,
+    IsBooked: Boolean(s.IsBooked),
+    IsWaitListed: Boolean(s.IsWaitListed),
+    CancelHours: s.CancelHours ?? 0,
+    LeadTime: s.LeadTime ?? 0,
+    MaxLeadTime: s.MaxLeadTime ?? 0,
   };
 }
 
@@ -410,6 +462,20 @@ export async function createBooking(
   userId: number,
   allowWaitList: boolean
 ): Promise<BookingResult> {
+  if (!mocksOrThrow("Booking a class")) {
+    // Pre-flight first so a full or ineligible class gives a real reason rather
+    // than a bare ClubReady error.
+    const status = await getBookingStatus(scheduleId, userId);
+    if (status.IsBooked) return { Message: "You're already booked for this class." };
+    if (!status.CanBook && !allowWaitList) return { Message: "This class is full." };
+
+    const res = await createClassBooking(scheduleId, userId, allowWaitList);
+    return {
+      BookingId: res.BookingId ?? undefined,
+      Message: res.BookingId ? "Success" : res.Message || "That booking didn't go through.",
+    };
+  }
+
   const status = await getBookingStatus(scheduleId, userId);
   if (status.IsBooked) {
     return { Message: "You're already booked for this class." };
@@ -432,7 +498,7 @@ export async function createBooking(
   if (cls) cls.FreeSpots = Math.max(0, cls.FreeSpots - 1);
   const account = await getAccount(userId);
   const roster = (MOCK_ROSTER[scheduleId] ??= []);
-  if (!roster.some((m) => m.user_id === userId)) {
+  if (account && !roster.some((m) => m.user_id === userId)) {
     roster.push({
       user_id: userId,
       name: `${account.FirstName} ${account.LastName}`,
@@ -443,7 +509,21 @@ export async function createBooking(
   return { BookingId: booking.BookingId, Message: "Success" };
 }
 
-/** Upcoming bookings for a member, joined to their class details. */
+/**
+ * Upcoming bookings for a member — STILL MOCKED, and blocked on a design call.
+ *
+ * ClubReady has no endpoint that returns a user's bookings. Verified against the
+ * full generated DTO set: `booking-status-check` is one class + one user,
+ * `class-roster` is one class + every user (with their PII), and
+ * `booking-status-events` is store-wide status *changes* in ≤24h windows.
+ * Nothing answers "what is this member booked into?".
+ *
+ * Getting this real needs one of: a local mirror of bookings we create (cheap,
+ * but blind to bookings made in the ClubReady app, kiosk, or front desk), a
+ * fan-out of ~400 status checks (not viable), or polling the events feed into a
+ * mirror (works, but that is a cron worker). Deferred to v2 — see
+ * docs/light-v1-scope.md.
+ */
 export async function getReservations(userId: number): Promise<ReservationEntry[]> {
   const classes = await getClassSchedule();
   return RESERVATIONS.filter((r) => r.UserId === userId)
@@ -458,7 +538,21 @@ export async function getReservations(userId: number): Promise<ReservationEntry[
     );
 }
 
-/** CancelClassBookingRequest — the member releases their spot. */
+/**
+ * Cancel a booking — STILL MOCKED, deliberately.
+ *
+ * The real call is `BookingStatusUpdateRequest` (POST
+ * /scheduling/booking-status-update) with a `StatusId`, not a delete: 3 =
+ * cancelled within policy (no credit lost), 4 = outside policy (session lost).
+ * Choosing between them needs `CancelHours` from booking-status-check plus the
+ * class start time, and this signature only receives a `bookingId` — so wiring
+ * it now would mean always sending 3 and silently never charging a late
+ * cancellation. That is a billing decision, not a default worth guessing.
+ *
+ * Also note ClubReady has no field for a cancellation reason, so the reason
+ * chips in the cancel sheet have nowhere to go server-side. Resolve alongside
+ * getReservations() in v2.
+ */
 export async function cancelBooking(
   bookingId: number,
   userId: number,
@@ -484,22 +578,63 @@ export async function cancelBooking(
   return { Success: true, Message: "Booking cancelled." };
 }
 
-/** UserAccountInfoRequest — GET /users/{UserId} */
-export async function getAccount(userId: number): Promise<Account> {
-  return MOCK_ACCOUNT;
+/**
+ * UserAccountInfoRequest — GET /users/{UserId}.
+ *
+ * Returns null instead of throwing: this runs in the member layout on every
+ * page, so a ClubReady hiccup (or missing config) must degrade to chrome
+ * without a name — never a crashed portal. Field mapping is from the partner
+ * guide's real response example (knowledge doc §9).
+ */
+export async function getAccount(userId: number): Promise<Account | null> {
+  if (USE_MOCKS) return MOCK_ACCOUNT;
+  if (!isConfigured() || !userId) return null;
+
+  try {
+    const u = await getUserAccountInfo(userId);
+    return {
+      UserId: u.UserId ?? userId,
+      FirstName: u.FirstName ?? "",
+      LastName: u.LastName ?? "",
+      Email: u.Email ?? "",
+      Barcode: u.Barcode ?? "",
+      MembershipTypeName: u.MembershipTypeName ?? "",
+      MembershipExpiresDate: u.MembershipExpiresDate ?? "",
+      CustomStatusText: u.CustomStatusText ?? "",
+      PastDueAmount: u.PastDueAmount ?? 0,
+      ClassAttendanceCount: u.ClassAttendanceCount ?? 0,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Placeholder for member login. Real mechanism still unconfirmed — depends
- * on what ClubReady's `Authenticate` operation actually does (see open
- * question in HCI-Member-Portal-ClubReady-Plan.md). Until that's answered,
- * this always "succeeds" against the mock account for shell purposes.
+ * Member login — UserFindByLoginRequest (GET /users/find/login-details).
+ *
+ * Note the parameter is ClubReady's `UserName`, which is not confirmed to be the
+ * member's email address for store 5761. Whatever the member types is passed
+ * through unchanged, so this works either way, but the login field's label is a
+ * product decision waiting on that answer.
+ *
+ * Fails closed: with no credentials configured this refuses rather than waving
+ * everyone through, which is what the previous placeholder did.
  */
 export async function login(
-  _email: string,
-  _password: string
+  userName: string,
+  password: string
 ): Promise<{ success: boolean; userId?: number; message?: string }> {
-  // No real auth yet — the login screen is a hollow shell. Any submit
-  // "succeeds" against the mock account so the gated portal stays reachable.
-  return { success: true, userId: MOCK_ACCOUNT.UserId };
+  if (USE_MOCKS) return { success: true, userId: MOCK_ACCOUNT.UserId };
+
+  if (!isConfigured()) {
+    return { success: false, message: "Sign-in is unavailable right now." };
+  }
+  if (!userName || !password) {
+    return { success: false, message: "Enter your username and password." };
+  }
+
+  const result = await verifyLogin(userName, password);
+  return result.ok
+    ? { success: true, userId: result.userId }
+    : { success: false, message: result.message ?? "That username or password didn't match." };
 }
