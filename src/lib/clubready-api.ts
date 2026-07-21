@@ -269,6 +269,57 @@ export function getClassScheduleWindow(
   );
 }
 
+// ── Booking status events ───────────────────────────────────────────────────
+
+/**
+ * BookingStatusEventsRequest — GET /scheduling/booking-status-events.
+ *
+ * ClubReady has no "list a member's bookings" endpoint (verified against the op
+ * list, the generated DTOs, and the partner guide). This is the only operation
+ * that returns booking rows across users, so it's the one candidate for showing
+ * a member their upcoming reservations.
+ *
+ * OPEN QUESTION being answered empirically: the docs say "booking status changes
+ * in a time frame" but each row carries BookingDateTime (when the class is) AND
+ * StatusChanged (when the status moved) as separate fields, and it is not
+ * documented which one FromDate/ToDate filters on. We only ever query FORWARD
+ * windows, so a hit proves BookingDateTime semantics; empty means it's a change
+ * feed and the reservations list needs a different source.
+ *
+ * Window is capped at 24h by ClubReady, and dates are UTC.
+ */
+export type BookingStatusEvent = {
+  UserId: number;
+  BookingId: number;
+  ClassScheduleId?: number;
+  ServiceId?: number;
+  BookingDateTime: string;
+  Status?: string | number;
+  StatusId?: number;
+  StatusChanged: string;
+  Consult?: boolean;
+  BookedFromWaitList?: boolean;
+};
+
+export async function getBookingStatusEvents(
+  fromDate: string,
+  toDate: string,
+  opts: { forwardedFor?: string } = {}
+): Promise<BookingStatusEvent[]> {
+  const res = await crRequest<{ BookingStatusEvents?: BookingStatusEvent[] }>(
+    "GET",
+    "/scheduling/booking-status-events",
+    {
+      FromDate: fromDate,
+      ToDate: toDate,
+      BookingTypeFilter: 1, // classes only
+      ConsultFilter: 2, // exclude consults
+    },
+    opts
+  );
+  return res.BookingStatusEvents ?? [];
+}
+
 // ── Account ─────────────────────────────────────────────────────────────────
 
 /**

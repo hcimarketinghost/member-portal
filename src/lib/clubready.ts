@@ -3,10 +3,12 @@ import "server-only";
 import {
   checkBookingStatus,
   createClassBooking,
+  getBookingStatusEvents,
   getClassScheduleWindow,
   getUserAccountInfo,
   isConfigured,
   verifyLogin,
+  type BookingStatusEvent,
   type CrScheduleItem,
 } from "./clubready-api";
 import { getPiqSchedule } from "./piq";
@@ -582,7 +584,92 @@ export async function createBooking(
  * mirror (works, but that is a cron worker). Deferred to v2 — see
  * docs/light-v1-scope.md.
  */
+/** UTC calendar date, N days from now — the events endpoint takes UTC dates. */
+function utcDayOffset(days: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Booking statuses that mean "this reservation is still on".
+ * Compared by NAME first: ServiceStack serializes enums as name strings in JSON
+ * response bodies (this cost us a live login bug — see knowledge doc §4).
+ */
+const ACTIVE_STATUS_NAMES = new Set(["Open", "Pending", "WaitListed"]);
+const ACTIVE_STATUS_IDS = new Set([2, 11, 12]);
+
+function isActiveBooking(e: BookingStatusEvent): boolean {
+  if (typeof e.Status === "string") return ACTIVE_STATUS_NAMES.has(e.Status);
+  const id = typeof e.Status === "number" ? e.Status : e.StatusId;
+  return typeof id === "number" && ACTIVE_STATUS_IDS.has(id);
+}
+
+/**
+ * A member's upcoming bookings, assembled from booking-status-events.
+ *
+ * Only FORWARD windows are queried (today → +15 UTC days, one 24h call each,
+ * run in parallel and cached upstream). That's deliberate: if the endpoint
+ * filters on BookingDateTime we get real upcoming reservations; if it's a
+ * change feed keyed on StatusChanged, future windows come back empty and the
+ * page falls back to the ClubReady hand-off. No false positives either way.
+ *
+ * Returns [] on any failure — reservations degrading to the hand-off card is
+ * fine; a 500 on a member's own page is not.
+ */
 export async function getReservations(userId: number): Promise<ReservationEntry[]> {
+  if (USE_MOCKS) return getMockReservations(userId);
+  if (!isConfigured() || !userId) return [];
+
+  try {
+    // +15 covers the 14-day browse window plus the UTC/club-local straddle
+    // (an 8:30 PM Chicago class lands on the next UTC day).
+    const windows = Array.from({ length: 15 }, (_, i) => [utcDayOffset(i), utcDayOffset(i + 1)]);
+    const batches = await Promise.all(
+      windows.map(([from, to]) => getBookingStatusEvents(from, to).catch(() => []))
+    );
+
+    // Keep the newest event per BookingId — a booking that changed status more
+    // than once appears several times.
+    const latest = new Map<number, BookingStatusEvent>();
+    for (const e of batches.flat()) {
+      if (e.UserId !== userId || !e.ClassScheduleId) continue;
+      const prev = latest.get(e.BookingId);
+      if (!prev || e.StatusChanged > prev.StatusChanged) latest.set(e.BookingId, e);
+    }
+
+    const active = [...latest.values()].filter(isActiveBooking);
+    if (active.length === 0) return [];
+
+    const entries = await Promise.all(
+      active.map(async (e) => {
+        const cls = await getClass(e.ClassScheduleId!);
+        return cls
+          ? {
+              BookingId: e.BookingId,
+              ScheduleId: e.ClassScheduleId!,
+              UserId: e.UserId,
+              BookedAt: e.StatusChanged,
+              Class: cls,
+            }
+          : null;
+      })
+    );
+
+    return entries
+      .filter((e): e is ReservationEntry => e !== null)
+      .sort((a, b) =>
+        a.Class.Date === b.Class.Date
+          ? scheduleMinutes(a.Class.StartTime) - scheduleMinutes(b.Class.StartTime)
+          : a.Class.Date.localeCompare(b.Class.Date)
+      );
+  } catch {
+    return [];
+  }
+}
+
+/** The original in-memory mock, kept for CLUBREADY_USE_MOCKS local UI work. */
+async function getMockReservations(userId: number): Promise<ReservationEntry[]> {
   const classes = await getClassSchedule();
   return RESERVATIONS.filter((r) => r.UserId === userId)
     .map((r) => ({ ...r, Class: classes.find((c) => c.ScheduleId === r.ScheduleId) }))
@@ -616,6 +703,15 @@ export async function cancelBooking(
   userId: number,
   reason: string
 ): Promise<CancelResult> {
+  if (!USE_MOCKS) {
+    // Real bookings can now appear in the list, so cancelling must not fall
+    // through to the mock store and report "we couldn't find that booking".
+    return {
+      Success: false,
+      Message:
+        "Cancelling isn't available here yet — please cancel in the ClubReady portal or at the front desk.",
+    };
+  }
   const index = RESERVATIONS.findIndex(
     (r) => r.BookingId === bookingId && r.UserId === userId
   );
