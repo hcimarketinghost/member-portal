@@ -9,7 +9,7 @@ import {
   RectangleGroupIcon,
 } from "@heroicons/react/24/outline";
 import type { ScheduleEntry } from "@/lib/clubready";
-import { instructorPhoto } from "@/lib/images";
+import { classPhoto } from "@/lib/images";
 import Avatar from "@/components/Avatar";
 
 const MAX_DAY_TABS = 14;
@@ -154,7 +154,9 @@ export default function ScheduleView({ entries }: { entries: ScheduleEntry[] }) 
           const initials = `${entry.InstructorFirstName[0] ?? ""}${entry.InstructorLastName[0] ?? ""}`;
           const instructorShort = `${entry.InstructorFirstName} ${entry.InstructorLastName[0] ?? ""}.`;
           const capacity = capacityText(entry.FreeSpots, entry.MaxSpots);
-          const photo = instructorPhoto(entry.InstructorFirstName, entry.InstructorLastName);
+          // The row circle shows the room, not the instructor — the instructor
+          // headshot lives on the class detail page.
+          const photo = classPhoto(entry.Location);
 
           return (
             <Link key={entry.ScheduleId} href={`/classes/${entry.ScheduleId}`} className="hp-row-item">

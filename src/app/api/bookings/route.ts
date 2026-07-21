@@ -1,5 +1,6 @@
+import { revalidateTag } from "next/cache";
 import { cancelBooking, createBooking } from "@/lib/clubready";
-import { ClubReadyError } from "@/lib/clubready-api";
+import { BOOKINGS_TAG, ClubReadyError } from "@/lib/clubready-api";
 import { getSessionUserId } from "@/lib/session-server";
 
 /**
@@ -35,6 +36,11 @@ export async function POST(request: Request) {
 
   try {
     const result = await createBooking(scheduleId, userId, allowWaitList);
+    // Drop the cached booking windows so /reservations shows this immediately.
+    // `expire: 0` rather than the usual "max": stale-while-revalidate would
+    // serve the member the pre-booking list on the very next page view, which
+    // is the case this invalidation exists to prevent.
+    if (result.BookingId) revalidateTag(BOOKINGS_TAG, { expire: 0 });
     return Response.json(result);
   } catch (err) {
     return Response.json({ Message: messageFor(err) }, { status: 503 });

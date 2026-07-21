@@ -43,6 +43,10 @@ export function isConfigured(): boolean {
 }
 
 /** ClubReady's BookingStatus enum (see knowledge doc §9). */
+/** Cache tag for booking reads, invalidated when a booking is created. */
+export const BOOKINGS_TAG = "clubready-bookings";
+
+/** ClubReady's BookingStatus enum (see knowledge doc §9). */
 export const BookingStatusId = {
   Open: 2,
   CancelledWithinPolicy: 3,
@@ -67,7 +71,14 @@ async function crRequest<T>(
   method: "GET" | "POST",
   route: string,
   params: Params,
-  opts: { forwardedFor?: string; tolerateFailure?: boolean } = {}
+  opts: {
+    forwardedFor?: string;
+    tolerateFailure?: boolean;
+    /** Seconds to cache this GET. Omit for no-store (default, and always for writes). */
+    revalidate?: number;
+    /** Cache tags, so a write can invalidate the reads it affects. */
+    tags?: string[];
+  } = {}
 ): Promise<T> {
   if (!isConfigured()) {
     throw new ClubReadyError(
@@ -90,7 +101,9 @@ async function crRequest<T>(
     res = await fetch(`${BASE}${route}?${qs}`, {
       method,
       headers,
-      cache: "no-store",
+      ...(opts.revalidate !== undefined && method === "GET"
+        ? { next: { revalidate: opts.revalidate, tags: opts.tags } }
+        : { cache: "no-store" as const }),
     });
   } catch {
     throw new ClubReadyError("Could not reach ClubReady.", route);
@@ -304,7 +317,7 @@ export type BookingStatusEvent = {
 export async function getBookingStatusEvents(
   fromDate: string,
   toDate: string,
-  opts: { forwardedFor?: string } = {}
+  opts: { forwardedFor?: string; revalidate?: number } = {}
 ): Promise<BookingStatusEvent[]> {
   const res = await crRequest<{ BookingStatusEvents?: BookingStatusEvent[] }>(
     "GET",
@@ -315,7 +328,10 @@ export async function getBookingStatusEvents(
       BookingTypeFilter: 1, // classes only
       ConsultFilter: 2, // exclude consults
     },
-    opts
+    // Cached: this response is store-wide (not per-member), so one fetch per
+    // window serves every member. Tagged so a new booking shows up immediately
+    // instead of waiting out the window.
+    { revalidate: 30, tags: [BOOKINGS_TAG], ...opts }
   );
   return res.BookingStatusEvents ?? [];
 }

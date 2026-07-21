@@ -15,12 +15,42 @@
 const BUNNY_BASE = "https://hcivideos.b-cdn.net";
 
 /**
- * Instructor slug → Bunny path, keyed by lowercased "first last".
- * Empty until the naming convention is confirmed; any name missing here falls
- * back to the Framer asset below, so partial migration is safe.
- * e.g. "pauline clausen": "/instructors/pauline-clausen.jpg"
+ * Instructor headshots on Bunny, keyed by lowercased "first last".
+ * Convention: `/headshots/{First} {Last}.{jpg|webp}` — extensions genuinely
+ * vary per file, so they're listed explicitly rather than derived. Anyone
+ * missing here falls back to the Framer asset below, then to initials.
  */
-const INSTRUCTOR_BUNNY: Record<string, string> = {};
+const INSTRUCTOR_BUNNY: Record<string, string> = {
+  "alli halley": "/headshots/Alli%20Halley.jpg",
+  "brian dunn": "/headshots/Brian%20Dunn.webp",
+  "candace guittard": "/headshots/Candace%20Guittard.jpg",
+  "clayton oyster": "/headshots/Clayton%20Oyster.webp",
+  "coral draper": "/headshots/Coral%20Draper.jpg",
+  "erdem temellioglu": "/headshots/Erdem%20Temellioglu.jpg",
+  "heather basic": "/headshots/Heather%20Basic.jpg",
+  "jarren begg": "/headshots/Jarren%20Begg.jpg",
+  "jenny worthington": "/headshots/Jenny%20Worthington.jpg",
+  "joni stimpson": "/headshots/Joni%20Stimpson.jpg",
+  "katie aird": "/headshots/Katie%20Aird.jpg",
+  "keatyn armstrong": "/headshots/Keatyn%20Armstrong.webp",
+  "keely dall": "/headshots/Keely%20Dall.jpg",
+  "kendra crabb": "/headshots/Kendra%20Crabb.webp",
+  "kevin benford": "/headshots/Kevin%20Benford.webp",
+  "kristen aaron": "/headshots/Kristen%20Aaron.jpg",
+  "lindsay roberts": "/headshots/Lindsay%20Roberts.jpg",
+  "marisa cincola": "/headshots/Marisa%20Cincola.webp",
+  "martha carrascosa": "/headshots/Martha%20Carrascosa.jpg",
+  "matt herring": "/headshots/Matt%20Herring.webp",
+  "pauline clausen": "/headshots/Pauline%20Clausen.jpg",
+  "rebecca handley": "/headshots/Rebecca%20Handley.jpg",
+  "rita lee": "/headshots/Rita%20Lee.jpg",
+  "sarah wiese": "/headshots/Sarah%20Wiese.webp",
+  "sean kibbett": "/headshots/Sean%20Kibbett.webp",
+  "shanshan rothlisberger": "/headshots/Shanshan%20Rothlisberger.jpg",
+  "shari belmarez": "/headshots/Shari%20Belmarez.jpg",
+  "tami bliss": "/headshots/Tami%20Bliss.jpg",
+  "valorie bellaci": "/headshots/Valorie%20Bellaci.jpg",
+};
 
 /** Current headshots (Framer CDN), lifted verbatim from the shipped components. */
 const INSTRUCTOR_HEADSHOTS: Record<string, string> = {
