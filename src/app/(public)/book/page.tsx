@@ -105,8 +105,8 @@ export default async function BookPage(props: PageProps<"/book">) {
             <a className="hp-btn hp-btn-inset" href={`${SITE}/membership`}>
               Become a member
             </a>
-            <a className="hp-btn hp-btn-inset" href={`${SITE}/daypass`}>
-              Try a day pass
+            <a className="hp-btn hp-btn-inset" href={`${SITE}/classpass`}>
+              Get a class pass
             </a>
           </div>
         </div>
