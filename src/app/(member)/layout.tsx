@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getSessionUserId } from "@/lib/session-server";
 import BottomNav from "@/components/BottomNav";
 import { MemberChromeProvider } from "@/components/MemberChrome";
 import { getAccount } from "@/lib/clubready";
@@ -8,7 +8,7 @@ export default async function MemberAppLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
   const account = userId ? await getAccount(userId) : null;
   const member = account
     ? {

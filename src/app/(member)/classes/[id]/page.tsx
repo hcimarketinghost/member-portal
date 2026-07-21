@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getSessionUserId } from "@/lib/session-server";
 import { notFound } from "next/navigation";
 import BookSheet from "@/components/BookSheet";
 import InfoPage from "@/components/InfoPage";
@@ -14,7 +14,7 @@ export default async function ClassDetailPage(props: PageProps<"/classes/[id]">)
     notFound();
   }
 
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
   const [roster, account] = await Promise.all([
     getRoster(scheduleId),
     userId ? getAccount(userId) : null,

@@ -1,4 +1,5 @@
 import { login } from "@/lib/clubready";
+import { SESSION_COOKIE, SESSION_COOKIE_OPTIONS, createSessionValue } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -7,13 +8,8 @@ export async function POST(request: Request) {
 
   const response = NextResponse.json(result);
   if (result.success && result.userId) {
-    response.cookies.set("hci_member_user_id", String(result.userId), {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-    });
+    // Signed value, not the bare UserId — see lib/session.ts.
+    response.cookies.set(SESSION_COOKIE, createSessionValue(result.userId), SESSION_COOKIE_OPTIONS);
   }
 
   return response;

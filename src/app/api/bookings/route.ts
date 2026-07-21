@@ -1,6 +1,6 @@
-import { cookies } from "next/headers";
 import { cancelBooking, createBooking } from "@/lib/clubready";
 import { ClubReadyError } from "@/lib/clubready-api";
+import { getSessionUserId } from "@/lib/session-server";
 
 /**
  * createBooking/cancelBooking throw (writes disabled, ClubReady down or
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const scheduleId = Number(body.scheduleId);
   const allowWaitList = Boolean(body.allowWaitList);
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
 
   if (!scheduleId) {
     return Response.json({ Message: "Missing scheduleId." }, { status: 400 });
@@ -45,7 +45,7 @@ export async function DELETE(request: Request) {
   const body = await request.json();
   const bookingId = Number(body.bookingId);
   const reason = typeof body.reason === "string" ? body.reason : "";
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
 
   if (!bookingId) {
     return Response.json({ Success: false, Message: "Missing bookingId." }, { status: 400 });

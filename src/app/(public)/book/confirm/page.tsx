@@ -1,5 +1,5 @@
+import { getSessionUserId } from "@/lib/session-server";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import InfoPage from "@/components/InfoPage";
 
@@ -28,7 +28,7 @@ export default async function BookConfirmPage(props: PageProps<"/book/confirm">)
     if (next) params.set(key, next);
   });
 
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
 
   if (!userId) {
     redirect(appendParams("/book", params));

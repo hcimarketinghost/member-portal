@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getSessionUserId } from "@/lib/session-server";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import EmptyState from "@/components/EmptyState";
 import ReservationList from "@/components/ReservationList";
@@ -23,7 +23,7 @@ function shortDate(dateLabel: string) {
 }
 
 export default async function ReservationsPage() {
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
   const reservations = userId ? await getReservations(userId) : [];
 
   return (

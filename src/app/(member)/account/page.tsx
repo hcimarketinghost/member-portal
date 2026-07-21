@@ -1,11 +1,11 @@
-import { cookies } from "next/headers";
+import { getSessionUserId } from "@/lib/session-server";
 import AccountPanel from "@/components/AccountPanel";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import EmptyState from "@/components/EmptyState";
 import { getAccount } from "@/lib/clubready";
 
 export default async function AccountPage() {
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
   const account = userId ? await getAccount(userId) : null;
 
   if (!account) {

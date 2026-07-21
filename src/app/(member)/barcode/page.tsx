@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { getSessionUserId } from "@/lib/session-server";
 import { AppContent, AppPage, PageTitle } from "@/components/AppPage";
 import Card from "@/components/Card";
 import EmptyState from "@/components/EmptyState";
@@ -85,7 +85,7 @@ function BarcodeSvg({ value }: { value: string }) {
 }
 
 export default async function BarcodePage() {
-  const userId = Number((await cookies()).get("hci_member_user_id")?.value);
+  const userId = await getSessionUserId();
   const account = userId ? await getAccount(userId) : null;
 
   if (!account || !account.Barcode) {

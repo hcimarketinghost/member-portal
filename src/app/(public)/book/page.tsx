@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getSessionUserId } from "@/lib/session-server";
 import Logo from "@/components/Logo";
 import { getClass } from "@/lib/clubready";
 
@@ -79,7 +79,7 @@ export default async function BookPage(props: PageProps<"/book">) {
     if (next) params.set(key, next);
   });
 
-  const signedIn = Boolean((await cookies()).get("hci_member_user_id")?.value);
+  const signedIn = (await getSessionUserId()) !== null;
 
   if (signedIn) {
     redirect(appendParams("/book/confirm", params));

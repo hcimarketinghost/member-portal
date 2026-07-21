@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { SESSION_COOKIE, verifySessionValue } from "@/lib/session";
 
 // Next 16 renamed the `middleware` convention to `proxy` (src/proxy.ts, sibling
 // of app). This keeps member routes protected while allowing narrow public
 // gateway routes for login, booking handoff, passes, and future membership join.
-const AUTH_COOKIE = "hci_member_user_id";
+// Proxy runs on the Node.js runtime in Next 16, so node:crypto signature
+// verification works here.
+const AUTH_COOKIE = SESSION_COOKIE;
 
 const PUBLIC_EXACT_ROUTES = new Set([
   "/login",
@@ -43,7 +46,10 @@ function safeLoginNext(request: NextRequest) {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const signedIn = Boolean(request.cookies.get(AUTH_COOKIE)?.value);
+  // Verify the signature, don't just check presence — otherwise a forged
+  // cookie still gets past the gate (pages would then render signed-out state,
+  // but the redirect is the wrong place to be lenient).
+  const signedIn = verifySessionValue(request.cookies.get(AUTH_COOKIE)?.value) !== null;
   const isLogin = pathname === "/login";
   const publicRoute = isPublicRoute(pathname);
 
