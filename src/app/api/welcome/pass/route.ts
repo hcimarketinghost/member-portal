@@ -1,15 +1,18 @@
 /**
- * Wallet-pass lookup for `/welcome`.
+ * Member lookup for `/welcome`.
  *
- * Proxies the same endpoint `Live/GetDigitalWalletPass.tsx` already calls in
- * production. Going through our own route rather than hitting the Lambda from
- * the browser buys three things: no third-party CORS dependency, one place to
- * add the +24h reminder capture, and the member's email never appears in a
- * cross-origin request from our page.
+ * Hits the same endpoint `Live/GetDigitalWalletPass.tsx` already calls in
+ * production. Going through our own route rather than the browser buys three
+ * things: no third-party CORS dependency, one place to add the +24h reminder
+ * capture, and the member's email never leaves in a cross-origin request.
  *
- * The retry/timeout policy is ported from that component — the Lambda cold-
- * starts and legitimately takes ~10s, so a single impatient attempt reports a
- * failure that is not real.
+ * Called ONCE, in the background, the moment the member submits their email.
+ * The summary screen renders from it immediately; the pass screen reads the
+ * same already-resolved result much later in the flow, so the ~10s Lambda cold
+ * start happens behind three screens the member is already reading.
+ *
+ * The retry policy is ported from that component — the Lambda legitimately
+ * takes ~10s cold, so one impatient attempt reports a failure that is not real.
  */
 
 const PASS_ENDPOINT =
@@ -22,37 +25,33 @@ const ATTEMPTS = 3;
 const TIMEOUT_MS = 15_000;
 
 /**
- * Three outcomes, and the middle one is the reason this flow works for brand
- * new members: ClubReady knows them, but the pass takes ~24h to mint. That is
- * not an error and must not render as one.
+ * Three outcomes, and the middle one is why this works for brand new members:
+ * ClubReady knows them, but the pass takes ~24h to mint. Not an error.
  */
-type Outcome = "ready" | "pending" | "not-found";
+type PassOutcome = "ready" | "pending" | "not-found";
 
-function extractPassUrl(payload: unknown): string | null {
-  if (!payload || typeof payload !== "object") return null;
-  const record = payload as Record<string, unknown>;
-  for (const key of ["pass_url", "passUrl", "url", "link"]) {
+function pick(record: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
     const value = record[key];
-    if (typeof value === "string" && value.startsWith("https://")) return value;
+    if (typeof value === "string" && value.trim()) return value.trim();
   }
   return null;
 }
 
-function inferFound(payload: unknown): boolean {
-  if (!payload || typeof payload !== "object") return false;
-  const record = payload as Record<string, unknown>;
+function asRecord(payload: unknown): Record<string, unknown> {
+  return payload && typeof payload === "object" ? (payload as Record<string, unknown>) : {};
+}
+
+function extractPassUrl(record: Record<string, unknown>): string | null {
+  const url = pick(record, ["pass_url", "passUrl", "url", "link"]);
+  return url && url.startsWith("https://") ? url : null;
+}
+
+function inferFound(record: Record<string, unknown>): boolean {
   for (const key of ["found", "member_found", "isMember"]) {
     if (typeof record[key] === "boolean") return record[key] as boolean;
   }
-  // A first name coming back at all means the address resolved to somebody.
-  return typeof record.first_name === "string" || typeof record.firstName === "string";
-}
-
-function firstName(payload: unknown): string | null {
-  if (!payload || typeof payload !== "object") return null;
-  const record = payload as Record<string, unknown>;
-  const value = record.first_name ?? record.firstName;
-  return typeof value === "string" && value.trim() ? value.trim() : null;
+  return pick(record, ["first_name", "firstName"]) !== null;
 }
 
 export async function POST(request: Request) {
@@ -83,23 +82,33 @@ export async function POST(request: Request) {
         : await response.text();
 
       if (response.ok) {
-        // A 2xx is a definitive answer — never retry past it.
-        const passUrl = extractPassUrl(payload);
-        const outcome: Outcome = passUrl ? "ready" : inferFound(payload) ? "pending" : "not-found";
+        // A 2xx is definitive — never retry past it.
+        const record = asRecord(payload);
+        const passUrl = extractPassUrl(record);
+        const pass: PassOutcome = passUrl ? "ready" : inferFound(record) ? "pending" : "not-found";
 
-        // Deliberately narrow. The upstream payload may carry more about the
-        // member than a public, unauthenticated screen should ever receive —
-        // only these three fields cross back to the browser.
+        // Deliberately narrow — the upstream payload may carry more about the
+        // member than a public, unauthenticated screen should ever receive.
+        // Anything not listed here does not cross back to the browser.
+        //
+        // `plan` and `memberSince` are opportunistic: if the Lambda already
+        // returns them the summary screen shows them immediately. If it does
+        // not, they come back null and the screen renders without those rows
+        // rather than inventing them. Filling them properly needs the
+        // ClubReady key plus a documented email -> UserId path
+        // (ClubReady-API-Knowledge.md open question 1).
         return Response.json({
-          outcome,
+          found: pass !== "not-found",
+          pass,
           passUrl: passUrl ?? null,
-          firstName: firstName(payload),
+          firstName: pick(record, ["first_name", "firstName"]),
+          plan: pick(record, ["membership_type_name", "membershipTypeName", "plan", "package_name"]),
+          memberSince: pick(record, ["member_since", "memberSince", "MemberSinceDate"]),
         });
       }
 
       lastStatus = response.status;
     } catch {
-      // Abort or network failure — both retryable.
       lastStatus = 0;
     } finally {
       clearTimeout(timer);
@@ -110,9 +119,9 @@ export async function POST(request: Request) {
     }
   }
 
-  // Never surface the upstream message; it is gRPC//backend-shaped.
+  // Never surface the upstream message; it is backend/gRPC-shaped.
   return Response.json(
-    { error: "We couldn't reach the pass system. You can try again, or pick this up at Member Services." },
+    { error: "We couldn't reach our system just now. Everything still works — Member Services can sort it in seconds." },
     { status: lastStatus === 0 ? 504 : 502 }
   );
 }

@@ -139,6 +139,18 @@ export const PATH_SCREENS: Record<Exclude<PathId, "climbing">, PathScreen> = {
   },
 };
 
+/**
+ * What every membership includes — page 1 of the packet. Static and true for
+ * everyone, so the summary screen can lay out "here's what you get" without
+ * waiting on an API.
+ */
+export const INCLUDED = [
+  { label: "Sports & leagues", detail: "Basketball, volleyball, soccer, pickleball, camps" },
+  { label: "Fitness & training", detail: "Personal training, AIM Performance, studio classes, track" },
+  { label: "KidCare", detail: "Clubhouse 9mo–4yr included; The Cube 5–9yr as an add-on" },
+  { label: "Rock climbing", detail: "Weekends 12–5pm, and every day during school breaks" },
+] as const;
+
 /** Screen 1 and the finish — fixed, always shown. */
 export const INTRO = {
   photo: PHOTO.turf,

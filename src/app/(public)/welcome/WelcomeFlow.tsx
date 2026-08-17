@@ -5,20 +5,28 @@ import Logo from "@/components/Logo";
 import {
   APP_SCREEN,
   DONE,
+  INCLUDED,
   INTRO,
   PATHS,
   PATH_SCREENS,
   type PathId,
 } from "@/lib/welcome";
 
-type StepId = "start" | "pass" | "app" | "paths" | PathId | "done";
+type StepId = "start" | "you" | "app" | "paths" | PathId | "pass" | "done";
 
-type PassState =
+type Member = {
+  found: boolean;
+  pass: "ready" | "pending" | "not-found";
+  passUrl: string | null;
+  firstName: string | null;
+  plan: string | null;
+  memberSince: string | null;
+};
+
+type Lookup =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "ready"; passUrl: string; firstName: string | null }
-  | { status: "pending"; firstName: string | null }
-  | { status: "not-found" }
+  | { status: "done"; member: Member }
   | { status: "error"; message: string };
 
 /** Paths that contribute a screen, in the order they appear in the flow. */
@@ -29,17 +37,19 @@ export default function WelcomeFlow() {
   const [index, setIndex] = useState(0);
   const [email, setEmail] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
-  const [pass, setPass] = useState<PassState>({ status: "idle" });
+  const [lookup, setLookup] = useState<Lookup>({ status: "idle" });
   const [remindQueued, setRemindQueued] = useState(false);
   const liveRef = useRef<HTMLDivElement>(null);
 
   /**
-   * The itinerary is derived, not stored, so progress can never drift from what
-   * the member will actually be shown. Selecting a path in the picker grows it.
+   * Derived, not stored, so progress can never drift from what the member will
+   * actually be shown. The pass sits late on purpose: the lookup fires when they
+   * submit their email, and by the time they reach it the ~10s Lambda cold start
+   * has already happened behind screens they were reading.
    */
   const steps = useMemo<StepId[]>(() => {
     const chosen = SCREEN_PATHS.filter((id) => selected.includes(id));
-    return ["start", "pass", "app", "paths", ...chosen, "done"];
+    return ["start", "you", "app", "paths", ...chosen, "pass", "done"];
   }, [selected]);
 
   const step = steps[Math.min(index, steps.length - 1)];
@@ -76,36 +86,32 @@ export default function WelcomeFlow() {
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  async function lookupPass() {
+  /** Fires once, in the background. Both the summary and the pass read it. */
+  function start() {
     if (!emailValid) {
       setEmailTouched(true);
       return;
     }
-    setPass({ status: "loading" });
+    setLookup({ status: "loading" });
     advance();
 
-    try {
-      const response = await fetch("/api/welcome/pass", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        setPass({ status: "error", message: data.error ?? "Something went wrong." });
-        return;
+    void (async () => {
+      try {
+        const response = await fetch("/api/welcome/pass", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim() }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setLookup({ status: "error", message: data.error ?? "Something went wrong." });
+          return;
+        }
+        setLookup({ status: "done", member: data as Member });
+      } catch {
+        setLookup({ status: "error", message: "We couldn't reach our system just now." });
       }
-      if (data.outcome === "ready") {
-        setPass({ status: "ready", passUrl: data.passUrl, firstName: data.firstName });
-      } else if (data.outcome === "pending") {
-        setPass({ status: "pending", firstName: data.firstName });
-      } else {
-        setPass({ status: "not-found" });
-      }
-    } catch {
-      setPass({ status: "error", message: "We couldn't reach the pass system." });
-    }
+    })();
   }
 
   function togglePath(id: PathId) {
@@ -113,6 +119,8 @@ export default function WelcomeFlow() {
       current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
     );
   }
+
+  const member = lookup.status === "done" ? lookup.member : null;
 
   return (
     <main className="hp-wel" data-step={step}>
@@ -145,7 +153,7 @@ export default function WelcomeFlow() {
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setEmailTouched(true)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") void lookupPass();
+                  if (e.key === "Enter") start();
                 }}
                 aria-invalid={emailTouched && !emailValid}
               />
@@ -156,17 +164,10 @@ export default function WelcomeFlow() {
           </Screen>
         ) : null}
 
-        {step === "pass" ? (
-          <PassScreen state={pass} remindQueued={remindQueued} onRemind={() => setRemindQueued(true)} />
-        ) : null}
+        {step === "you" ? <YouScreen lookup={lookup} /> : null}
 
         {step === "app" ? (
-          <Screen
-            photo={APP_SCREEN.photo}
-            title={APP_SCREEN.title}
-            body={APP_SCREEN.body}
-            device={<AppSplash />}
-          >
+          <Screen photo={APP_SCREEN.photo} title={APP_SCREEN.title} body={APP_SCREEN.body}>
             <div className="hp-wel-stores">
               <a className="hp-btn hp-btn-inset" href={APP_SCREEN.ios} target="_blank" rel="noreferrer">
                 App Store
@@ -201,7 +202,15 @@ export default function WelcomeFlow() {
           </Screen>
         ) : null}
 
-        {step !== "start" && step !== "pass" && step !== "app" && step !== "paths" && step !== "done"
+        {step === "pass" ? (
+          <PassScreen
+            lookup={lookup}
+            remindQueued={remindQueued}
+            onRemind={() => setRemindQueued(true)}
+          />
+        ) : null}
+
+        {isPathStep(step)
           ? (() => {
               const screen = PATH_SCREENS[step as Exclude<PathId, "climbing">];
               if (!screen) return null;
@@ -228,7 +237,11 @@ export default function WelcomeFlow() {
           : null}
 
         {step === "done" ? (
-          <Screen photo={DONE.photo} title={DONE.title} body={DONE.body}>
+          <Screen
+            photo={DONE.photo}
+            title={member?.firstName ? `You're all set, ${member.firstName}` : DONE.title}
+            body={DONE.body}
+          >
             <a className="hp-btn" href="/">
               Open the portal
             </a>
@@ -238,18 +251,13 @@ export default function WelcomeFlow() {
 
       <footer className="hp-wel-actions">
         {step === "start" ? (
-          <button type="button" className="hp-btn" onClick={() => void lookupPass()} disabled={!emailValid}>
+          <button type="button" className="hp-btn" onClick={start} disabled={!emailValid}>
             Get started
           </button>
         ) : null}
 
         {step !== "start" && !isLast ? (
-          <button
-            type="button"
-            className="hp-btn"
-            onClick={advance}
-            disabled={step === "pass" && pass.status === "loading"}
-          >
+          <button type="button" className="hp-btn" onClick={advance}>
             {step === "paths" && selected.length === 0 ? "Not right now" : "Continue"}
           </button>
         ) : null}
@@ -264,10 +272,14 @@ export default function WelcomeFlow() {
   );
 }
 
+function isPathStep(step: StepId): step is PathId {
+  return !["start", "you", "app", "paths", "pass", "done"].includes(step);
+}
+
 /**
  * One continuous bar rather than segments. Segments would have to appear
  * mid-flow when the member picks paths in the branch screen — a proportional
- * fill just moves further along instead, and reads calmer.
+ * fill just travels further, and reads calmer.
  */
 function Progress({ total, index }: { total: number; index: number }) {
   const pct = total <= 1 ? 100 : Math.round((index / (total - 1)) * 100);
@@ -289,33 +301,20 @@ function Screen({
   photo,
   title,
   body,
-  device,
   children,
 }: {
   photo: string;
   title: string;
   body: string;
-  /** Renders inside a phone mockup over a dimmed photo, instead of a full-bleed photo. */
-  device?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   return (
     <>
-      {device ? (
-        <div className="hp-wel-stage">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="hp-wel-stagebg" src={photo} alt="" aria-hidden="true" />
-          <div className="hp-wel-device" aria-hidden="true">
-            <div className="hp-wel-devicescreen">{device}</div>
-          </div>
-        </div>
-      ) : (
-        <div className="hp-wel-photo">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photo} alt="" aria-hidden="true" />
-          <div className="hp-wel-fade" />
-        </div>
-      )}
+      <div className="hp-wel-photo">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo} alt="" aria-hidden="true" />
+        <div className="hp-wel-fade" />
+      </div>
       <div className="hp-wel-copy">
         <h1 className="hp-wel-title">{title}</h1>
         <p className="hp-wel-body">{body}</p>
@@ -325,82 +324,120 @@ function Screen({
   );
 }
 
-/** The app, shown as its launch screen — no invented feature UI. */
-function AppSplash() {
-  return (
-    <div className="hp-wel-splash">
-      <Logo height={46} />
-    </div>
-  );
-}
-
 /**
- * The member pass as it appears in a wallet. Drawn rather than screenshotted so
- * it carries the member's own name the moment the lookup returns it.
+ * The recognition moment. Renders as soon as the background lookup lands.
+ *
+ * `plan` and `memberSince` are shown only when the lookup actually returned
+ * them — the "what's included" list below is static packet content and is true
+ * for every membership, so the screen is worth showing either way.
  */
-function PassCard({ name }: { name: string | null }) {
+function YouScreen({ lookup }: { lookup: Lookup }) {
+  if (lookup.status === "loading" || lookup.status === "idle") {
+    return (
+      <Screen photo={INTRO.photo} title="Finding you" body="One moment.">
+        <span className="hp-wel-spinner" />
+      </Screen>
+    );
+  }
+
+  const member = lookup.status === "done" ? lookup.member : null;
+  const known = member?.found === true;
+
+  const title = known
+    ? member?.firstName
+      ? `Found you, ${member.firstName}`
+      : "Found you"
+    : "Here's what you've got";
+
+  const body = known
+    ? "Here's what your membership covers."
+    : "We couldn't match that email to a membership yet — new accounts can take a day to appear. Everything below still applies.";
+
   return (
-    <div className="hp-wel-pass">
-      <div className="hp-wel-passhead">
-        <Logo height={20} />
-      </div>
-      <div className="hp-wel-passname">{name ?? "Member"}</div>
-      <div className="hp-wel-passmeta">Hill Country Indoor · Dripping Springs</div>
-      <div className="hp-wel-passcode">
-        {Array.from({ length: 46 }, (_, i) => (
-          <i key={i} data-w={i % 4} />
+    <Screen photo={INTRO.photo} title={title} body={body}>
+      {member?.plan || member?.memberSince ? (
+        <dl className="hp-wel-summary">
+          {member.plan ? (
+            <div className="hp-wel-summaryrow">
+              <dt>Plan</dt>
+              <dd>{member.plan}</dd>
+            </div>
+          ) : null}
+          {member.memberSince ? (
+            <div className="hp-wel-summaryrow">
+              <dt>Member since</dt>
+              <dd>{member.memberSince}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+
+      <ul className="hp-wel-included">
+        {INCLUDED.map((item) => (
+          <li key={item.label}>
+            <span className="hp-wel-inclabel">{item.label}</span>
+            <span className="hp-wel-incdetail">{item.detail}</span>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </Screen>
   );
 }
 
 /**
- * The value moment. `pending` is the new-member case — ClubReady has them but
- * the pass takes ~24h to mint — and it is a success state, not an error.
+ * Late in the flow, by which point the background lookup has long resolved.
+ * `pending` is the new-member case — ClubReady has them but the pass takes ~24h
+ * to mint — and it is a success state, not an error.
  */
 function PassScreen({
-  state,
+  lookup,
   remindQueued,
   onRemind,
 }: {
-  state: PassState;
+  lookup: Lookup;
   remindQueued: boolean;
   onRemind: () => void;
 }) {
-  if (state.status === "loading" || state.status === "idle") {
+  if (lookup.status === "loading" || lookup.status === "idle") {
+    return (
+      <Screen photo={INTRO.photo} title="Checking on your pass" body="One moment.">
+        <span className="hp-wel-spinner" />
+      </Screen>
+    );
+  }
+
+  if (lookup.status === "error") {
     return (
       <Screen
         photo={INTRO.photo}
-        title="Finding you"
-        body="This takes a few seconds."
-        device={<div className="hp-wel-splash"><span className="hp-wel-spinner" /></div>}
+        title="Your pass"
+        body="We couldn't check on it just now. Member Services can add it to your phone in a few seconds next time you're in."
       />
     );
   }
 
-  if (state.status === "ready") {
+  const { pass, passUrl, firstName } = lookup.member;
+
+  if (pass === "ready" && passUrl) {
     return (
       <Screen
         photo={INTRO.photo}
-        title={state.firstName ? `Here's your pass, ${state.firstName}` : "Here's your pass"}
-        body="Add it to your wallet and you can scan straight in at the door."
-        device={<PassCard name={state.firstName} />}
+        title="Your pass is ready"
+        body="Add it to your wallet and you can scan straight in at the door — no card, no front desk."
       >
-        <a className="hp-btn" href={state.passUrl} target="_blank" rel="noreferrer">
+        <a className="hp-btn" href={passUrl} target="_blank" rel="noreferrer">
           Add to wallet
         </a>
       </Screen>
     );
   }
 
-  if (state.status === "pending") {
+  if (pass === "pending") {
     return (
       <Screen
         photo={INTRO.photo}
-        title={state.firstName ? `Found you, ${state.firstName}` : "Found you"}
-        body="Your pass is still being created — new memberships take about a day to process. Until then the front desk can check you in by name."
-        device={<PassCard name={state.firstName} />}
+        title="Your pass is on its way"
+        body={`New memberships take about a day to process${firstName ? `, ${firstName}` : ""}. Until then the front desk can check you in by name.`}
       >
         {remindQueued ? (
           <p className="hp-wel-confirm">We&rsquo;ll email you the moment it&rsquo;s ready.</p>
@@ -413,15 +450,11 @@ function PassScreen({
     );
   }
 
-  if (state.status === "not-found") {
-    return (
-      <Screen
-        photo={INTRO.photo}
-        title="We couldn't match that email"
-        body="It may not be the address on your membership, or the account may still be processing. Keep going — Member Services can sort the pass out in a few seconds."
-      />
-    );
-  }
-
-  return <Screen photo={INTRO.photo} title="That didn't go through" body={state.message} />;
+  return (
+    <Screen
+      photo={INTRO.photo}
+      title="Your pass"
+      body="We couldn't find a pass for that email yet. Member Services can set it up in a few seconds next time you're in."
+    />
+  );
 }
