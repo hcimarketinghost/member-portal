@@ -11,29 +11,45 @@ import type { WalkStep } from "@/lib/welcome";
  * back from someone who is reading is worse than no animation. It also never
  * starts under `prefers-reduced-motion`, and it never loops: the point is to
  * arrive at step three and stay there with the button showing.
+ *
+ * `onComplete` fires once the last step is reached, so the screen's own
+ * Continue button can stay hidden until the walkthrough has actually played.
+ * Letting someone skip past mid-animation defeats the reason it exists.
  */
 export default function Walkthrough({
   steps,
   action,
+  onComplete,
 }: {
   steps: WalkStep[];
   action: { label: string; href: string };
+  onComplete?: () => void;
 }) {
   const [active, setActive] = useState(0);
   const [manual, setManual] = useState(false);
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const atEnd = active >= steps.length - 1;
 
   useEffect(() => {
+    if (atEnd) onComplete?.();
+  }, [atEnd, onComplete]);
+
+  useEffect(() => {
     if (manual || atEnd) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // No auto-advance, so the member would otherwise be stuck behind a
+      // Continue button that never unlocks. Treat it as already played.
+      onComplete?.();
+      return;
+    }
 
     timer.current = setTimeout(() => setActive((i) => Math.min(i + 1, steps.length - 1)), 3200);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [active, manual, atEnd, steps.length]);
+  }, [active, manual, atEnd, steps.length, onComplete]);
 
   function select(index: number) {
     setManual(true);
@@ -48,8 +64,21 @@ export default function Walkthrough({
       <div className="hp-wt-stage">
         {steps.map((s, i) => (
           <div key={s.image} className="hp-wt-slide" data-active={i === active} aria-hidden={i !== active}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={s.image} alt="" />
+            {failed[s.image] ? (
+              // The mockup PNGs are supplied separately. Until they land, a
+              // deliberate empty frame reads as "artwork pending" rather than
+              // a broken image icon.
+              <div className="hp-wt-placeholder">
+                <span>{i + 1}</span>
+              </div>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={s.image}
+                alt=""
+                onError={() => setFailed((f) => ({ ...f, [s.image]: true }))}
+              />
+            )}
           </div>
         ))}
       </div>

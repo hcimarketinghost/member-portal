@@ -55,6 +55,8 @@ export default function WelcomeFlow() {
   const [busy, setBusy] = useState(false);
   const [lookup, setLookup] = useState<Lookup>({ status: "idle" });
   const [remindQueued, setRemindQueued] = useState(false);
+  /** Set by the ActiveNet walkthrough once it has played to its last step. */
+  const [walkDone, setWalkDone] = useState(false);
   const liveRef = useRef<HTMLDivElement>(null);
 
   const member = lookup.status === "done" ? lookup.member : null;
@@ -69,9 +71,24 @@ export default function WelcomeFlow() {
    * reorder underneath. The member is on `you` or `app` at that point, both of
    * which sit before the segments, so nothing shifts under them mid-read.
    */
+  /**
+   * The pass screen only exists when there is a pass to hand over. A "sorry,
+   * no pass" screen is a dead step that teaches the member nothing — if the
+   * lookup came back pending, unavailable or empty, the flow skips it and the
+   * finish carries a link to hillcountryindoor.com/digitalpass instead.
+   */
+  const hasPass = member?.pass === "ready" && Boolean(member.passUrl);
+
   const steps = useMemo<StepId[]>(
-    () => ["start", "you", "app", ...sequenceFor(variant), "pass", "done"],
-    [variant]
+    () => [
+      "start",
+      "you",
+      "app",
+      ...sequenceFor(variant),
+      ...(hasPass ? (["pass"] as StepId[]) : []),
+      "done",
+    ],
+    [variant, hasPass]
   );
 
   const step = steps[Math.min(index, steps.length - 1)];
@@ -102,6 +119,11 @@ export default function WelcomeFlow() {
   }, [steps.length]);
 
   const back = useCallback(() => window.history.back(), []);
+
+  // Each segment screen mounts fresh; the gate must not stay open from the last one.
+  useEffect(() => {
+    setWalkDone(false);
+  }, [step]);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
@@ -311,7 +333,11 @@ export default function WelcomeFlow() {
           <div className="hp-wel-plain">
             <h1 className="hp-wel-title">{segment.title}</h1>
             <p className="hp-wel-body">{segment.body}</p>
-            <Walkthrough steps={segment.walkthrough} action={segment.action} />
+            <Walkthrough
+              steps={segment.walkthrough}
+              action={segment.action}
+              onComplete={() => setWalkDone(true)}
+            />
           </div>
         ) : segment ? (
           <Screen photo={segment.photo} title={segment.title} body={segment.body}>
@@ -344,6 +370,16 @@ export default function WelcomeFlow() {
               {member?.firstName ? `You're all set, ${member.firstName}` : DONE.title}
             </h1>
             <p className="hp-wel-body">{DONE.body}</p>
+            {!hasPass ? (
+              <a
+                className="hp-wel-more"
+                href="https://www.hillcountryindoor.com/digitalpass"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Get your digital pass
+              </a>
+            ) : null}
             <LearnMore />
           </div>
         ) : null}
@@ -363,7 +399,7 @@ export default function WelcomeFlow() {
           </button>
         ) : null}
 
-        {step !== "start" && !isLast ? (
+        {step !== "start" && !isLast && !(segment?.walkthrough && !walkDone) ? (
           <button type="button" className="hp-btn" onClick={advance}>
             Continue
           </button>

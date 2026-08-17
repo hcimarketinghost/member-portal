@@ -18,6 +18,11 @@ const PUBLIC_EXACT_ROUTES = new Set([
   "/start",
   "/join",
   "/refer",
+  // New-member onboarding. This one MUST stay public: its whole audience is
+  // signed-out people arriving from a QR code or the welcome email, and it
+  // carries its own sign-in step. Gating it here made it unreachable for
+  // everyone it was built for.
+  "/welcome",
 ]);
 
 const PUBLIC_PREFIXES = ["/membership/"];
