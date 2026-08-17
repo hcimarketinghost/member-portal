@@ -94,7 +94,12 @@ export const PATH_SCREENS: Record<Exclude<PathId, "climbing">, PathScreen> = {
     photo: PHOTO.turf,
     title: "Leagues run on a separate account",
     body: "ActiveNet handles sports registration and it is not linked to your membership. Create that account once and you are set for every season.",
-    action: { label: "Create your ActiveNet account", href: `${SITE}/sports` },
+    action: {
+      label: "Create your ActiveNet account",
+      // Deep link straight to account creation, not the ActiveNet landing page —
+      // the whole point of this screen is that the account is the blocker.
+      href: "https://anc.apm.activecommunities.com/hillcountryindoor/createaccount?onlineSiteId=0&from_original_cui=true",
+    },
     facts: [
       "Member pricing is not automatic — ask Guest Services to apply it.",
       "Add your kids under My Account → Manage Family Members.",
