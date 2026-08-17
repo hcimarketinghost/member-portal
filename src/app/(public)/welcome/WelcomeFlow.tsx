@@ -35,6 +35,13 @@ type Lookup =
 export default function WelcomeFlow() {
   const [index, setIndex] = useState(0);
   const [email, setEmail] = useState("");
+  /**
+   * Separate from `email` on purpose. ClubReady authenticates on `UserName`,
+   * which is NOT confirmed to be the member's email for store 5761 — see
+   * ClubReady-API-Knowledge.md. Validating this field as an email address
+   * locks out every member whose username is anything else.
+   */
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
   /**
@@ -105,7 +112,7 @@ export default function WelcomeFlow() {
    * still runs in the background.
    */
   async function signIn() {
-    if (!emailValid || !password) return;
+    if (!username.trim() || !password) return;
     setBusy(true);
     setSigninError(null);
 
@@ -113,7 +120,9 @@ export default function WelcomeFlow() {
       const auth = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        // The route's field is named `email`, but it forwards straight to
+        // ClubReady's `UserName`. Sending the username is correct.
+        body: JSON.stringify({ email: username.trim(), password }),
       });
       const authData = await auth.json();
 
@@ -203,33 +212,49 @@ export default function WelcomeFlow() {
             title={INTRO.title}
             body={
               mode === "signin"
-                ? "Sign in and we'll pull up your membership. Your login is in the welcome email ClubReady sent you."
+                ? "Sign in and we'll pull up your membership. Your username and password are in the welcome email ClubReady sent you."
                 : "Enter your email and we'll find your pass. You can sign in later for the rest."
             }
           >
-            <label className="hp-wel-field">
-              <span className="hp-wel-fieldlabel">
-                {mode === "signin" ? "Username or email" : "Email on your membership"}
-              </span>
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete={mode === "signin" ? "username" : "email"}
-                enterKeyHint={mode === "signin" ? "next" : "go"}
-                className="hp-wel-input"
-                value={email}
-                placeholder="you@example.com"
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => setEmailTouched(true)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && mode === "email") start();
-                }}
-                aria-invalid={emailTouched && !emailValid}
-              />
-              {emailTouched && !emailValid ? (
-                <span className="hp-wel-fielderror">Enter the email you signed up with.</span>
-              ) : null}
-            </label>
+            {mode === "signin" ? (
+              <label className="hp-wel-field">
+                <span className="hp-wel-fieldlabel">Username</span>
+                <input
+                  type="text"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  autoComplete="username"
+                  enterKeyHint="next"
+                  className="hp-wel-input"
+                  value={username}
+                  placeholder="Your ClubReady username"
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </label>
+            ) : (
+              <label className="hp-wel-field">
+                <span className="hp-wel-fieldlabel">Email on your membership</span>
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  enterKeyHint="go"
+                  className="hp-wel-input"
+                  value={email}
+                  placeholder="you@example.com"
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setEmailTouched(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") start();
+                  }}
+                  aria-invalid={emailTouched && !emailValid}
+                />
+                {emailTouched && !emailValid ? (
+                  <span className="hp-wel-fielderror">Enter the email you signed up with.</span>
+                ) : null}
+              </label>
+            )}
 
             {mode === "signin" ? (
               <label className="hp-wel-field">
@@ -261,7 +286,7 @@ export default function WelcomeFlow() {
               }}
             >
               {mode === "signin"
-                ? "I don't have my login yet"
+                ? "I don't have my username and password yet"
                 : "I have my login — show me my membership"}
             </button>
           </Screen>
@@ -330,7 +355,9 @@ export default function WelcomeFlow() {
             type="button"
             className="hp-btn"
             onClick={start}
-            disabled={busy || !emailValid || (mode === "signin" && !password)}
+            disabled={
+              busy || (mode === "signin" ? !username.trim() || !password : !emailValid)
+            }
           >
             {busy ? "Signing you in…" : mode === "signin" ? "Sign in" : "Find my pass"}
           </button>
