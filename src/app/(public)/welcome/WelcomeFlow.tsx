@@ -19,7 +19,7 @@ type StepId = "start" | "you" | "app" | SegmentId | "pass" | "done";
 
 type Member = {
   found: boolean;
-  pass: "ready" | "pending" | "not-found";
+  pass: "ready" | "pending" | "not-found" | "unavailable";
   passUrl: string | null;
   firstName: string | null;
   plan: string | null;
@@ -35,7 +35,17 @@ type Lookup =
 export default function WelcomeFlow() {
   const [index, setIndex] = useState(0);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
+  /**
+   * Signing in is the default because it is the only route to the member's
+   * actual plan — ClubReady exposes MembershipTypeName on the authenticated
+   * `GET /users/{UserId}` and nowhere else. Members who don't have their login
+   * yet drop to email-only, which still gets them the pass.
+   */
+  const [mode, setMode] = useState<"signin" | "email">("signin");
+  const [signinError, setSigninError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [lookup, setLookup] = useState<Lookup>({ status: "idle" });
   const [remindQueued, setRemindQueued] = useState(false);
   const liveRef = useRef<HTMLDivElement>(null);
@@ -88,9 +98,59 @@ export default function WelcomeFlow() {
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  /** Fires once, in the background. The summary, the sequencing, and the pass
-   *  screen all read this one result. */
-  function start() {
+  /**
+   * Sign in, then advance. Unlike the email path this awaits the credential
+   * check — advancing past a wrong password and explaining it two screens
+   * later would be worse than a moment's wait. The membership fetch behind it
+   * still runs in the background.
+   */
+  async function signIn() {
+    if (!emailValid || !password) return;
+    setBusy(true);
+    setSigninError(null);
+
+    try {
+      const auth = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const authData = await auth.json();
+
+      if (!authData.success) {
+        setSigninError(authData.message ?? "That username or password didn't match.");
+        setBusy(false);
+        return;
+      }
+
+      // Credentials are good — drop them and move on. The rest loads behind
+      // the summary screen, which has its own loading state.
+      setPassword("");
+      setLookup({ status: "loading" });
+      setBusy(false);
+      advance();
+
+      void (async () => {
+        try {
+          const response = await fetch("/api/welcome/member");
+          const data = await response.json();
+          if (!response.ok) {
+            setLookup({ status: "error", message: data.error ?? "Something went wrong." });
+            return;
+          }
+          setLookup({ status: "done", member: data as Member });
+        } catch {
+          setLookup({ status: "error", message: "We couldn't reach our system just now." });
+        }
+      })();
+    } catch {
+      setSigninError("Sign-in is unavailable right now.");
+      setBusy(false);
+    }
+  }
+
+  /** Email-only fallback. Gets the pass; returns no plan, so sequencing stays neutral. */
+  function startWithEmail() {
     if (!emailValid) {
       setEmailTouched(true);
       return;
@@ -117,6 +177,8 @@ export default function WelcomeFlow() {
     })();
   }
 
+  const start = () => (mode === "signin" ? void signIn() : startWithEmail());
+
   const segment = isSegment(step) ? SEGMENTS[step] : null;
 
   return (
@@ -136,21 +198,31 @@ export default function WelcomeFlow() {
 
       <div key={step} ref={liveRef} tabIndex={-1} className="hp-wel-screen" aria-live="polite">
         {step === "start" ? (
-          <Screen photo={INTRO.photo} title={INTRO.title} body={INTRO.body}>
+          <Screen
+            photo={INTRO.photo}
+            title={INTRO.title}
+            body={
+              mode === "signin"
+                ? "Sign in and we'll pull up your membership. Your login is in the welcome email ClubReady sent you."
+                : "Enter your email and we'll find your pass. You can sign in later for the rest."
+            }
+          >
             <label className="hp-wel-field">
-              <span className="hp-wel-fieldlabel">Email on your membership</span>
+              <span className="hp-wel-fieldlabel">
+                {mode === "signin" ? "Username or email" : "Email on your membership"}
+              </span>
               <input
                 type="email"
                 inputMode="email"
-                autoComplete="email"
-                enterKeyHint="go"
+                autoComplete={mode === "signin" ? "username" : "email"}
+                enterKeyHint={mode === "signin" ? "next" : "go"}
                 className="hp-wel-input"
                 value={email}
                 placeholder="you@example.com"
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setEmailTouched(true)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") start();
+                  if (e.key === "Enter" && mode === "email") start();
                 }}
                 aria-invalid={emailTouched && !emailValid}
               />
@@ -158,6 +230,40 @@ export default function WelcomeFlow() {
                 <span className="hp-wel-fielderror">Enter the email you signed up with.</span>
               ) : null}
             </label>
+
+            {mode === "signin" ? (
+              <label className="hp-wel-field">
+                <span className="hp-wel-fieldlabel">Password</span>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  enterKeyHint="go"
+                  className="hp-wel-input"
+                  value={password}
+                  placeholder="••••••••"
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") start();
+                  }}
+                />
+              </label>
+            ) : null}
+
+            {signinError ? <span className="hp-wel-fielderror">{signinError}</span> : null}
+
+            <button
+              type="button"
+              className="hp-wel-more"
+              onClick={() => {
+                setMode(mode === "signin" ? "email" : "signin");
+                setSigninError(null);
+                setPassword("");
+              }}
+            >
+              {mode === "signin"
+                ? "I don't have my login yet"
+                : "I have my login — show me my membership"}
+            </button>
           </Screen>
         ) : null}
 
@@ -220,8 +326,13 @@ export default function WelcomeFlow() {
 
       <footer className="hp-wel-actions">
         {step === "start" ? (
-          <button type="button" className="hp-btn" onClick={start} disabled={!emailValid}>
-            Get started
+          <button
+            type="button"
+            className="hp-btn"
+            onClick={start}
+            disabled={busy || !emailValid || (mode === "signin" && !password)}
+          >
+            {busy ? "Signing you in…" : mode === "signin" ? "Sign in" : "Find my pass"}
           </button>
         ) : null}
 
@@ -417,11 +528,23 @@ function PassScreen({
     );
   }
 
+  if (pass === "unavailable") {
+    // We never got an answer. Saying "no pass found" here would be a claim we
+    // cannot support, and the member does very likely have one.
+    return (
+      <Screen
+        photo={INTRO.photo}
+        title="Your pass"
+        body="We couldn't check on it just now. Member Services can add it to your phone in seconds next time you're in."
+      />
+    );
+  }
+
   return (
     <Screen
       photo={INTRO.photo}
       title="Your pass"
-      body="We couldn't find a pass for that email yet. Member Services can set it up in a few seconds next time you're in."
+      body="We couldn't find a pass on that account yet. Member Services can set it up in a few seconds next time you're in."
     />
   );
 }

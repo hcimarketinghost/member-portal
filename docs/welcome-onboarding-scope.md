@@ -200,16 +200,29 @@ logs. Opaque one-time token, or have them type it.
 
 ---
 
+## Resolved 2026-08-17 — how the plan is fetched
+
+`MembershipTypeName` exists only on the authenticated `GET /users/{UserId}`, and the only
+route to a `UserId` is `/users/find/login-details`, which needs a password. The partner
+API has no find-by-email operation. The `find-member-by-contact` Lambda is **not ours**
+(Victor), so extending it is off the table.
+
+So `/welcome` signs the member in, reusing `login()` → `getAccount()` exactly as the
+portal does, and falls back to email-only for anyone without their credentials yet —
+that path still returns a pass and a first name, and leaves sequencing on the neutral
+order. Full note in `../../ClubReady-API-Knowledge.md` §9.
+
+Two things follow. Sign-in makes plan-driven sequencing real rather than inert, and it
+also retires the earlier privacy constraint: an authenticated member may legitimately be
+shown their own household and plan, which an unauthenticated email box never could. The
+narrowing in `/api/welcome/member` still drops `Barcode`, `PastDueAmount`, and
+`ClassAttendanceCount` — none of them belong on a welcome screen.
+
 ## Open questions for Victor
 
-1. **Who owns `find-member-by-contact`, and how does it resolve email → member?** The
-   knowledge base documents `GET /users/{UserId}` and `/users/find/login-details`, but no
-   email lookup — yet this Lambda does exactly that in production today. If it is ours, it
-   is the most valuable primitive for onboarding and it is missing from the one file meant
-   to prevent re-deriving this. Blocks Phase C; worth a §2 entry either way.
-2. **`--surface` is `#181818`; the locked material twin in `hci-materials.html` §0 is
+1. **`--surface` is `#181818`; the locked material twin in `hci-materials.html` §0 is
    `#1a1a1a`.** Trivial visually, but the portal and the token page disagree. Which wins?
    Not changing it silently.
-3. **Which sender** for director routing and the +24h pass reminder —
+2. **Which sender** for director routing and the +24h pass reminder —
    `Email/mailjet-event-email-template.html` suggests Mailjet is already in play.
-4. **Entry point priority** — QR card first, or the welcome-email button first?
+3. **Entry point priority** — QR card first, or the welcome-email button first?
