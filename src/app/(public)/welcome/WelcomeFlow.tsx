@@ -34,9 +34,8 @@ export default function WelcomeFlow() {
   const liveRef = useRef<HTMLDivElement>(null);
 
   /**
-   * The itinerary is derived, not stored, so the progress rule can never drift
-   * from what the member will actually be shown. Selecting a path in the picker
-   * grows it; deselecting shrinks it.
+   * The itinerary is derived, not stored, so progress can never drift from what
+   * the member will actually be shown. Selecting a path in the picker grows it.
    */
   const steps = useMemo<StepId[]>(() => {
     const chosen = SCREEN_PATHS.filter((id) => selected.includes(id));
@@ -61,7 +60,6 @@ export default function WelcomeFlow() {
   const goTo = useCallback((next: number) => {
     setIndex(next);
     window.history.pushState({ welcomeStep: next }, "");
-    // Screens swap without a route change, so move focus for screen readers.
     requestAnimationFrame(() => liveRef.current?.focus());
   }, []);
 
@@ -121,7 +119,9 @@ export default function WelcomeFlow() {
       <Progress total={steps.length} index={index} />
 
       <header className="hp-wel-top">
-        <Logo height={26} />
+        <span className="hp-wel-brand">
+          <Logo height={30} />
+        </span>
         {!isLast && step !== "start" ? (
           <button type="button" className="hp-wel-skip" onClick={() => goTo(steps.length - 1)}>
             Skip
@@ -129,13 +129,7 @@ export default function WelcomeFlow() {
         ) : null}
       </header>
 
-      <div
-        key={step}
-        ref={liveRef}
-        tabIndex={-1}
-        className="hp-wel-screen"
-        aria-live="polite"
-      >
+      <div key={step} ref={liveRef} tabIndex={-1} className="hp-wel-screen" aria-live="polite">
         {step === "start" ? (
           <Screen photo={INTRO.photo} title={INTRO.title} body={INTRO.body}>
             <label className="hp-wel-field">
@@ -162,10 +156,17 @@ export default function WelcomeFlow() {
           </Screen>
         ) : null}
 
-        {step === "pass" ? <PassScreen state={pass} remindQueued={remindQueued} onRemind={() => setRemindQueued(true)} /> : null}
+        {step === "pass" ? (
+          <PassScreen state={pass} remindQueued={remindQueued} onRemind={() => setRemindQueued(true)} />
+        ) : null}
 
         {step === "app" ? (
-          <Screen photo={APP_SCREEN.photo} title={APP_SCREEN.title} body={APP_SCREEN.body}>
+          <Screen
+            photo={APP_SCREEN.photo}
+            title={APP_SCREEN.title}
+            body={APP_SCREEN.body}
+            device={<AppSplash />}
+          >
             <div className="hp-wel-stores">
               <a className="hp-btn hp-btn-inset" href={APP_SCREEN.ios} target="_blank" rel="noreferrer">
                 App Store
@@ -181,7 +182,7 @@ export default function WelcomeFlow() {
           <Screen
             photo={INTRO.photo}
             title="What are you here for?"
-            body="Pick anything that applies and we'll set it up. Skip this and you can sort it out later."
+            body="Pick anything that applies and we'll get it set up. Skip it and you can sort this out whenever."
           >
             <div className="hp-wel-chips">
               {PATHS.map((path) => (
@@ -238,7 +239,7 @@ export default function WelcomeFlow() {
       <footer className="hp-wel-actions">
         {step === "start" ? (
           <button type="button" className="hp-btn" onClick={() => void lookupPass()} disabled={!emailValid}>
-            Get my pass
+            Get started
           </button>
         ) : null}
 
@@ -264,23 +265,22 @@ export default function WelcomeFlow() {
 }
 
 /**
- * Proportional segmented rule. Segment count tracks the derived itinerary, so
- * picking two paths in the branch screen visibly grows the bar rather than
- * lying about a fixed "step 4 of 8".
+ * One continuous bar rather than segments. Segments would have to appear
+ * mid-flow when the member picks paths in the branch screen — a proportional
+ * fill just moves further along instead, and reads calmer.
  */
 function Progress({ total, index }: { total: number; index: number }) {
+  const pct = total <= 1 ? 100 : Math.round((index / (total - 1)) * 100);
   return (
     <div
       className="hp-wel-progress"
       role="progressbar"
-      aria-valuemin={1}
-      aria-valuemax={total}
-      aria-valuenow={index + 1}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={pct}
       aria-label="Setup progress"
     >
-      {Array.from({ length: total }, (_, i) => (
-        <span key={i} className="hp-wel-seg" data-done={i <= index} />
-      ))}
+      <span className="hp-wel-fill" style={{ width: `${pct}%` }} />
     </div>
   );
 }
@@ -289,26 +289,69 @@ function Screen({
   photo,
   title,
   body,
+  device,
   children,
 }: {
   photo: string;
   title: string;
   body: string;
+  /** Renders inside a phone mockup over a dimmed photo, instead of a full-bleed photo. */
+  device?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   return (
     <>
-      <div className="hp-wel-photo">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo} alt="" aria-hidden="true" />
-        <div className="hp-wel-fade" />
-      </div>
+      {device ? (
+        <div className="hp-wel-stage">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="hp-wel-stagebg" src={photo} alt="" aria-hidden="true" />
+          <div className="hp-wel-device" aria-hidden="true">
+            <div className="hp-wel-devicescreen">{device}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="hp-wel-photo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photo} alt="" aria-hidden="true" />
+          <div className="hp-wel-fade" />
+        </div>
+      )}
       <div className="hp-wel-copy">
         <h1 className="hp-wel-title">{title}</h1>
         <p className="hp-wel-body">{body}</p>
         {children}
       </div>
     </>
+  );
+}
+
+/** The app, shown as its launch screen — no invented feature UI. */
+function AppSplash() {
+  return (
+    <div className="hp-wel-splash">
+      <Logo height={46} />
+    </div>
+  );
+}
+
+/**
+ * The member pass as it appears in a wallet. Drawn rather than screenshotted so
+ * it carries the member's own name the moment the lookup returns it.
+ */
+function PassCard({ name }: { name: string | null }) {
+  return (
+    <div className="hp-wel-pass">
+      <div className="hp-wel-passhead">
+        <Logo height={20} />
+      </div>
+      <div className="hp-wel-passname">{name ?? "Member"}</div>
+      <div className="hp-wel-passmeta">Hill Country Indoor · Dripping Springs</div>
+      <div className="hp-wel-passcode">
+        {Array.from({ length: 46 }, (_, i) => (
+          <i key={i} data-w={i % 4} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -327,9 +370,12 @@ function PassScreen({
 }) {
   if (state.status === "loading" || state.status === "idle") {
     return (
-      <Screen photo={INTRO.photo} title="Finding you" body="This takes a few seconds.">
-        <div className="hp-wel-spinner" aria-hidden="true" />
-      </Screen>
+      <Screen
+        photo={INTRO.photo}
+        title="Finding you"
+        body="This takes a few seconds."
+        device={<div className="hp-wel-splash"><span className="hp-wel-spinner" /></div>}
+      />
     );
   }
 
@@ -338,7 +384,8 @@ function PassScreen({
       <Screen
         photo={INTRO.photo}
         title={state.firstName ? `Here's your pass, ${state.firstName}` : "Here's your pass"}
-        body="Add it to your wallet and you can scan in at the door with your phone."
+        body="Add it to your wallet and you can scan straight in at the door."
+        device={<PassCard name={state.firstName} />}
       >
         <a className="hp-btn" href={state.passUrl} target="_blank" rel="noreferrer">
           Add to wallet
@@ -353,6 +400,7 @@ function PassScreen({
         photo={INTRO.photo}
         title={state.firstName ? `Found you, ${state.firstName}` : "Found you"}
         body="Your pass is still being created — new memberships take about a day to process. Until then the front desk can check you in by name."
+        device={<PassCard name={state.firstName} />}
       >
         {remindQueued ? (
           <p className="hp-wel-confirm">We&rsquo;ll email you the moment it&rsquo;s ready.</p>

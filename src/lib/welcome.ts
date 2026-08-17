@@ -137,20 +137,21 @@ export const PATH_SCREENS: Record<Exclude<PathId, "climbing">, PathScreen> = {
 /** Screen 1 and the finish — fixed, always shown. */
 export const INTRO = {
   photo: PHOTO.turf,
-  title: "You're in.",
-  body: "Let's get your pass on your phone. Everything else takes about a minute.",
+  title: "Welcome to HCI Sports & Fitness",
+  body: "Here's everything you need to get started. First, let's put your member pass on your phone.",
 };
 
 export const APP_SCREEN = {
   photo: PHOTO.track,
-  title: "Book everything from your phone",
-  body: "Class schedules, court bookings, your pass, and your account all live in the HCI app.",
+  title: "Everything lives in the app",
+  body: "Class schedules, court bookings, your pass, and your account. Download it now and you won't need the front desk for any of it.",
+  // TODO: real store IDs — these are placeholders and must be replaced before launch.
   ios: "https://apps.apple.com/us/app/hill-country-indoor/id1585426259",
   android: "https://play.google.com/store/apps/details?id=com.clubready.hillcountryindoor",
 };
 
 export const DONE = {
   photo: PHOTO.studio,
-  title: "That's everything",
-  body: "Your packet is in your inbox for anything we skipped. Come see us at Member Services if you get stuck.",
+  title: "You're all set",
+  body: "Your full member packet is in your inbox for anything we skipped. Come find us at Member Services any time — that's what we're there for.",
 };
