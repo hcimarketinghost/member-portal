@@ -4,15 +4,13 @@
  * Shape follows the onboarding research rather than the six-page Figma packet
  * (`HCI Design Library` node 2296:3):
  *
- * - The pass is the value moment, so it lands on screen 2. Flows that spend
- *   three screens explaining themselves before anything happens lose ~10-15%
- *   completion per screen, and swipe-past explainer carousels are read by
- *   almost nobody.
- * - Everything after the pass is opt-in and branch-selected. Contextual
- *   disclosure completes far better than a linear tour, and it also means a
- *   member without kids never sees a KidCare screen.
- * - Every optional screen carries exactly ONE action. Policy prose lives in the
- *   emailed packet and on a resources page — not in a screen someone swipes past.
+ * - Recognition leads. The lookup fires in the background on email submit and
+ *   both the summary and the pass screen read that one result.
+ * - The middle of the flow is ORDERED BY MEMBERSHIP, not by a "what are you
+ *   interested in" picker. A family membership should not have to tell us it
+ *   has kids. See `planVariant` / `sequenceFor`.
+ * - Reference material is not screens. It lives in the learn-more hub at the
+ *   end, which loops: pick a topic, read it, come back, pick another.
  *
  * Scope + phasing: `docs/welcome-onboarding-scope.md`.
  */
@@ -27,6 +25,9 @@ const PHOTO = {
 } as const;
 
 export const SITE = "https://www.hillcountryindoor.com";
+
+export const ACTIVENET_SIGNUP =
+  "https://anc.apm.activecommunities.com/hillcountryindoor/createaccount?onlineSiteId=0&from_original_cui=true";
 
 /** Sport → director. `adam@` is copied on every one; see `routeFor`. */
 const SPORT_DIRECTORS: Record<string, string> = {
@@ -43,107 +44,228 @@ export function routeFor(sport: string): { to: string; cc: string } {
   return { to: SPORT_DIRECTORS[sport] ?? ALL_SPORTS_EMAIL, cc: ALL_SPORTS_EMAIL };
 }
 
-export const SPORTS = [
-  { id: "basketball", label: "Basketball" },
-  { id: "volleyball", label: "Volleyball" },
-  { id: "soccer", label: "Soccer" },
-  { id: "pickleball", label: "Pickleball" },
-  { id: "youth", label: "Youth programs" },
-] as const;
+/* ── Membership-driven sequencing ─────────────────────────────────────────
+   The middle of the flow is ordered by what the member actually bought.    */
+
+export type Variant = "family" | "solo" | "unknown";
 
 /**
- * The branch picker. Each selected path inserts exactly one screen, in this
- * order, between the picker and the finish.
+ * Read the membership variant off ClubReady's plan name.
+ *
+ * Deliberately conservative: anything unrecognised is `unknown`, which gets a
+ * neutral order rather than a guess. Showing a solo member three screens of
+ * KidCare is worse than showing everyone a sensible default.
+ *
+ * NOTE: this only does real work once the lookup actually returns a plan name.
+ * See ClubReady-API-Knowledge.md open question 1.
  */
-export type PathId = "sports" | "classes" | "kidcare" | "training" | "climbing";
+export function planVariant(plan: string | null): Variant {
+  if (!plan) return "unknown";
+  const p = plan.toLowerCase();
+  if (/family|household|couple|dual|parent|kids?\b/.test(p)) return "family";
+  if (/individual|single|solo|student|senior/.test(p)) return "solo";
+  return "unknown";
+}
 
-export type PathOption = {
-  id: PathId;
-  label: string;
-  /** Sub-label on the chip — what picking this actually gets them. */
-  hint: string;
-  /** Whether this path contributes a screen. `climbing` needs no setup. */
-  screen: boolean;
+export type SegmentId = "kidcare" | "sports" | "classes" | "training";
+
+/**
+ * Which segments to show, in which order.
+ *
+ * Family leads with KidCare and youth sports because that is the reason the
+ * plan exists. Solo leads with studio and training. Unknown gets the three
+ * that apply to everybody and leaves KidCare to the hub.
+ */
+export function sequenceFor(variant: Variant): SegmentId[] {
+  if (variant === "family") return ["kidcare", "sports", "classes", "training"];
+  if (variant === "solo") return ["classes", "training", "sports"];
+  return ["classes", "sports", "training"];
+}
+
+/* ── ActiveNet: a three-step walkthrough, not a paragraph ─────────────────
+   Sports registration is the single most confusing thing about a new HCI
+   membership — a separate system, a separate account, and pricing that is
+   not automatic. It earns a walkthrough where nothing else does.           */
+
+export type WalkStep = {
+  /** File in `public/welcome/`. Missing file degrades to an empty frame. */
+  image: string;
+  title: string;
+  body: string;
 };
 
-export const PATHS: PathOption[] = [
-  { id: "sports", label: "Leagues & sports", hint: "Needs a separate account", screen: true },
-  { id: "classes", label: "Studio classes", hint: "Book in the app", screen: true },
-  { id: "kidcare", label: "KidCare", hint: "Kids 9mo–9yr", screen: true },
-  { id: "training", label: "Training & AIM", hint: "First session is free", screen: true },
-  { id: "climbing", label: "Rock climbing", hint: "Weekends 12–5pm", screen: false },
+export const ACTIVENET_STEPS: WalkStep[] = [
+  {
+    image: "/welcome/activenet-1.png",
+    title: "Create the account",
+    body: "ActiveNet is separate from your HCI membership. Hit Create Account, top right, and fill in your details.",
+  },
+  {
+    image: "/welcome/activenet-2.png",
+    title: "Add your family",
+    body: "My Account → Manage Family Members. Everyone who plays needs to be on there before you can register them.",
+  },
+  {
+    image: "/welcome/activenet-3.png",
+    title: "Ask for member pricing",
+    body: "Member rates are not applied automatically. Message Guest Services once and it's set for good.",
+  },
 ];
 
-/** Content for each optional screen. One action each — that is the rule. */
-export type PathScreen = {
-  id: PathId;
+/* ── Segment screens ──────────────────────────────────────────────────── */
+
+export type Segment = {
+  id: SegmentId;
   photo: string;
   title: string;
   body: string;
-  /** The single thing to do here. */
-  action: { label: string; href: string };
-  /** At most two must-know facts. Anything longer belongs in the packet. */
+  action?: { label: string; href: string };
   facts?: string[];
-  /** Optional secondary link — reference, never a competing action. */
-  more?: { label: string; href: string };
+  /** Renders the ActiveNet walkthrough instead of a plain photo screen. */
+  walkthrough?: WalkStep[];
 };
 
-export const PATH_SCREENS: Record<Exclude<PathId, "climbing">, PathScreen> = {
-  sports: {
-    id: "sports",
-    photo: PHOTO.turf,
-    title: "Leagues run on a separate account",
-    body: "ActiveNet handles sports registration and it is not linked to your membership. Create that account once and you are set for every season.",
-    action: {
-      label: "Create your ActiveNet account",
-      // Deep link straight to account creation, not the ActiveNet landing page —
-      // the whole point of this screen is that the account is the blocker.
-      href: "https://anc.apm.activecommunities.com/hillcountryindoor/createaccount?onlineSiteId=0&from_original_cui=true",
-    },
-    facts: [
-      "Member pricing is not automatic — ask Guest Services to apply it.",
-      "Add your kids under My Account → Manage Family Members.",
-    ],
-  },
-  classes: {
-    id: "classes",
-    photo: PHOTO.studio3,
-    title: "Booking and cancelling classes",
-    body: "Studio classes are booked in the HCI app. Two rules are worth knowing before your first one, because both cost money.",
-    action: { label: "Browse the schedule", href: "/schedule" },
-    facts: [
-      "Cancel more than 2 hours ahead and there is no fee.",
-      "Not checking in to a class you booked is a $25 no-show fee.",
-    ],
-    more: { label: "Full studio policy", href: `${SITE}/studio` },
-  },
+export const SEGMENTS: Record<SegmentId, Segment> = {
   kidcare: {
     id: "kidcare",
     photo: PHOTO.studioU,
-    title: "Get set up with KidCheck",
-    body: "Kids check in and out through KidCheck at every visit. Registering now means your first drop-off takes a minute instead of fifteen.",
+    title: "Get KidCheck done before your first visit",
+    body: "Kids check in and out through KidCheck every time. Registering now turns your first drop-off into a minute instead of fifteen.",
     action: { label: "Register with KidCheck", href: `${SITE}/kidcare` },
     facts: [
       "The Clubhouse (9mo–4yr) is included; The Cube (5–9yr) is an add-on.",
       "90-minute daily limit, and you stay on-site.",
     ],
-    more: { label: "Hours and full requirements", href: `${SITE}/kidcare` },
+  },
+  sports: {
+    id: "sports",
+    photo: PHOTO.turf,
+    title: "Leagues run on a separate account",
+    body: "Three steps and you're registered for every season after this one.",
+    walkthrough: ACTIVENET_STEPS,
+    action: { label: "Take me to ActiveNet", href: ACTIVENET_SIGNUP },
+  },
+  classes: {
+    id: "classes",
+    photo: PHOTO.studio3,
+    title: "Booking and cancelling classes",
+    body: "Studio classes are booked in the app. Two rules are worth knowing before your first one, because both cost money.",
+    action: { label: "Browse the schedule", href: "/schedule" },
+    facts: [
+      "Cancel more than 2 hours ahead and there's no fee.",
+      "Not checking in to a class you booked is a $25 no-show fee.",
+    ],
   },
   training: {
     id: "training",
     photo: PHOTO.track,
     title: "Your first session is free",
     body: "Every member gets a free consultation, a full fitness assessment, and an InBody composition scan. Most people never claim them.",
-    action: { label: "Book your free consult", href: "mailto:training@hillcountryindoor.com?subject=Free%20consultation" },
+    action: {
+      label: "Book your free consult",
+      href: "mailto:training@hillcountryindoor.com?subject=Free%20consultation",
+    },
     facts: ["1-on-1, small group (4–8), and large group training all available."],
   },
 };
 
-/**
- * What every membership includes — page 1 of the packet. Static and true for
- * everyone, so the summary screen can lay out "here's what you get" without
- * waiting on an API.
- */
+/* ── Learn-more hub ───────────────────────────────────────────────────────
+   The loop at the end. Everything the packet covers that did not earn a
+   screen lives here, one tap deep, and returns you to the hub.             */
+
+export type Topic = {
+  id: string;
+  label: string;
+  hint: string;
+  photo: string;
+  body: string;
+  facts: string[];
+  link?: { label: string; href: string };
+};
+
+export const TOPICS: Topic[] = [
+  {
+    id: "kidcare",
+    label: "KidCare",
+    hint: "Clubhouse & The Cube",
+    photo: PHOTO.studioU,
+    body: "Supervised childcare on-site while you train, for ages 9 months through 9 years.",
+    facts: [
+      "Clubhouse 9mo–4yr, complimentary for members, up to 20 children.",
+      "The Cube 5–9yr, membership add-on required, up to 30 children.",
+      "Mon–Thu 8:00am–1:00pm and 4:30–8:00pm. Closed Fri–Sun.",
+      "90-minute daily limit. A parent stays on-site the whole time.",
+      "Nametag visible at drop-off; water only, nut-free snacks allowed.",
+    ],
+    link: { label: "Questions", href: "mailto:katy.fisher@hillcountryindoor.com" },
+  },
+  {
+    id: "climbing",
+    label: "Rock climbing",
+    hint: "Weekends & school breaks",
+    photo: PHOTO.track,
+    body: "The climbing wall is open to members at no extra cost.",
+    facts: ["Weekends 12–5pm.", "Open every day during school breaks."],
+  },
+  {
+    id: "classes",
+    label: "Studio classes",
+    hint: "Booking, fees, waitlists",
+    photo: PHOTO.studio3,
+    body: "Four studios, booked through the app. The fee rules exist because a held spot is a spot nobody else could take.",
+    facts: [
+      "Cancel via the app more than 2 hours ahead — no fee.",
+      "No-show on a booked class — $25, charged automatically.",
+      "Arrive 5 minutes early; a 5-minute grace period applies.",
+      "Waitlists can add you automatically, so manage your bookings.",
+      "Spin up to 30 · Studio 1 up to 16 · Studio 3 up to 22 · Studio U up to 15.",
+    ],
+    link: { label: "Email the studio team", href: "mailto:studio@hillcountryindoor.com" },
+  },
+  {
+    id: "sports",
+    label: "Sports & leagues",
+    hint: "ActiveNet registration",
+    photo: PHOTO.turf,
+    body: "Basketball, volleyball, soccer, pickleball, camps and leagues — all registered through ActiveNet.",
+    facts: [
+      "ActiveNet is not linked to your HCI membership.",
+      "Member pricing is not automatic — ask Guest Services.",
+      "Add children under My Account → Manage Family Members.",
+    ],
+    link: { label: "Create an ActiveNet account", href: ACTIVENET_SIGNUP },
+  },
+  {
+    id: "training",
+    label: "Training & AIM",
+    hint: "PT and athletic development",
+    photo: PHOTO.track,
+    body: "Personal training plus AIM Performance, our science-backed athletic development program.",
+    facts: [
+      "Free consultation, fitness assessment, and InBody scan for every member.",
+      "1-on-1, small group (4–8), and large group (8+) training.",
+      "AIM covers injury prevention, 3D movement, speed, and rotational power.",
+    ],
+    link: { label: "Email the training team", href: "mailto:training@hillcountryindoor.com" },
+  },
+  {
+    id: "membership",
+    label: "Billing & your account",
+    hint: "Freezes, guests, cancelling",
+    photo: PHOTO.studio,
+    body: "The administrative things worth knowing once so they never surprise you.",
+    facts: [
+      "Billing runs on the 1st of every month.",
+      "Freeze up to 3 months in any 12-month period.",
+      "Cancellation needs an in-person signature plus one month's notice.",
+      "Guests check in at Member Services. Guest and day passes don't cover KidCare.",
+      "Fitness floor, track, and strength centre are 15+. Ages 10–14 need a parent present.",
+    ],
+    link: { label: "Call us", href: "tel:+15122634144" },
+  },
+];
+
+/** What every membership includes — page 1 of the packet, true for everyone. */
 export const INCLUDED = [
   { label: "Sports & leagues", detail: "Basketball, volleyball, soccer, pickleball, camps" },
   { label: "Fitness & training", detail: "Personal training, AIM Performance, studio classes, track" },
@@ -151,15 +273,15 @@ export const INCLUDED = [
   { label: "Rock climbing", detail: "Weekends 12–5pm, and every day during school breaks" },
 ] as const;
 
-/** Screen 1 and the finish — fixed, always shown. */
 export const INTRO = {
   photo: PHOTO.turf,
   title: "Welcome to HCI Sports & Fitness",
-  body: "Here's everything you need to get started. First, let's put your member pass on your phone.",
+  body: "Here's everything you need to get started. First, let's pull up your membership.",
 };
 
 export const APP_SCREEN = {
   photo: PHOTO.track,
+  image: "/welcome/app-home.png",
   title: "Everything lives in the app",
   body: "Class schedules, court bookings, your pass, and your account. Download it now and you won't need the front desk for any of it.",
   // TODO: real store IDs — these are placeholders and must be replaced before launch.
@@ -170,5 +292,5 @@ export const APP_SCREEN = {
 export const DONE = {
   photo: PHOTO.studio,
   title: "You're all set",
-  body: "Your full member packet is in your inbox for anything we skipped. Come find us at Member Services any time — that's what we're there for.",
+  body: "Anything you want to dig into is below. Your full member packet is in your inbox too.",
 };

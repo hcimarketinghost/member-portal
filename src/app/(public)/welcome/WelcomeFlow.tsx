@@ -7,12 +7,15 @@ import {
   DONE,
   INCLUDED,
   INTRO,
-  PATHS,
-  PATH_SCREENS,
-  type PathId,
+  SEGMENTS,
+  planVariant,
+  sequenceFor,
+  type SegmentId,
 } from "@/lib/welcome";
+import LearnMore from "./LearnMore";
+import Walkthrough from "./Walkthrough";
 
-type StepId = "start" | "you" | "app" | "paths" | PathId | "pass" | "done";
+type StepId = "start" | "you" | "app" | SegmentId | "pass" | "done";
 
 type Member = {
   found: boolean;
@@ -29,11 +32,7 @@ type Lookup =
   | { status: "done"; member: Member }
   | { status: "error"; message: string };
 
-/** Paths that contribute a screen, in the order they appear in the flow. */
-const SCREEN_PATHS = PATHS.filter((p) => p.screen).map((p) => p.id);
-
 export default function WelcomeFlow() {
-  const [selected, setSelected] = useState<PathId[]>([]);
   const [index, setIndex] = useState(0);
   const [email, setEmail] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
@@ -41,23 +40,26 @@ export default function WelcomeFlow() {
   const [remindQueued, setRemindQueued] = useState(false);
   const liveRef = useRef<HTMLDivElement>(null);
 
+  const member = lookup.status === "done" ? lookup.member : null;
+  const variant = planVariant(member?.plan ?? null);
+
   /**
-   * Derived, not stored, so progress can never drift from what the member will
-   * actually be shown. The pass sits late on purpose: the lookup fires when they
-   * submit their email, and by the time they reach it the ~10s Lambda cold start
-   * has already happened behind screens they were reading.
+   * Ordered by what the member actually bought — no "what are you interested
+   * in" question. A family membership should not have to tell us it has kids.
+   *
+   * Derived rather than stored, so when the background lookup lands and the
+   * variant sharpens from `unknown` to `family`, the remaining screens
+   * reorder underneath. The member is on `you` or `app` at that point, both of
+   * which sit before the segments, so nothing shifts under them mid-read.
    */
-  const steps = useMemo<StepId[]>(() => {
-    const chosen = SCREEN_PATHS.filter((id) => selected.includes(id));
-    return ["start", "you", "app", "paths", ...chosen, "pass", "done"];
-  }, [selected]);
+  const steps = useMemo<StepId[]>(
+    () => ["start", "you", "app", ...sequenceFor(variant), "pass", "done"],
+    [variant]
+  );
 
   const step = steps[Math.min(index, steps.length - 1)];
   const isLast = index >= steps.length - 1;
 
-  // Browser back moves back a screen instead of leaving the flow. React state
-  // stays the source of truth; history only mirrors it, which avoids the
-  // useSearchParams Suspense bailout for what is a purely local wizard.
   useEffect(() => {
     const onPop = (event: PopStateEvent) => {
       const to = (event.state as { welcomeStep?: number } | null)?.welcomeStep;
@@ -86,7 +88,8 @@ export default function WelcomeFlow() {
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  /** Fires once, in the background. Both the summary and the pass read it. */
+  /** Fires once, in the background. The summary, the sequencing, and the pass
+   *  screen all read this one result. */
   function start() {
     if (!emailValid) {
       setEmailTouched(true);
@@ -114,13 +117,7 @@ export default function WelcomeFlow() {
     })();
   }
 
-  function togglePath(id: PathId) {
-    setSelected((current) =>
-      current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
-    );
-  }
-
-  const member = lookup.status === "done" ? lookup.member : null;
+  const segment = isSegment(step) ? SEGMENTS[step] : null;
 
   return (
     <main className="hp-wel" data-step={step}>
@@ -179,26 +176,26 @@ export default function WelcomeFlow() {
           </Screen>
         ) : null}
 
-        {step === "paths" ? (
-          <Screen
-            photo={INTRO.photo}
-            title="What are you here for?"
-            body="Pick anything that applies and we'll get it set up. Skip it and you can sort this out whenever."
-          >
-            <div className="hp-wel-chips">
-              {PATHS.map((path) => (
-                <button
-                  key={path.id}
-                  type="button"
-                  className="hp-wel-chip"
-                  aria-pressed={selected.includes(path.id)}
-                  onClick={() => togglePath(path.id)}
-                >
-                  <span className="hp-wel-chiplabel">{path.label}</span>
-                  <span className="hp-wel-chiphint">{path.hint}</span>
-                </button>
-              ))}
-            </div>
+        {segment?.walkthrough && segment.action ? (
+          <div className="hp-wel-plain">
+            <h1 className="hp-wel-title">{segment.title}</h1>
+            <p className="hp-wel-body">{segment.body}</p>
+            <Walkthrough steps={segment.walkthrough} action={segment.action} />
+          </div>
+        ) : segment ? (
+          <Screen photo={segment.photo} title={segment.title} body={segment.body}>
+            {segment.action ? (
+              <a className="hp-btn" href={segment.action.href} target="_blank" rel="noreferrer">
+                {segment.action.label}
+              </a>
+            ) : null}
+            {segment.facts ? (
+              <ul className="hp-wel-facts">
+                {segment.facts.map((fact) => (
+                  <li key={fact}>{fact}</li>
+                ))}
+              </ul>
+            ) : null}
           </Screen>
         ) : null}
 
@@ -210,42 +207,14 @@ export default function WelcomeFlow() {
           />
         ) : null}
 
-        {isPathStep(step)
-          ? (() => {
-              const screen = PATH_SCREENS[step as Exclude<PathId, "climbing">];
-              if (!screen) return null;
-              return (
-                <Screen photo={screen.photo} title={screen.title} body={screen.body}>
-                  <a className="hp-btn" href={screen.action.href} target="_blank" rel="noreferrer">
-                    {screen.action.label}
-                  </a>
-                  {screen.facts ? (
-                    <ul className="hp-wel-facts">
-                      {screen.facts.map((fact) => (
-                        <li key={fact}>{fact}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                  {screen.more ? (
-                    <a className="hp-wel-more" href={screen.more.href} target="_blank" rel="noreferrer">
-                      {screen.more.label}
-                    </a>
-                  ) : null}
-                </Screen>
-              );
-            })()
-          : null}
-
         {step === "done" ? (
-          <Screen
-            photo={DONE.photo}
-            title={member?.firstName ? `You're all set, ${member.firstName}` : DONE.title}
-            body={DONE.body}
-          >
-            <a className="hp-btn" href="/">
-              Open the portal
-            </a>
-          </Screen>
+          <div className="hp-wel-plain">
+            <h1 className="hp-wel-title">
+              {member?.firstName ? `You're all set, ${member.firstName}` : DONE.title}
+            </h1>
+            <p className="hp-wel-body">{DONE.body}</p>
+            <LearnMore />
+          </div>
         ) : null}
       </div>
 
@@ -258,8 +227,14 @@ export default function WelcomeFlow() {
 
         {step !== "start" && !isLast ? (
           <button type="button" className="hp-btn" onClick={advance}>
-            {step === "paths" && selected.length === 0 ? "Not right now" : "Continue"}
+            Continue
           </button>
+        ) : null}
+
+        {isLast ? (
+          <a className="hp-btn" href="/">
+            Open the portal
+          </a>
         ) : null}
 
         {index > 0 ? (
@@ -272,15 +247,11 @@ export default function WelcomeFlow() {
   );
 }
 
-function isPathStep(step: StepId): step is PathId {
-  return !["start", "you", "app", "paths", "pass", "done"].includes(step);
+function isSegment(step: StepId): step is SegmentId {
+  return ["kidcare", "sports", "classes", "training"].includes(step);
 }
 
-/**
- * One continuous bar rather than segments. Segments would have to appear
- * mid-flow when the member picks paths in the branch screen — a proportional
- * fill just travels further, and reads calmer.
- */
+/** One continuous bar. Segments would have to grow when the sequence changes. */
 function Progress({ total, index }: { total: number; index: number }) {
   const pct = total <= 1 ? 100 : Math.round((index / (total - 1)) * 100);
   return (
@@ -325,11 +296,9 @@ function Screen({
 }
 
 /**
- * The recognition moment. Renders as soon as the background lookup lands.
- *
- * `plan` and `memberSince` are shown only when the lookup actually returned
- * them — the "what's included" list below is static packet content and is true
- * for every membership, so the screen is worth showing either way.
+ * The recognition moment. `plan` and `memberSince` render only when the lookup
+ * actually returned them; the included list is packet content and is true for
+ * every membership, so the screen stands up either way.
  */
 function YouScreen({ lookup }: { lookup: Lookup }) {
   if (lookup.status === "loading" || lookup.status === "idle") {
@@ -343,18 +312,16 @@ function YouScreen({ lookup }: { lookup: Lookup }) {
   const member = lookup.status === "done" ? lookup.member : null;
   const known = member?.found === true;
 
-  const title = known
-    ? member?.firstName
-      ? `Found you, ${member.firstName}`
-      : "Found you"
-    : "Here's what you've got";
-
-  const body = known
-    ? "Here's what your membership covers."
-    : "We couldn't match that email to a membership yet — new accounts can take a day to appear. Everything below still applies.";
-
   return (
-    <Screen photo={INTRO.photo} title={title} body={body}>
+    <Screen
+      photo={INTRO.photo}
+      title={known ? (member?.firstName ? `Found you, ${member.firstName}` : "Found you") : "Here's what you've got"}
+      body={
+        known
+          ? "Here's what your membership covers."
+          : "We couldn't match that email to a membership yet — new accounts can take a day to appear. Everything below still applies."
+      }
+    >
       {member?.plan || member?.memberSince ? (
         <dl className="hp-wel-summary">
           {member.plan ? (
