@@ -17,12 +17,7 @@ export default function LearnMore() {
   if (open) {
     return (
       <div className="hp-lm-detail" key={open.id}>
-        <div className="hp-wel-photo">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={open.photo} alt="" aria-hidden="true" />
-          <div className="hp-wel-fade" />
-        </div>
-        <div className="hp-wel-copy">
+        <div className="hp-wel-ask">
           <h1 className="hp-wel-title">{open.label}</h1>
           <p className="hp-wel-body">{open.body}</p>
 

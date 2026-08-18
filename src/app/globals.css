@@ -1802,34 +1802,45 @@ html, body {
   padding: max(10px, env(safe-area-inset-top)) var(--hci-x) 12px;
 }
 
-/* Circular chip, left. Same tap target as everything else in the flow. */
+/* Icon button, straight off EventsShowcase's overlay close: 40px square,
+   radius-control, the one locked frost material. Not a circle — the language
+   has no circular controls and 4px is the control radius. Over solid black the
+   frost composites to #1a1a1a, which is the intended solid twin. */
 .hp-wel-close {
   position: absolute; left: var(--hci-x); top: 50%; transform: translateY(-50%);
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 40px; height: 40px; padding: 0; border: 0;
+  border-radius: var(--radius-control);
   display: flex; align-items: center; justify-content: center;
-  background: var(--surface); color: var(--text-2);
-  transition: background .15s ease, color .15s ease;
+  background: rgba(47, 47, 47, 0.55);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  color: #fff; cursor: pointer;
+  transition: background .15s ease;
 }
-.hp-wel-close::after { content: ""; position: absolute; inset: -8px; }
 .hp-wel-close svg {
-  width: 15px; height: 15px; fill: none; stroke: currentColor;
+  width: 17px; height: 17px; fill: none; stroke: currentColor;
   stroke-width: 2.2; stroke-linecap: round;
 }
 @media (hover: hover) {
-  .hp-wel-close:hover { background: #1f1f1f; color: var(--text); }
+  .hp-wel-close:hover { background: rgba(47, 47, 47, 0.65); }
 }
 .hp-wel-brand { display: block; color: #fff; }
 .hp-wel-top .hp-wel-skip {
   position: absolute; right: var(--hci-x); top: 50%; transform: translateY(-50%);
 }
+/* Matches StudioClassesFinder's chip: 40px tall, 13px/600 at -0.02em, same
+   frost. Pairs with the close button instead of floating as bare grey text. */
 .hp-wel-skip {
-  background: none; border: 0; cursor: pointer;
-  color: var(--text-3); font: inherit; font-size: 15px; font-weight: 500;
-  letter-spacing: -0.02em; padding: 8px; margin: -8px;
-  transition: color .15s ease;
+  display: inline-flex; align-items: center;
+  height: 40px; padding: 0 16px; border: 0; cursor: pointer;
+  border-radius: var(--radius-control);
+  background: rgba(47, 47, 47, 0.55);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  color: #fff; font: inherit; font-size: 13px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1;
+  transition: background .15s ease;
 }
 @media (hover: hover) {
-  .hp-wel-skip:hover { color: var(--text); }
+  .hp-wel-skip:hover { background: rgba(47, 47, 47, 0.65); }
 }
 
 /* ── Screen ───────────────────────────────────────────────────── */
@@ -1843,22 +1854,6 @@ html, body {
 
 /* Photo settles rather than slides: a slow drift down from 1.03 is the same
    move as the card image hover, so it stays inside the house vocabulary. */
-.hp-wel-photo { animation: hp-wel-photo-in .6s var(--wel-curve) both; }
-@keyframes hp-wel-photo-in {
-  from { opacity: 0; transform: scale(1.03); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* Copy rises, staggered a beat behind the photo. The stagger is what makes it
-   feel composed instead of everything arriving at once. */
-.hp-wel-copy > * { animation: hp-wel-rise .45s var(--wel-curve) both; }
-.hp-wel-copy > *:nth-child(1) { animation-delay: .06s; }
-.hp-wel-copy > *:nth-child(2) { animation-delay: .11s; }
-.hp-wel-copy > *:nth-child(3) { animation-delay: .16s; }
-.hp-wel-copy > *:nth-child(4) { animation-delay: .20s; }
-.hp-wel-copy > *:nth-child(5) { animation-delay: .23s; }
-.hp-wel-copy > *:nth-child(n + 6) { animation-delay: .26s; }
-
 .hp-wel-plain > * { animation: hp-wel-rise .45s var(--wel-curve) both; }
 .hp-wel-plain > *:nth-child(1) { animation-delay: .04s; }
 .hp-wel-plain > *:nth-child(2) { animation-delay: .09s; }
@@ -1878,32 +1873,8 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hp-wel-photo,
-  .hp-wel-copy > *,
   .hp-wel-plain > * { animation: none; }
   .hp-wel-fill { transition: none; }
-}
-
-/* Photo + the EventsShowcase card fade, verbatim. */
-.hp-wel-photo { position: relative; flex: 0 0 auto; height: min(38dvh, 320px); }
-.hp-wel-photo img {
-  width: 100%; height: 100%; object-fit: cover; object-position: center 30%;
-  display: block;
-}
-.hp-wel-fade {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(0, 0, 0, 0.62) 88%,
-    rgba(0, 0, 0, 0.74) 100%
-  );
-}
-/* The copy pulls up into the fade — the poster-hero move from the sheets. */
-.hp-wel-copy {
-  position: relative; z-index: 2; margin-top: -28px;
-  padding: 0 var(--hci-x) 24px;
-  display: flex; flex-direction: column; gap: 16px; align-items: flex-start;
 }
 
 .hp-wel-title {
@@ -2021,7 +1992,6 @@ html, body {
     inset: 0 auto 0 50%; transform: translateX(-50%);
     border-left: 1px solid var(--hairline); border-right: 1px solid var(--hairline);
   }
-  .hp-wel-photo { height: min(42dvh, 380px); }
   .hp-wel-actions .hp-btn { width: 100%; }
 }
 

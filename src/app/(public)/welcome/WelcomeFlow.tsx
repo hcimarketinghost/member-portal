@@ -105,25 +105,6 @@ export default function WelcomeFlow() {
   const step = steps[Math.min(index, steps.length - 1)];
   const isLast = index >= steps.length - 1;
 
-  /**
-   * Preload every photo the flow can show. There are only a handful of unique
-   * URLs and they are the single biggest source of jank — without this, each
-   * step waits on a fresh fetch and the copy animates in over an empty box.
-   */
-  useEffect(() => {
-    const urls = new Set<string>([
-      INTRO.photo,
-      APP_SCREEN.photo,
-      DONE.photo,
-      ...Object.values(SEGMENTS).map((seg) => seg.photo),
-    ]);
-    urls.forEach((url) => {
-      const img = new Image();
-      img.decoding = "async";
-      img.src = url;
-    });
-  }, []);
-
   useEffect(() => {
     const onPop = (event: PopStateEvent) => {
       const to = (event.state as { welcomeStep?: number } | null)?.welcomeStep;
@@ -265,14 +246,9 @@ export default function WelcomeFlow() {
 
       <div key={step} ref={liveRef} tabIndex={-1} className="hp-wel-screen" aria-live="polite">
         {step === "start" ? (
-          /* No photo here on purpose. The opening screens are a task, not a
-             poster — imagery competes with the one thing being asked for.
-             Photography returns on the segment screens and the hub tiles. */
           <div className="hp-wel-ask">
-            {/* The tag takes the hero slot the photo used to hold. On the ID
-                step it is also the instruction — it turns to show the number —
-                so it stays put across both sub-steps rather than appearing and
-                disappearing, which would jump the layout under the field. */}
+            {/* The one graphic in the flow. It stays across both sub-steps —
+                removing it on the last-name step would jump the layout. */}
             <div className="hp-wel-hero">
               <Keytag />
             </div>
@@ -394,7 +370,7 @@ export default function WelcomeFlow() {
         {step === "you" ? <YouScreen lookup={lookup} /> : null}
 
         {step === "app" ? (
-          <Screen photo={APP_SCREEN.photo} title={APP_SCREEN.title} body={APP_SCREEN.body}>
+          <Screen title={APP_SCREEN.title} body={APP_SCREEN.body}>
             <div className="hp-wel-stores">
               <a className="hp-btn hp-btn-inset" href={APP_SCREEN.ios} target="_blank" rel="noreferrer">
                 App Store
@@ -417,7 +393,7 @@ export default function WelcomeFlow() {
             />
           </div>
         ) : segment ? (
-          <Screen photo={segment.photo} title={segment.title} body={segment.body}>
+          <Screen title={segment.title} body={segment.body}>
             {segment.action ? (
               <a className="hp-btn" href={segment.action.href} target="_blank" rel="noreferrer">
                 {segment.action.label}
@@ -518,30 +494,30 @@ function Progress({ total, index }: { total: number; index: number }) {
   );
 }
 
+/**
+ * Text-led. No photo.
+ *
+ * These screens used to open with a full-bleed cover-cropped hero each. Two
+ * problems: a cover crop on a 38vh band mangles most of the source frames, and
+ * a different room behind every step turns a short task into a slideshow. The
+ * keytag is the one graphic in the flow; the learn-more tiles at the end are
+ * the only other imagery, and those are small squares where a crop behaves.
+ */
 function Screen({
-  photo,
   title,
   body,
   children,
 }: {
-  photo: string;
   title: string;
   body: string;
   children?: React.ReactNode;
 }) {
   return (
-    <>
-      <div className="hp-wel-photo">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo} alt="" aria-hidden="true" />
-        <div className="hp-wel-fade" />
-      </div>
-      <div className="hp-wel-copy">
-        <h1 className="hp-wel-title">{title}</h1>
-        <p className="hp-wel-body">{body}</p>
-        {children}
-      </div>
-    </>
+    <div className="hp-wel-ask">
+      <h1 className="hp-wel-title">{title}</h1>
+      <p className="hp-wel-body">{body}</p>
+      {children}
+    </div>
   );
 }
 
@@ -557,7 +533,7 @@ function YouScreen({ lookup }: { lookup: Lookup }) {
     // rather than "something is happening". It also means nothing reflows when
     // the real content lands.
     return (
-      <Screen photo={INTRO.photo} title="Finding you" body="Pulling up your membership.">
+      <Screen title="Finding you" body="Pulling up your membership.">
         <SummarySkeleton />
       </Screen>
     );
@@ -568,7 +544,6 @@ function YouScreen({ lookup }: { lookup: Lookup }) {
 
   return (
     <Screen
-      photo={INTRO.photo}
       title={known ? (member?.firstName ? `Found you, ${member.firstName}` : "Found you") : "Here's what you've got"}
       body={
         known
@@ -650,7 +625,7 @@ function PassScreen({
 }) {
   if (lookup.status === "loading" || lookup.status === "idle") {
     return (
-      <Screen photo={INTRO.photo} title="Checking on your pass" body="One moment.">
+      <Screen title="Checking on your pass" body="One moment.">
         <span className="hp-wel-spinner" />
       </Screen>
     );
@@ -659,7 +634,6 @@ function PassScreen({
   if (lookup.status === "error") {
     return (
       <Screen
-        photo={INTRO.photo}
         title="Your pass"
         body="We couldn't check on it just now. Member Services can add it to your phone in a few seconds next time you're in."
       />
@@ -671,7 +645,6 @@ function PassScreen({
   if (pass === "ready" && passUrl) {
     return (
       <Screen
-        photo={INTRO.photo}
         title="Your pass is ready"
         body="Add it to your wallet and you can scan straight in at the door — no card, no front desk."
       >
@@ -685,7 +658,6 @@ function PassScreen({
   if (pass === "pending") {
     return (
       <Screen
-        photo={INTRO.photo}
         title="Your pass is on its way"
         body={`New memberships take about a day to process${firstName ? `, ${firstName}` : ""}. Until then the front desk can check you in by name.`}
       >
@@ -705,7 +677,6 @@ function PassScreen({
     // cannot support, and the member does very likely have one.
     return (
       <Screen
-        photo={INTRO.photo}
         title="Your pass"
         body="We couldn't check on it just now. Member Services can add it to your phone in seconds next time you're in."
       />
@@ -714,7 +685,6 @@ function PassScreen({
 
   return (
     <Screen
-      photo={INTRO.photo}
       title="Your pass"
       body="We couldn't find a pass on that account yet. Member Services can set it up in a few seconds next time you're in."
     />
