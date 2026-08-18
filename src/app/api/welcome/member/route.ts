@@ -8,8 +8,9 @@ import { lookupPass } from "@/lib/welcome-pass";
  * The plan name only exists on ClubReady's authenticated `GET /users/{UserId}`,
  * and the only route to a UserId is `/users/find/login-details`, which needs a
  * password. So this route requires a session — established a moment earlier by
- * the existing `/api/auth/login`. The email-only path (`/api/welcome/pass`)
- * stays for members who don't have their login yet, and returns no plan.
+ * the existing `/api/auth/login`. Members without a password use the keytag
+ * path (`/api/welcome/keytag`) instead, which resolves the same UserId from
+ * the number printed on their tag plus their last name.
  *
  * The pass lookup happens here too, using the email off the account, so the
  * flow makes one request rather than two and the member never has to type

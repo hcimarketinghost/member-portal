@@ -34,24 +34,24 @@ type Lookup =
 
 export default function WelcomeFlow() {
   const [index, setIndex] = useState(0);
-  const [email, setEmail] = useState("");
   /**
-   * Separate from `email` on purpose. ClubReady authenticates on `UserName`,
-   * which is NOT confirmed to be the member's email for store 5761 — see
-   * ClubReady-API-Knowledge.md. Validating this field as an email address
-   * locks out every member whose username is anything else.
+   * Keytag is the default because it is the only credential a brand-new member
+   * actually has. ClubReady's welcome email sends `[login]` — a 24-hour
+   * password-RESET link — so they have a physical tag long before a password.
+   * The number on the hex tag is their ClubReady UserId.
+   */
+  const [mode, setMode] = useState<"keytag" | "signin">("keytag");
+  const [memberId, setMemberId] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [showTagHelp, setShowTagHelp] = useState(false);
+  /**
+   * Separate from any email field. ClubReady authenticates on `UserName`,
+   * which ClubReady-API-Knowledge.md records as NOT confirmed to be the email
+   * for store 5761 — validating it as one locks those members out.
    */
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
-  /**
-   * Signing in is the default because it is the only route to the member's
-   * actual plan — ClubReady exposes MembershipTypeName on the authenticated
-   * `GET /users/{UserId}` and nowhere else. Members who don't have their login
-   * yet drop to email-only, which still gets them the pass.
-   */
-  const [mode, setMode] = useState<"signin" | "email">("signin");
-  const [signinError, setSigninError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [lookup, setLookup] = useState<Lookup>({ status: "idle" });
   const [remindQueued, setRemindQueued] = useState(false);
@@ -94,6 +94,25 @@ export default function WelcomeFlow() {
   const step = steps[Math.min(index, steps.length - 1)];
   const isLast = index >= steps.length - 1;
 
+  /**
+   * Preload every photo the flow can show. There are only a handful of unique
+   * URLs and they are the single biggest source of jank — without this, each
+   * step waits on a fresh fetch and the copy animates in over an empty box.
+   */
+  useEffect(() => {
+    const urls = new Set<string>([
+      INTRO.photo,
+      APP_SCREEN.photo,
+      DONE.photo,
+      ...Object.values(SEGMENTS).map((seg) => seg.photo),
+    ]);
+    urls.forEach((url) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = url;
+    });
+  }, []);
+
   useEffect(() => {
     const onPop = (event: PopStateEvent) => {
       const to = (event.state as { welcomeStep?: number } | null)?.welcomeStep;
@@ -125,90 +144,74 @@ export default function WelcomeFlow() {
     setWalkDone(false);
   }, [step]);
 
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const keytagReady = memberId.trim() !== "" && lastName.trim() !== "";
+  const signinReady = username.trim() !== "" && password !== "";
+  const canSubmit = mode === "keytag" ? keytagReady : signinReady;
 
-  /**
-   * Sign in, then advance. Unlike the email path this awaits the credential
-   * check — advancing past a wrong password and explaining it two screens
-   * later would be worse than a moment's wait. The membership fetch behind it
-   * still runs in the background.
-   */
-  async function signIn() {
-    if (!username.trim() || !password) return;
+  /** Loads the summary, the sequencing and the pass from one response. */
+  function receive(data: Member) {
+    setLookup({ status: "done", member: data });
+  }
+
+  async function submit() {
+    if (!canSubmit || busy) return;
     setBusy(true);
-    setSigninError(null);
+    setAuthError(null);
 
     try {
+      if (mode === "keytag") {
+        const response = await fetch("/api/welcome/keytag", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ memberId: memberId.trim(), lastName: lastName.trim() }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setAuthError(data.error ?? "That didn't match.");
+          setBusy(false);
+          return;
+        }
+        setBusy(false);
+        receive(data as Member);
+        advance();
+        return;
+      }
+
+      // Signing in awaits its result rather than advancing optimistically —
+      // moving on past a wrong password and explaining it two screens later
+      // is worse than a moment's wait.
       const auth = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // The route's field is named `email`, but it forwards straight to
+        // The route's field is named `email` but forwards straight to
         // ClubReady's `UserName`. Sending the username is correct.
         body: JSON.stringify({ email: username.trim(), password }),
       });
       const authData = await auth.json();
 
       if (!authData.success) {
-        setSigninError(authData.message ?? "That username or password didn't match.");
+        setAuthError(authData.message ?? "That username or password didn't match.");
         setBusy(false);
         return;
       }
 
-      // Credentials are good — drop them and move on. The rest loads behind
-      // the summary screen, which has its own loading state.
       setPassword("");
       setLookup({ status: "loading" });
       setBusy(false);
       advance();
 
-      void (async () => {
-        try {
-          const response = await fetch("/api/welcome/member");
-          const data = await response.json();
-          if (!response.ok) {
-            setLookup({ status: "error", message: data.error ?? "Something went wrong." });
-            return;
-          }
-          setLookup({ status: "done", member: data as Member });
-        } catch {
-          setLookup({ status: "error", message: "We couldn't reach our system just now." });
-        }
-      })();
+      const response = await fetch("/api/welcome/member");
+      const data = await response.json();
+      if (!response.ok) {
+        setLookup({ status: "error", message: data.error ?? "Something went wrong." });
+        return;
+      }
+      receive(data as Member);
     } catch {
-      setSigninError("Sign-in is unavailable right now.");
+      setAuthError("We couldn't reach our system just now. Please try again.");
       setBusy(false);
     }
   }
-
-  /** Email-only fallback. Gets the pass; returns no plan, so sequencing stays neutral. */
-  function startWithEmail() {
-    if (!emailValid) {
-      setEmailTouched(true);
-      return;
-    }
-    setLookup({ status: "loading" });
-    advance();
-
-    void (async () => {
-      try {
-        const response = await fetch("/api/welcome/pass", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim() }),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          setLookup({ status: "error", message: data.error ?? "Something went wrong." });
-          return;
-        }
-        setLookup({ status: "done", member: data as Member });
-      } catch {
-        setLookup({ status: "error", message: "We couldn't reach our system just now." });
-      }
-    })();
-  }
-
-  const start = () => (mode === "signin" ? void signIn() : startWithEmail());
 
   const segment = isSegment(step) ? SEGMENTS[step] : null;
 
@@ -233,83 +236,110 @@ export default function WelcomeFlow() {
             photo={INTRO.photo}
             title={INTRO.title}
             body={
-              mode === "signin"
-                ? "Sign in and we'll pull up your membership. Your username and password are in the welcome email ClubReady sent you."
-                : "Enter your email and we'll find your pass. You can sign in later for the rest."
+              mode === "keytag"
+                ? "Grab the keytag you were just handed — the number on it is all we need to pull up your membership."
+                : "Sign in with the username and password you set up for the member portal."
             }
           >
-            {mode === "signin" ? (
-              <label className="hp-wel-field">
-                <span className="hp-wel-fieldlabel">Username</span>
-                <input
-                  type="text"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  autoComplete="username"
-                  enterKeyHint="next"
-                  className="hp-wel-input"
-                  value={username}
-                  placeholder="Your ClubReady username"
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </label>
-            ) : (
-              <label className="hp-wel-field">
-                <span className="hp-wel-fieldlabel">Email on your membership</span>
-                <input
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  enterKeyHint="go"
-                  className="hp-wel-input"
-                  value={email}
-                  placeholder="you@example.com"
-                  onChange={(e) => setEmail(e.target.value)}
-                  onBlur={() => setEmailTouched(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") start();
-                  }}
-                  aria-invalid={emailTouched && !emailValid}
-                />
-                {emailTouched && !emailValid ? (
-                  <span className="hp-wel-fielderror">Enter the email you signed up with.</span>
+            {mode === "keytag" ? (
+              <>
+                <label className="hp-wel-field">
+                  <span className="hp-wel-fieldlabel">Membership ID</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    className="hp-wel-input"
+                    value={memberId}
+                    placeholder="The number on your keytag"
+                    onChange={(e) => setMemberId(e.target.value)}
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  className="hp-wel-more"
+                  aria-expanded={showTagHelp}
+                  onClick={() => setShowTagHelp(!showTagHelp)}
+                >
+                  Where do I find this?
+                </button>
+
+                {showTagHelp ? (
+                  <figure className="hp-wel-taghelp">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/welcome/keytag.png" alt="The membership ID printed on an HCI keytag" />
+                    <figcaption>It&rsquo;s printed on the back of your hex keytag.</figcaption>
+                  </figure>
                 ) : null}
-              </label>
+
+                <label className="hp-wel-field">
+                  <span className="hp-wel-fieldlabel">Last name</span>
+                  <input
+                    type="text"
+                    autoComplete="family-name"
+                    autoCapitalize="words"
+                    className="hp-wel-input"
+                    value={lastName}
+                    placeholder="Your last name"
+                    onChange={(e) => setLastName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void submit();
+                    }}
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <label className="hp-wel-field">
+                  <span className="hp-wel-fieldlabel">Username</span>
+                  <input
+                    type="text"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    autoComplete="username"
+                    className="hp-wel-input"
+                    value={username}
+                    placeholder="Your ClubReady username"
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </label>
+                <label className="hp-wel-field">
+                  <span className="hp-wel-fieldlabel">Password</span>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    className="hp-wel-input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void submit();
+                    }}
+                  />
+                </label>
+              </>
             )}
 
-            {mode === "signin" ? (
-              <label className="hp-wel-field">
-                <span className="hp-wel-fieldlabel">Password</span>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  enterKeyHint="go"
-                  className="hp-wel-input"
-                  value={password}
-                  placeholder="••••••••"
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") start();
-                  }}
-                />
-              </label>
+            {authError ? (
+              <span className="hp-wel-fielderror" role="alert">
+                {authError}
+              </span>
             ) : null}
-
-            {signinError ? <span className="hp-wel-fielderror">{signinError}</span> : null}
 
             <button
               type="button"
               className="hp-wel-more"
               onClick={() => {
-                setMode(mode === "signin" ? "email" : "signin");
-                setSigninError(null);
+                setMode(mode === "keytag" ? "signin" : "keytag");
+                setAuthError(null);
                 setPassword("");
+                setShowTagHelp(false);
               }}
             >
-              {mode === "signin"
-                ? "I don't have my username and password yet"
-                : "I have my login — show me my membership"}
+              {mode === "keytag"
+                ? "I don't have my keytag — sign in instead"
+                : "Use my keytag instead"}
             </button>
           </Screen>
         ) : null}
@@ -387,15 +417,8 @@ export default function WelcomeFlow() {
 
       <footer className="hp-wel-actions">
         {step === "start" ? (
-          <button
-            type="button"
-            className="hp-btn"
-            onClick={start}
-            disabled={
-              busy || (mode === "signin" ? !username.trim() || !password : !emailValid)
-            }
-          >
-            {busy ? "Signing you in…" : mode === "signin" ? "Sign in" : "Find my pass"}
+          <button type="button" className="hp-btn" onClick={() => void submit()} disabled={busy || !canSubmit}>
+            {busy ? "One moment…" : mode === "keytag" ? "Find my membership" : "Sign in"}
           </button>
         ) : null}
 
@@ -476,9 +499,13 @@ function Screen({
  */
 function YouScreen({ lookup }: { lookup: Lookup }) {
   if (lookup.status === "loading" || lookup.status === "idle") {
+    // A skeleton shaped like the answer, not a spinner: the summary's layout is
+    // known ahead of time, so the wait reads as "loading your membership"
+    // rather than "something is happening". It also means nothing reflows when
+    // the real content lands.
     return (
-      <Screen photo={INTRO.photo} title="Finding you" body="One moment.">
-        <span className="hp-wel-spinner" />
+      <Screen photo={INTRO.photo} title="Finding you" body="Pulling up your membership.">
+        <SummarySkeleton />
       </Screen>
     );
   }
@@ -522,6 +549,22 @@ function YouScreen({ lookup }: { lookup: Lookup }) {
         ))}
       </ul>
     </Screen>
+  );
+}
+
+/** Mirrors the real summary's shape: one plan row, then the four included rows. */
+function SummarySkeleton() {
+  return (
+    <div className="hp-wel-skel" aria-hidden="true">
+      <div className="hp-wel-skel-group">
+        <span className="hp-wel-skel-row" data-w="0" />
+      </div>
+      <div className="hp-wel-skel-group">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className="hp-wel-skel-row" data-w={i} />
+        ))}
+      </div>
+    </div>
   );
 }
 

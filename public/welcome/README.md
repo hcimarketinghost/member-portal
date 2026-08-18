@@ -13,3 +13,4 @@ background, since they sit on #000.
 | `activenet-2.png` | ActiveNet walkthrough, step 2 — add family members |
 | `activenet-3.png` | ActiveNet walkthrough, step 3 — member pricing |
 | `app-home.png` | "Everything lives in the app" screen |
+| `keytag.png` | "Where do I find this?" helper under the Membership ID field |

@@ -1814,14 +1814,51 @@ html, body {
 .hp-wel-screen {
   position: relative; min-height: 0; overflow-y: auto; outline: none;
   display: flex; flex-direction: column;
-  animation: hp-wel-enter .45s var(--wel-curve) both;
+  /* Deliberately NOT animated as one block. Translating the whole screen moves
+     the full-bleed photo too, which opens a gap at the bottom edge mid-flight
+     and reads as a jolt. The photo and the copy enter separately below. */
 }
-@keyframes hp-wel-enter {
-  from { opacity: 0; transform: translateY(28px); }
+
+/* Photo settles rather than slides: a slow drift down from 1.03 is the same
+   move as the card image hover, so it stays inside the house vocabulary. */
+.hp-wel-photo { animation: hp-wel-photo-in .6s var(--wel-curve) both; }
+@keyframes hp-wel-photo-in {
+  from { opacity: 0; transform: scale(1.03); }
   to   { opacity: 1; transform: none; }
 }
+
+/* Copy rises, staggered a beat behind the photo. The stagger is what makes it
+   feel composed instead of everything arriving at once. */
+.hp-wel-copy > * { animation: hp-wel-rise .45s var(--wel-curve) both; }
+.hp-wel-copy > *:nth-child(1) { animation-delay: .06s; }
+.hp-wel-copy > *:nth-child(2) { animation-delay: .11s; }
+.hp-wel-copy > *:nth-child(3) { animation-delay: .16s; }
+.hp-wel-copy > *:nth-child(4) { animation-delay: .20s; }
+.hp-wel-copy > *:nth-child(5) { animation-delay: .23s; }
+.hp-wel-copy > *:nth-child(n + 6) { animation-delay: .26s; }
+
+.hp-wel-plain > * { animation: hp-wel-rise .45s var(--wel-curve) both; }
+.hp-wel-plain > *:nth-child(1) { animation-delay: .04s; }
+.hp-wel-plain > *:nth-child(2) { animation-delay: .09s; }
+.hp-wel-plain > *:nth-child(n + 3) { animation-delay: .14s; }
+
+@keyframes hp-wel-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The footer action is part of the shell, not the screen, so it never
+   re-animates — but it should ease between its disabled and ready states
+   instead of snapping. */
+.hp-wel-actions .hp-btn {
+  transition: opacity .25s var(--wel-curve), background .25s var(--wel-curve),
+              color .25s var(--wel-curve);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .hp-wel-screen { animation: none; }
+  .hp-wel-photo,
+  .hp-wel-copy > *,
+  .hp-wel-plain > * { animation: none; }
   .hp-wel-fill { transition: none; }
 }
 
@@ -2083,4 +2120,52 @@ html, body {
 }
 .hp-wt-placeholder span {
   font-size: 34px; font-weight: 600; letter-spacing: -0.04em; color: #2e2e2e;
+}
+
+/* "Where do I find this?" — keytag helper image */
+.hp-wel-taghelp {
+  margin: 0; width: 100%;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; border-radius: var(--radius-card); background: var(--surface);
+}
+.hp-wel-taghelp img {
+  width: 100%; max-width: 260px; height: auto; display: block; border-radius: 4px;
+}
+.hp-wel-taghelp figcaption {
+  font-size: 13px; line-height: 1.4; letter-spacing: -0.01em; color: var(--text-3);
+}
+
+/* ── Summary skeleton ─────────────────────────────────────────────
+   Shaped like the answer so nothing reflows when the data lands. The
+   sweep is linear on purpose — the house curve is for things that
+   start and stop, and this loops. */
+.hp-wel-skel { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.hp-wel-skel-group {
+  display: flex; flex-direction: column; gap: 1px;
+  border-radius: var(--radius-card); overflow: hidden; background: var(--hairline);
+}
+.hp-wel-skel-row {
+  display: block; height: 46px; background: var(--surface); position: relative; overflow: hidden;
+}
+.hp-wel-skel-row::before {
+  content: ""; position: absolute; top: 14px; left: 16px; height: 11px;
+  border-radius: 3px; background: #262626;
+}
+.hp-wel-skel-row[data-w="0"]::before { width: 46%; }
+.hp-wel-skel-row[data-w="1"]::before { width: 62%; }
+.hp-wel-skel-row[data-w="2"]::before { width: 38%; }
+.hp-wel-skel-row[data-w="3"]::before { width: 54%; }
+.hp-wel-skel-row::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: hp-wel-sweep 1.4s linear infinite;
+}
+.hp-wel-skel-row:nth-child(2)::after { animation-delay: .1s; }
+.hp-wel-skel-row:nth-child(3)::after { animation-delay: .2s; }
+.hp-wel-skel-row:nth-child(4)::after { animation-delay: .3s; }
+@keyframes hp-wel-sweep { to { transform: translateX(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-wel-skel-row::after { animation: none; opacity: 0; }
 }
