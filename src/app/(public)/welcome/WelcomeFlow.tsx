@@ -48,7 +48,6 @@ export default function WelcomeFlow() {
   const [mode, setMode] = useState<"keytag" | "signin">("keytag");
   const [memberId, setMemberId] = useState("");
   const [lastName, setLastName] = useState("");
-  const [showTagHelp, setShowTagHelp] = useState(false);
   /**
    * Progressive disclosure: the ID is asked for alone, and the last name only
    * appears once there is an ID to attach it to. One input per screen is the
@@ -175,7 +174,6 @@ export default function WelcomeFlow() {
     // First press reveals the name field instead of calling anything.
     if (mode === "keytag" && askedFor === 0) {
       setAskedFor(1);
-      setShowTagHelp(false);
       return;
     }
 
@@ -260,6 +258,14 @@ export default function WelcomeFlow() {
              poster — imagery competes with the one thing being asked for.
              Photography returns on the segment screens and the hub tiles. */
           <div className="hp-wel-ask">
+            {/* The tag takes the hero slot the photo used to hold. On the ID
+                step it is also the instruction — it turns to show the number —
+                so it stays put across both sub-steps rather than appearing and
+                disappearing, which would jump the layout under the field. */}
+            <div className="hp-wel-hero">
+              <Keytag />
+            </div>
+
             <h1 className="hp-wel-title">
               {mode === "signin"
                 ? "Sign in"
@@ -296,23 +302,6 @@ export default function WelcomeFlow() {
                       />
                     </label>
 
-                    <button
-                      type="button"
-                      className="hp-wel-more"
-                      aria-expanded={showTagHelp}
-                      onClick={() => setShowTagHelp(!showTagHelp)}
-                    >
-                      Where do I find this?
-                    </button>
-
-                    {showTagHelp ? (
-                      <figure className="hp-wel-taghelp">
-                        <Keytag />
-                        <figcaption>
-                          It&rsquo;s the number on the back of your hex keytag, under the barcode.
-                        </figcaption>
-                      </figure>
-                    ) : null}
                   </>
                 ) : (
                   <label className="hp-wel-field">
@@ -379,7 +368,6 @@ export default function WelcomeFlow() {
                 setAskedFor(0);
                 setAuthError(null);
                 setPassword("");
-                setShowTagHelp(false);
               }}
             >
               {mode === "keytag"

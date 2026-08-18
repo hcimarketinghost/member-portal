@@ -2,15 +2,25 @@
 
 import { useState } from "react";
 
+/** Bunny pull zone — same host as lib/images.ts. */
+const BUNNY = "https://hcivideos.b-cdn.net";
+export const FRONT_SRC = `${BUNNY}/hextag%20front%20side.svg`;
+const BACK_SRC = `${BUNNY}/Hextag%20backside.svg`;
+
 /**
  * The hex keytag, rotating, so "where do I find this?" is answered by showing
  * the thing rather than describing it. The flip lands on the BACK — the face
  * with the number on it — because that is the information being asked for.
  *
- * Faces prefer Victor's exported SVGs at `/welcome/keytag-front.svg` and
- * `/welcome/keytag-back.svg`. Until those land, each face falls back to a drawn
- * approximation so the helper works today; a failed load swaps silently rather
- * than showing a broken image. Same convention as the ActiveNet mockups.
+ * Faces come from Bunny, the same pull zone `lib/images.ts` already uses. A
+ * failed load falls back to a drawn approximation rather than a broken image.
+ *
+ * WEIGHT WARNING — `Hextag backside.svg` is 1.4 MB. It is not really a vector:
+ * it wraps a 1122x1402 base64 PNG in a pattern fill, so the whole bitmap ships
+ * to every member. Re-exporting the wordmark and barcode as real paths should
+ * put it in single-digit KB, the way the front face (1.4 KB) already is. Until
+ * then it is loaded lazily and decoded off the main thread so it costs the
+ * first screen as little as possible.
  *
  * The glimmer is masked to the tag silhouette, so it travels across the tag and
  * not the empty box around it.
@@ -29,7 +39,12 @@ export default function Keytag() {
             </DrawnTag>
           ) : (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src="/welcome/keytag-front.svg" alt="" onError={() => setFrontMissing(true)} />
+            <img
+              src={FRONT_SRC}
+              alt=""
+              decoding="async"
+              onError={() => setFrontMissing(true)}
+            />
           )}
           <span className="hp-tag-glimmer" />
         </div>
@@ -45,7 +60,13 @@ export default function Keytag() {
             </DrawnTag>
           ) : (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src="/welcome/keytag-back.svg" alt="" onError={() => setBackMissing(true)} />
+            <img
+              src={BACK_SRC}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              onError={() => setBackMissing(true)}
+            />
           )}
           <span className="hp-tag-glimmer" />
         </div>

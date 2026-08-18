@@ -2123,18 +2123,7 @@ html, body {
 }
 
 /* "Where do I find this?" — keytag helper image */
-.hp-wel-taghelp {
-  margin: 0; width: 100%;
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 12px; border-radius: var(--radius-card); background: var(--surface);
-}
-.hp-wel-taghelp img {
-  width: 100%; max-width: 260px; height: auto; display: block; border-radius: 4px;
-}
-.hp-wel-taghelp figcaption { text-align: center; }
-.hp-wel-taghelp figcaption {
-  font-size: 13px; line-height: 1.4; letter-spacing: -0.01em; color: var(--text-3);
-}
+
 
 /* ── Summary skeleton ─────────────────────────────────────────────
    Shaped like the answer so nothing reflows when the data lands. The
@@ -2175,9 +2164,16 @@ html, body {
    The opening steps are a task, not a poster. Imagery competes with
    the single thing being asked for, so it sits this part out. */
 .hp-wel-ask {
-  padding: 8vh var(--hci-x) 24px;
+  padding: 2vh var(--hci-x) 24px;
   display: flex; flex-direction: column; gap: 16px; align-items: flex-start;
 }
+
+/* Hero slot — the tag stands where the photo used to. */
+.hp-wel-hero {
+  width: 100%; display: flex; justify-content: center;
+  margin-bottom: 4px;
+}
+.hp-wel-hero .hp-tag { max-width: min(46vw, 168px); }
 .hp-wel-ask > * { animation: hp-wel-rise .4s var(--wel-curve) both; }
 .hp-wel-ask > *:nth-child(1) { animation-delay: .02s; }
 .hp-wel-ask > *:nth-child(2) { animation-delay: .07s; }
@@ -2190,7 +2186,8 @@ html, body {
    describing it. The cycle rests longer on the BACK, because that is
    the face carrying the number. */
 .hp-tag {
-  width: 100%; max-width: 200px; aspect-ratio: 200 / 220;
+  --tag-mask: url("https://hcivideos.b-cdn.net/hextag%20front%20side.svg");
+  width: 100%; max-width: 200px; aspect-ratio: 129 / 144;
   perspective: 900px; margin: 0 auto;
 }
 .hp-tag-spin {
@@ -2211,11 +2208,33 @@ html, body {
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   display: flex; align-items: center; justify-content: center;
 }
+
+/* The tag is black and so is the page, so without this it has no edge — you
+   see a floating wordmark and nothing holding it. A slightly oversized copy of
+   the silhouette in hairline grey sits behind each face and reads as a rim
+   light on the object. Not a drop shadow: the design language forbids those,
+   and this is an edge rather than a cast shadow. */
+.hp-tag-face::before {
+  content: ""; position: absolute; inset: 0;
+  background: #2f2f2f;
+  -webkit-mask-image: var(--tag-mask); mask-image: var(--tag-mask);
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  transform: scale(1.025);
+}
 .hp-tag-back { transform: rotateY(180deg); }
-.hp-tag-face > img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.hp-tag-face > img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  /* Positioned so it paints in the same pass as the ::before rim and can sit
+     above it. As a static flex item it painted in the in-flow pass, i.e.
+     underneath every absolutely positioned sibling — the rim covered the
+     artwork completely. */
+  position: relative; z-index: 1;
+}
 
 /* Drawn fallback until the exported SVGs land. */
-.hp-tag-drawn { position: relative; width: 100%; height: 100%; }
+.hp-tag-drawn { position: relative; z-index: 1; width: 100%; height: 100%; }
 .hp-tag-silhouette { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hp-tag-content {
   position: absolute; inset: 0;
@@ -2241,15 +2260,14 @@ html, body {
    rather than the empty box around it. Timed to cross while a face is held
    toward the viewer, not mid-turn where it would read as a flicker. */
 .hp-tag-glimmer {
-  position: absolute; inset: 0; pointer-events: none;
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
   background: linear-gradient(
     105deg,
-    transparent 38%,
-    rgba(255, 255, 255, 0.42) 50%,
-    transparent 62%
+    transparent 43%,
+    rgba(255, 255, 255, 0.26) 50%,
+    transparent 57%
   );
-  -webkit-mask-image: url("/welcome/keytag-front.svg");
-  mask-image: url("/welcome/keytag-front.svg");
+  -webkit-mask-image: var(--tag-mask); mask-image: var(--tag-mask);
   -webkit-mask-size: contain; mask-size: contain;
   -webkit-mask-position: center; mask-position: center;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
