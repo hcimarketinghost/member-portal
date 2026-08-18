@@ -114,12 +114,6 @@ export default function WelcomeFlow() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  const goTo = useCallback((next: number) => {
-    setIndex(next);
-    window.history.pushState({ welcomeStep: next }, "");
-    requestAnimationFrame(() => liveRef.current?.focus());
-  }, []);
-
   const advance = useCallback(() => {
     setIndex((current) => {
       const next = Math.min(current + 1, steps.length - 1);
@@ -220,26 +214,15 @@ export default function WelcomeFlow() {
 
   return (
     <main className="hp-wel" data-step={step}>
-      {/* Close left, brand centre, skip right — leaving is always available and
-          always in the same place. Progress sits under the row, not above it. */}
+      {/* Mark and progress, nothing else.
+          There was a close button and a Skip flanking the logo; four elements
+          in a 60px band and neither control earned it. This is a web page, so
+          the browser already provides back and close, and Skip was meaningless
+          on the first screen while the hub is two taps away regardless. */}
       <header className="hp-wel-top">
-        <a
-          className="hp-wel-close"
-          href="https://www.hillcountryindoor.com"
-          aria-label="Leave setup"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </a>
         <span className="hp-wel-brand">
           <Logo height={26} />
         </span>
-        {!isLast && step !== "start" ? (
-          <button type="button" className="hp-wel-skip" onClick={() => goTo(steps.length - 1)}>
-            Skip
-          </button>
-        ) : null}
       </header>
 
       <Progress total={steps.length} index={index} />

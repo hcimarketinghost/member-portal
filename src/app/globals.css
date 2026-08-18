@@ -1797,52 +1797,29 @@ html, body {
 
 /* ── Top bar ──────────────────────────────────────────────────── */
 .hp-wel-top {
-  position: relative;
   display: flex; align-items: center; justify-content: center;
-  padding: max(10px, env(safe-area-inset-top)) var(--hci-x) 12px;
+  padding: max(10px, env(safe-area-inset-top)) var(--hci-x) 10px;
 }
 
-/* Icon button, straight off EventsShowcase's overlay close: 40px square,
-   radius-control, the one locked frost material. Not a circle — the language
-   has no circular controls and 4px is the control radius. Over solid black the
-   frost composites to #1a1a1a, which is the intended solid twin. */
-.hp-wel-close {
-  position: absolute; left: var(--hci-x); top: 50%; transform: translateY(-50%);
-  width: 40px; height: 40px; padding: 0; border: 0;
-  border-radius: var(--radius-control);
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(47, 47, 47, 0.55);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  color: #fff; cursor: pointer;
-  transition: background .15s ease;
-}
-.hp-wel-close svg {
-  width: 17px; height: 17px; fill: none; stroke: currentColor;
-  stroke-width: 2.2; stroke-linecap: round;
-}
-@media (hover: hover) {
-  .hp-wel-close:hover { background: rgba(47, 47, 47, 0.65); }
-}
 .hp-wel-brand { display: block; color: #fff; }
-.hp-wel-top .hp-wel-skip {
-  position: absolute; right: var(--hci-x); top: 50%; transform: translateY(-50%);
+/* ── Progress — segments track the derived itinerary ──────────── */
+.hp-wel-progress {
+  margin: 0 var(--hci-x);
+  height: 2px; border-radius: 1px; overflow: hidden;
+  background: rgba(255, 255, 255, 0.16);
 }
-/* Matches StudioClassesFinder's chip: 40px tall, 13px/600 at -0.02em, same
-   frost. Pairs with the close button instead of floating as bare grey text. */
-.hp-wel-skip {
-  display: inline-flex; align-items: center;
-  height: 40px; padding: 0 16px; border: 0; cursor: pointer;
-  border-radius: var(--radius-control);
-  background: rgba(47, 47, 47, 0.55);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  color: #fff; font: inherit; font-size: 13px; font-weight: 600;
-  letter-spacing: -0.02em; line-height: 1;
-  transition: background .15s ease;
-}
-@media (hover: hover) {
-  .hp-wel-skip:hover { background: rgba(47, 47, 47, 0.65); }
+.hp-wel-fill {
+  display: block; height: 100%; border-radius: 1px; background: #fff;
+  transition: width .55s var(--wel-curve);
 }
 
+/* ── Top bar ──────────────────────────────────────────────────── */
+.hp-wel-top {
+  display: flex; align-items: center; justify-content: center;
+  padding: max(10px, env(safe-area-inset-top)) var(--hci-x) 10px;
+}
+
+.hp-wel-brand { display: block; color: #fff; }
 /* ── Screen ───────────────────────────────────────────────────── */
 .hp-wel-screen {
   position: relative; min-height: 0; overflow-y: auto; outline: none;
