@@ -62,7 +62,20 @@ export async function POST(request: Request) {
 
   // Deliberately one branch for "no such member" and "name mismatch" — see
   // rule 1 above. Splitting these is what turns this into an enumeration tool.
-  if (!account || normalizeName(account.LastName) !== normalizeName(lastName)) {
+  //
+  // The SERVER log does distinguish them, because getAccount() swallows every
+  // failure into null and without this a failed lookup is undiagnosable. Logs
+  // are staff-visible only and carry no name — just which gate rejected.
+  if (!account) {
+    console.warn(`[welcome/keytag] no account for UserId ${memberId} (bad id, or ClubReady rejected/unreachable)`);
+    return Response.json({ error: GENERIC_FAILURE }, { status: 401 });
+  }
+
+  if (normalizeName(account.LastName) !== normalizeName(lastName)) {
+    console.warn(
+      `[welcome/keytag] UserId ${memberId} resolved but last name did not match ` +
+        `(record has ${account.LastName ? `${account.LastName.length} chars` : "an EMPTY last name"})`
+    );
     return Response.json({ error: GENERIC_FAILURE }, { status: 401 });
   }
 
@@ -77,7 +90,10 @@ export async function POST(request: Request) {
     found: true,
     firstName: account.FirstName || null,
     plan: account.MembershipTypeName || null,
-    memberSince: null,
+    status: account.CustomStatusText || null,
+    renews: account.MembershipExpiresDate || null,
+    classesAttended:
+      typeof account.ClassAttendanceCount === "number" ? account.ClassAttendanceCount : null,
     pass: pass.pass,
     passUrl: pass.passUrl,
   });

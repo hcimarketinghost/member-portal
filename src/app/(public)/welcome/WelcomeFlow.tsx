@@ -8,6 +8,8 @@ import {
   INCLUDED,
   INTRO,
   SEGMENTS,
+  formatMemberDate,
+  planCapacity,
   planVariant,
   sequenceFor,
   type SegmentId,
@@ -23,7 +25,9 @@ type Member = {
   passUrl: string | null;
   firstName: string | null;
   plan: string | null;
-  memberSince: string | null;
+  status: string | null;
+  renews: string | null;
+  classesAttended: number | null;
 };
 
 type Lookup =
@@ -44,6 +48,13 @@ export default function WelcomeFlow() {
   const [memberId, setMemberId] = useState("");
   const [lastName, setLastName] = useState("");
   const [showTagHelp, setShowTagHelp] = useState(false);
+  /**
+   * Progressive disclosure: the ID is asked for alone, and the last name only
+   * appears once there is an ID to attach it to. One input per screen is the
+   * single biggest lever on completion — every extra field visible up front
+   * makes the form read as longer than it is.
+   */
+  const [askedFor, setAskedFor] = useState<0 | 1>(0);
   /**
    * Separate from any email field. ClubReady authenticates on `UserName`,
    * which ClubReady-API-Knowledge.md records as NOT confirmed to be the email
@@ -144,9 +155,13 @@ export default function WelcomeFlow() {
     setWalkDone(false);
   }, [step]);
 
-  const keytagReady = memberId.trim() !== "" && lastName.trim() !== "";
+  const hasId = memberId.trim() !== "";
+  const keytagReady = hasId && lastName.trim() !== "";
   const signinReady = username.trim() !== "" && password !== "";
-  const canSubmit = mode === "keytag" ? keytagReady : signinReady;
+  // On the first sub-step the button only needs an ID — it reveals the name
+  // field rather than submitting.
+  const canSubmit =
+    mode === "signin" ? signinReady : askedFor === 0 ? hasId : keytagReady;
 
   /** Loads the summary, the sequencing and the pass from one response. */
   function receive(data: Member) {
@@ -155,6 +170,14 @@ export default function WelcomeFlow() {
 
   async function submit() {
     if (!canSubmit || busy) return;
+
+    // First press reveals the name field instead of calling anything.
+    if (mode === "keytag" && askedFor === 0) {
+      setAskedFor(1);
+      setShowTagHelp(false);
+      return;
+    }
+
     setBusy(true);
     setAuthError(null);
 
@@ -232,62 +255,81 @@ export default function WelcomeFlow() {
 
       <div key={step} ref={liveRef} tabIndex={-1} className="hp-wel-screen" aria-live="polite">
         {step === "start" ? (
-          <Screen
-            photo={INTRO.photo}
-            title={INTRO.title}
-            body={
-              mode === "keytag"
-                ? "Grab the keytag you were just handed — the number on it is all we need to pull up your membership."
-                : "Sign in with the username and password you set up for the member portal."
-            }
-          >
+          /* No photo here on purpose. The opening screens are a task, not a
+             poster — imagery competes with the one thing being asked for.
+             Photography returns on the segment screens and the hub tiles. */
+          <div className="hp-wel-ask">
+            <h1 className="hp-wel-title">
+              {mode === "signin"
+                ? "Sign in"
+                : askedFor === 0
+                  ? INTRO.title
+                  : "And your last name?"}
+            </h1>
+            <p className="hp-wel-body">
+              {mode === "signin"
+                ? "Use the username and password you set up for the member portal."
+                : askedFor === 0
+                  ? "Let's pull up your membership. The number on your keytag is all we need."
+                  : "Just so we know the keytag is yours."}
+            </p>
+
             {mode === "keytag" ? (
               <>
-                <label className="hp-wel-field">
-                  <span className="hp-wel-fieldlabel">Membership ID</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    className="hp-wel-input"
-                    value={memberId}
-                    placeholder="The number on your keytag"
-                    onChange={(e) => setMemberId(e.target.value)}
-                  />
-                </label>
+                {askedFor === 0 ? (
+                  <>
+                    <label className="hp-wel-field">
+                      <span className="hp-wel-fieldlabel">Membership ID</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        autoFocus
+                        className="hp-wel-input"
+                        value={memberId}
+                        placeholder="The number on your keytag"
+                        onChange={(e) => setMemberId(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") void submit();
+                        }}
+                      />
+                    </label>
 
-                <button
-                  type="button"
-                  className="hp-wel-more"
-                  aria-expanded={showTagHelp}
-                  onClick={() => setShowTagHelp(!showTagHelp)}
-                >
-                  Where do I find this?
-                </button>
+                    <button
+                      type="button"
+                      className="hp-wel-more"
+                      aria-expanded={showTagHelp}
+                      onClick={() => setShowTagHelp(!showTagHelp)}
+                    >
+                      Where do I find this?
+                    </button>
 
-                {showTagHelp ? (
-                  <figure className="hp-wel-taghelp">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/welcome/keytag.png" alt="The membership ID printed on an HCI keytag" />
-                    <figcaption>It&rsquo;s printed on the back of your hex keytag.</figcaption>
-                  </figure>
-                ) : null}
-
-                <label className="hp-wel-field">
-                  <span className="hp-wel-fieldlabel">Last name</span>
-                  <input
-                    type="text"
-                    autoComplete="family-name"
-                    autoCapitalize="words"
-                    className="hp-wel-input"
-                    value={lastName}
-                    placeholder="Your last name"
-                    onChange={(e) => setLastName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") void submit();
-                    }}
-                  />
-                </label>
+                    {showTagHelp ? (
+                      <figure className="hp-wel-taghelp">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/welcome/keytag.png" alt="The membership ID printed on an HCI keytag" />
+                        <figcaption>It&rsquo;s printed on your hex keytag.</figcaption>
+                      </figure>
+                    ) : null}
+                  </>
+                ) : (
+                  <label className="hp-wel-field">
+                    <span className="hp-wel-fieldlabel">Last name</span>
+                    <input
+                      type="text"
+                      autoComplete="family-name"
+                      autoCapitalize="words"
+                      autoFocus
+                      className="hp-wel-input"
+                      value={lastName}
+                      placeholder="Your last name"
+                      onChange={(e) => setLastName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void submit();
+                      }}
+                    />
+                  </label>
+                )}
               </>
             ) : (
               <>
@@ -332,6 +374,7 @@ export default function WelcomeFlow() {
               className="hp-wel-more"
               onClick={() => {
                 setMode(mode === "keytag" ? "signin" : "keytag");
+                setAskedFor(0);
                 setAuthError(null);
                 setPassword("");
                 setShowTagHelp(false);
@@ -341,7 +384,7 @@ export default function WelcomeFlow() {
                 ? "I don't have my keytag — sign in instead"
                 : "Use my keytag instead"}
             </button>
-          </Screen>
+          </div>
         ) : null}
 
         {step === "you" ? <YouScreen lookup={lookup} /> : null}
@@ -418,7 +461,13 @@ export default function WelcomeFlow() {
       <footer className="hp-wel-actions">
         {step === "start" ? (
           <button type="button" className="hp-btn" onClick={() => void submit()} disabled={busy || !canSubmit}>
-            {busy ? "One moment…" : mode === "keytag" ? "Find my membership" : "Sign in"}
+            {busy
+              ? "One moment…"
+              : mode === "signin"
+                ? "Sign in"
+                : askedFor === 0
+                  ? "Continue"
+                  : "Find my membership"}
           </button>
         ) : null}
 
@@ -523,18 +572,31 @@ function YouScreen({ lookup }: { lookup: Lookup }) {
           : "We couldn't match that email to a membership yet — new accounts can take a day to appear. Everything below still applies."
       }
     >
-      {member?.plan || member?.memberSince ? (
+      {member?.plan ? (
         <dl className="hp-wel-summary">
-          {member.plan ? (
+          <div className="hp-wel-summaryrow">
+            <dt>Plan</dt>
+            <dd>{member.plan}</dd>
+          </div>
+          {/* Derived from the plan NAME — ClubReady exposes no household
+              roster, so we can say how many people the plan covers but not
+              who they are. */}
+          {planCapacity(member.plan) ? (
             <div className="hp-wel-summaryrow">
-              <dt>Plan</dt>
-              <dd>{member.plan}</dd>
+              <dt>Covers</dt>
+              <dd>{planCapacity(member.plan)}</dd>
             </div>
           ) : null}
-          {member.memberSince ? (
+          {member.status ? (
             <div className="hp-wel-summaryrow">
-              <dt>Member since</dt>
-              <dd>{member.memberSince}</dd>
+              <dt>Status</dt>
+              <dd>{member.status}</dd>
+            </div>
+          ) : null}
+          {formatMemberDate(member.renews) ? (
+            <div className="hp-wel-summaryrow">
+              <dt>Renews</dt>
+              <dd>{formatMemberDate(member.renews)}</dd>
             </div>
           ) : null}
         </dl>

@@ -82,6 +82,44 @@ export function sequenceFor(variant: Variant): SegmentId[] {
   return ["classes", "sports", "training"];
 }
 
+
+/**
+ * How many people a plan covers, read off the plan NAME.
+ *
+ * There is no API for the household roster — ClubReady's family association
+ * endpoint has never been found (see ClubReady-API-Knowledge.md: "A public
+ * association endpoint has not been found"). But HCI's package catalog encodes
+ * the size in the name — Family 4 / 5 / 6+ — so the capacity is derivable even
+ * though the names of the members are not.
+ *
+ * Returns null rather than guessing when the name says nothing about size.
+ */
+export function planCapacity(plan: string | null): string | null {
+  if (!plan) return null;
+  const range = /(\d+)\s*\+/.exec(plan);
+  if (range) return `${range[1]}+ people`;
+  const n = /(?:family|household)\D{0,10}(\d+)/i.exec(plan);
+  if (n) return `Up to ${n[1]} people`;
+  if (/couple|dual|partner/i.test(plan)) return "2 people";
+  if (/individual|single|solo/i.test(plan)) return "1 person";
+  return null;
+}
+
+/** A date ClubReady returns, rendered for a member rather than a machine. */
+export function formatMemberDate(value: string | null): string | null {
+  if (!value) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return null;
+  const [, y, mo, d] = m.map(Number);
+  // Read the parts rather than parsing — a bare Date resolves in the server's
+  // zone (UTC on Vercel) and can shift the day.
+  return new Date(Date.UTC(y, mo - 1, d)).toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 /* ── ActiveNet: a three-step walkthrough, not a paragraph ─────────────────
    Sports registration is the single most confusing thing about a new HCI
    membership — a separate system, a separate account, and pricing that is

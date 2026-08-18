@@ -40,7 +40,10 @@ export async function GET() {
     found: true,
     firstName: account.FirstName || null,
     plan: account.MembershipTypeName || null,
-    memberSince: null,
+    status: account.CustomStatusText || null,
+    renews: account.MembershipExpiresDate || null,
+    classesAttended:
+      typeof account.ClassAttendanceCount === "number" ? account.ClassAttendanceCount : null,
     pass: pass.pass,
     passUrl: pass.passUrl,
   });
