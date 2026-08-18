@@ -55,8 +55,6 @@ export default function WelcomeFlow() {
    * makes the form read as longer than it is.
    */
   const [askedFor, setAskedFor] = useState<0 | 1>(0);
-  /** Turns the keytag to its numbered face while the ID field has focus. */
-  const [idFocused, setIdFocused] = useState(false);
   /**
    * Separate from any email field. ClubReady authenticates on `UserName`,
    * which ClubReady-API-Knowledge.md records as NOT confirmed to be the email
@@ -276,7 +274,7 @@ export default function WelcomeFlow() {
                 so it stays put across both sub-steps rather than appearing and
                 disappearing, which would jump the layout under the field. */}
             <div className="hp-wel-hero">
-              <Keytag flipped={idFocused} />
+              <Keytag />
             </div>
 
             <h1 className="hp-wel-title">
@@ -312,8 +310,6 @@ export default function WelcomeFlow() {
                         value={memberId}
                         placeholder="The number on your keytag"
                         onChange={(e) => setMemberId(e.target.value)}
-                        onFocus={() => setIdFocused(true)}
-                        onBlur={() => setIdFocused(false)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") void submit();
                         }}

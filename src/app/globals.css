@@ -1816,7 +1816,7 @@ html, body {
   stroke-width: 2.2; stroke-linecap: round;
 }
 @media (hover: hover) {
-  .hp-wel-close:hover { background: #1f1f1f; color: var(--text); }
+.hp-wel-close:hover { background: #1f1f1f; color: var(--text); }
 }
 .hp-wel-brand { display: block; color: #fff; }
 .hp-wel-top .hp-wel-skip {
@@ -1828,7 +1828,9 @@ html, body {
   letter-spacing: -0.02em; padding: 8px; margin: -8px;
   transition: color .15s ease;
 }
-@media (hover: hover) { .hp-wel-skip:hover { color: var(--text); } }
+@media (hover: hover) {
+.hp-wel-skip:hover { color: var(--text); }
+}
 
 /* ── Screen ───────────────────────────────────────────────────── */
 .hp-wel-screen {
@@ -1876,7 +1878,7 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hp-wel-photo,
+.hp-wel-photo,
   .hp-wel-copy > *,
   .hp-wel-plain > * { animation: none; }
   .hp-wel-fill { transition: none; }
@@ -1963,14 +1965,16 @@ html, body {
   text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px;
   transition: opacity .15s ease;
 }
-@media (hover: hover) { .hp-wel-more:hover { opacity: .75; } }
+@media (hover: hover) {
+.hp-wel-more:hover { opacity: .75; }
+}
 
 /* Stacked, not side by side. Two half-width buttons give each a cramped tap
    target and read as a choice between them, when the answer is "whichever
    phone you have". Side by side only once there is room to spare. */
 .hp-wel-stores { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 @media (min-width: 480px) {
-  .hp-wel-stores { flex-direction: row; }
+.hp-wel-stores { flex-direction: row; }
   .hp-wel-stores .hp-btn { flex: 1; }
 }
 
@@ -2006,7 +2010,9 @@ html, body {
   letter-spacing: -0.02em; padding: 10px; min-height: 44px;
   transition: color .15s ease;
 }
-@media (hover: hover) { .hp-wel-back:hover { color: var(--text); } }
+@media (hover: hover) {
+.hp-wel-back:hover { color: var(--text); }
+}
 
 /* Desktop: the flow stays a phone-width column rather than stretching. */
 @media (min-width: 720px) {
@@ -2072,229 +2078,18 @@ html, body {
   width: 100%; display: flex; justify-content: center;
   margin-bottom: clamp(0px, 0.6vh, 4px);
 }
-.hp-wel-hero .hp-tag { max-width: min(42vw, 20vh, 168px); }
 .hp-wel-ask > * { animation: hp-wel-rise .4s var(--wel-curve) both; }
 .hp-wel-ask > *:nth-child(1) { animation-delay: .02s; }
 .hp-wel-ask > *:nth-child(2) { animation-delay: .07s; }
 .hp-wel-ask > *:nth-child(3) { animation-delay: .12s; }
 .hp-wel-ask > *:nth-child(n + 4) { animation-delay: .16s; }
-@media (prefers-reduced-motion: reduce) { .hp-wel-ask > * { animation: none; } }
-
-/* ── Keytag ───────────────────────────────────────────────────────
-   Turns to the back — the face with the number — while the member is
-   in the Membership ID field, and turns back when they leave it. Focus
-   driven, not a timer: the answer arrives exactly when the question is
-   being asked, and nothing spins at someone mid-type. */
-.hp-tag {
-  --tag-mask: url("https://hcivideos.b-cdn.net/hextag%20front%20side.svg");
-  position: relative;
-  width: 100%; max-width: 200px; aspect-ratio: 129 / 144;
-  perspective: 900px; margin: 0 auto;
-}
-
-/* Ambient glow, not a pointer spotlight. The published versions of this effect
-   all track a mouse; this flow is a phone in a lobby, where there is no
-   pointer and no hover — so the light is always on and simply swells when the
-   field takes focus. Sits behind the tag and is blurred well past its edge. */
-.hp-tag-glow {
-  position: absolute; left: 50%; top: 52%;
-  width: 132%; height: 118%; transform: translate(-50%, -50%);
-  border-radius: 50%; pointer-events: none;
-  background: radial-gradient(
-    circle at 50% 45%,
-    rgba(255, 255, 255, 0.16) 0%,
-    rgba(255, 255, 255, 0.06) 42%,
-    transparent 72%
-  );
-  filter: blur(14px);
-  opacity: 0.75;
-  transition: opacity .5s var(--wel-curve), transform .5s var(--wel-curve);
-}
-.hp-tag:has(.hp-tag-spin[data-flipped="true"]) .hp-tag-glow {
-  opacity: 1; transform: translate(-50%, -50%) scale(1.08);
-}
-
-.hp-tag-spin {
-  position: relative; width: 100%; height: 100%;
-  transform-style: preserve-3d;
-  transform: rotateY(0deg);
-  transition: transform .75s var(--wel-curve);
-}
-.hp-tag-spin[data-flipped="true"] { transform: rotateY(180deg); }
-
-.hp-tag-face {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-.hp-tag-back { transform: rotateY(180deg); }
-
-/* Visibility is handled by opacity alone, NOT backface-visibility.
-   Running both is what made the turn flicker: backface kept the back face
-   hidden until the 90-degree point at 375ms, while the opacity swap revealed
-   it at 340ms — so for 35ms neither face was drawn and the tag vanished.
-   backface-visibility was also unreliable on its own here (it does not
-   inherit through children with their own stacking context, and the front
-   leaked through as a mirror), so opacity is the single mechanism and the
-   swap lands exactly on the midpoint. */
-.hp-tag-front { opacity: 1; }
-.hp-tag-back { opacity: 0; }
-.hp-tag-spin[data-flipped="true"] .hp-tag-front { opacity: 0; }
-.hp-tag-spin[data-flipped="true"] .hp-tag-back { opacity: 1; }
-.hp-tag-face {
-  /* Exactly half of the .75s turn — the instant the card is edge-on. */
-  transition: opacity 0s linear .375s;
-}
-
-/* The tag is black and so is the page, so without this it has no edge — a
-   floating wordmark with nothing holding it. A slightly oversized copy of the
-   silhouette in hairline grey reads as a rim light. Not a drop shadow: the
-   language forbids those, and this is an edge, not a cast shadow. */
-.hp-tag-face::before {
-  content: ""; position: absolute; inset: 0;
-  background: #2f2f2f;
-  -webkit-mask-image: var(--tag-mask); mask-image: var(--tag-mask);
-  -webkit-mask-size: contain; mask-size: contain;
-  -webkit-mask-position: center; mask-position: center;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  transform: scale(1.025);
-}
-
-.hp-tag-face > img {
-  width: 100%; height: 100%; object-fit: contain; display: block;
-  /* Positioned so it paints in the same pass as the ::before rim and can sit
-     above it. As a static flex item it painted in the in-flow pass, i.e.
-     underneath every absolutely positioned sibling, and the rim covered it. */
-  position: relative; z-index: 1;
-}
-
-/* Drawn fallback until the exported SVGs load. */
-.hp-tag-drawn { position: relative; z-index: 1; width: 100%; height: 100%; }
-.hp-tag-silhouette { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hp-tag-content {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; padding: 22% 16% 14%;
-}
-.hp-tag-mark { width: 52%; height: auto; }
-.hp-tag-wordmark {
-  display: flex; flex-direction: column; align-items: center; line-height: 1;
-  font-size: 26px; font-weight: 700; letter-spacing: -0.04em; color: #fff;
-}
-.hp-tag-wordmark em {
-  font-style: normal; font-size: 7px; font-weight: 600; letter-spacing: 0.14em;
-  margin-top: 3px;
-}
-.hp-tag-panel {
-  width: 78%; padding: 14px 0 4px; border-radius: 3px;
-  background: #fff; color: #000; text-align: center;
-  font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+@media (prefers-reduced-motion: reduce) {
+.hp-wel-ask > * { animation: none; }
 }
 
 /* The turn is the whole affordance, so it stays — just instant. The glow is
    decorative and holds still. */
 @media (prefers-reduced-motion: reduce) {
-  .hp-tag-spin { transition: none; }
-  .hp-tag-glow { transition: none; }
-}
-
-/* ── Ask screen — text-led, no photo ──────────────────────────────
-   The opening steps are a task, not a poster. Imagery competes with
-   the single thing being asked for, so it sits this part out. */
-.hp-wel-ask {
-  /* Sized to fit one viewport — this is a phone-only flow, and a scrollbar on
-     the very first screen makes a three-field form look like a long one. Gaps
-     and padding flex with height so a 667px phone gets the same layout as an
-     844px one, just tighter. */
-  padding: clamp(4px, 1.4vh, 16px) var(--hci-x) clamp(12px, 2vh, 24px);
-  display: flex; flex-direction: column; align-items: flex-start;
-  gap: clamp(10px, 1.8vh, 16px);
-}
-
-/* Hero slot — the tag stands where the photo used to. */
-.hp-wel-hero {
-  width: 100%; display: flex; justify-content: center;
-  margin-bottom: clamp(0px, 0.6vh, 4px);
-}
-.hp-wel-hero .hp-tag { max-width: min(42vw, 20vh, 168px); }
-.hp-wel-ask > * { animation: hp-wel-rise .4s var(--wel-curve) both; }
-.hp-wel-ask > *:nth-child(1) { animation-delay: .02s; }
-.hp-wel-ask > *:nth-child(2) { animation-delay: .07s; }
-.hp-wel-ask > *:nth-child(3) { animation-delay: .12s; }
-.hp-wel-ask > *:nth-child(n + 4) { animation-delay: .16s; }
-@media (prefers-reduced-motion: reduce) { .hp-wel-ask > * { animation: none; } }
-
-/* ── Rotating keytag ──────────────────────────────────────────────
-   Answers "where do I find this?" by showing the tag rather than
-   describing it. The cycle rests longer on the BACK, because that is
-   the face carrying the number. */
-.hp-tag {
-  --tag-mask: url("https://hcivideos.b-cdn.net/hextag%20front%20side.svg");
-  width: 100%; max-width: 200px; aspect-ratio: 129 / 144;
-  perspective: 900px; margin: 0 auto;
-}
-.hp-tag-spin {
-  position: relative; width: 100%; height: 100%;
-  transform-style: preserve-3d;
-  animation: hp-tag-flip 9s var(--wel-curve) infinite;
-}
-/* Holds at each face, eased turns between — the curve applies per segment,
-   so this is the house curve rather than a linear spin. */
-@keyframes hp-tag-flip {
-  0%,  26%  { transform: rotateY(0deg); }
-  46%, 84%  { transform: rotateY(180deg); }
-  100%      { transform: rotateY(360deg); }
-}
-
-.hp-tag-face {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-
-/* The tag is black and so is the page, so without this it has no edge — you
-   see a floating wordmark and nothing holding it. A slightly oversized copy of
-   the silhouette in hairline grey sits behind each face and reads as a rim
-   light on the object. Not a drop shadow: the design language forbids those,
-   and this is an edge rather than a cast shadow. */
-.hp-tag-face::before {
-  content: ""; position: absolute; inset: 0;
-  background: #2f2f2f;
-  -webkit-mask-image: var(--tag-mask); mask-image: var(--tag-mask);
-  -webkit-mask-size: contain; mask-size: contain;
-  -webkit-mask-position: center; mask-position: center;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  transform: scale(1.025);
-}
-.hp-tag-back { transform: rotateY(180deg); }
-.hp-tag-face > img {
-  width: 100%; height: 100%; object-fit: contain; display: block;
-  /* Positioned so it paints in the same pass as the ::before rim and can sit
-     above it. As a static flex item it painted in the in-flow pass, i.e.
-     underneath every absolutely positioned sibling — the rim covered the
-     artwork completely. */
-  position: relative; z-index: 1;
-}
-
-/* Drawn fallback until the exported SVGs land. */
-.hp-tag-drawn { position: relative; z-index: 1; width: 100%; height: 100%; }
-.hp-tag-silhouette { position: absolute; inset: 0; width: 100%; height: 100%; }
-.hp-tag-content {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; padding: 22% 16% 14%;
-}
-.hp-tag-mark { width: 52%; height: auto; }
-.hp-tag-wordmark {
-  display: flex; flex-direction: column; align-items: center; line-height: 1;
-  font-size: 26px; font-weight: 700; letter-spacing: -0.04em; color: #fff;
-}
-.hp-tag-wordmark em {
-  font-style: normal; font-size: 7px; font-weight: 600; letter-spacing: 0.14em;
-  margin-top: 3px;
-}
-.hp-tag-panel {
-  width: 78%; padding: 14px 0 4px; border-radius: 3px;
-  background: #fff; color: #000; text-align: center;
-  font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
 }
 
 /* ── Summary skeleton ─────────────────────────────────────────────
@@ -2326,5 +2121,72 @@ html, body {
 .hp-wel-skel-row:nth-child(4)::after { animation-delay: .3s; }
 @keyframes hp-wel-sweep { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) {
-  .hp-wel-skel-row::after { animation: none; opacity: 0; }
+.hp-wel-skel-row::after { animation: none; opacity: 0; }
+}
+
+/* ── Keytag ───────────────────────────────────────────────────────
+   Turns between its two faces on a timer.
+
+   NO 3D here, deliberately. rotateY + backface-visibility is the obvious
+   build and it failed three times across engines: backface-visibility
+   does not inherit through children that have their own stacking context,
+   so the turned-away face kept painting as a MIRRORED front. Layering an
+   opacity swap on top then fought it and blanked the card mid-turn.
+
+   A horizontal squeeze with the image swapped at the pinch is optically
+   the same event, keeps one face in the DOM at a time, and contains no
+   rotation that could render backwards on any engine. */
+.hp-tag {
+  --tag-mask: url("https://hcivideos.b-cdn.net/hextag%20front%20side.svg");
+  position: relative;
+  width: 100%; max-width: 200px; aspect-ratio: 129 / 144;
+  margin: 0 auto;
+}
+
+/* Ambient glow, not a pointer spotlight — this is a phone in a lobby, and
+   there is no cursor for a spotlight to follow. */
+.hp-tag-glow {
+  position: absolute; left: 50%; top: 52%;
+  width: 132%; height: 118%; transform: translate(-50%, -50%);
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.06) 42%,
+    transparent 72%
+  );
+  filter: blur(14px);
+}
+
+.hp-tag-card {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  transform: scaleX(1);
+  transition: transform 200ms var(--wel-curve);
+}
+/* Not quite 0 — a hairline of card at the pinch keeps it reading as an object
+   turning, rather than one that vanishes and comes back. */
+.hp-tag-card[data-pinched="true"] { transform: scaleX(0.04); }
+
+.hp-tag-card img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  position: relative; z-index: 1;
+}
+
+/* The tag is black and so is the page, so without this it has no edge — a
+   floating wordmark with nothing holding it. A slightly oversized copy of the
+   silhouette in hairline grey reads as a rim light. Not a drop shadow: the
+   language forbids those, and this is an edge, not a cast shadow. */
+.hp-tag-card::before {
+  content: ""; position: absolute; inset: 0;
+  background: #2f2f2f;
+  -webkit-mask-image: var(--tag-mask); mask-image: var(--tag-mask);
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  transform: scale(1.025);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-tag-card { transition: none; }
 }

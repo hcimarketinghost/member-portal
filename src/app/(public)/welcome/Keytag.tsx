@@ -1,111 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /** Bunny pull zone — same host as lib/images.ts. */
 const BUNNY = "https://hcivideos.b-cdn.net";
-export const FRONT_SRC = `${BUNNY}/hextag%20front%20side.svg`;
+const FRONT_SRC = `${BUNNY}/hextag%20front%20side.svg`;
 const BACK_SRC = `${BUNNY}/Hextag%20backside.svg`;
 
+/** Squeeze in, swap, squeeze out. Half of one turn. */
+const PINCH_MS = 200;
+/** How long each face is held before turning again. */
+const HOLD_MS = 3000;
+
 /**
- * The hex keytag. It turns to its BACK — the face carrying the number — while
- * the member is filling in the membership ID, and turns back when they leave
- * the field. Driven by focus rather than a timer: the answer appears exactly
- * when the question is being asked, and nothing spins at someone who is
- * already typing.
+ * The hex keytag, turning between its two faces on its own.
  *
- * Faces come from Bunny, the same pull zone `lib/images.ts` already uses. A
- * failed load falls back to a drawn approximation rather than a broken image.
+ * NO 3D. This deliberately does not use rotateY + backface-visibility, which
+ * is the obvious way to build a card flip and which failed here three times
+ * across engines: backface-visibility does not inherit through children with
+ * their own stacking context, so the turned-away face kept painting as a
+ * MIRRORED front. Adding an opacity swap on top then fought the backface and
+ * blanked the tag mid-turn.
  *
- * WEIGHT WARNING — `Hextag backside.svg` is 1.4 MB. It is not really a vector:
- * it wraps a 1122x1402 base64 PNG in a pattern fill, so the whole bitmap ships
- * to every member. Re-exporting the wordmark and barcode as real paths should
- * put it in single-digit KB, the way the front face (1.4 KB) already is. Until
- * then it is loaded lazily and decoded off the main thread so it costs the
- * first screen as little as possible.
- *
- * The glimmer is masked to the tag silhouette, so it travels across the tag and
- * not the empty box around it.
+ * Instead the card squeezes flat on the X axis and the image is swapped at the
+ * pinch. Only ONE face is ever in the DOM, there is no rotation, and therefore
+ * nothing that can render mirrored — on any engine. It reads as a flip because
+ * a flip, optically, is a horizontal squeeze.
  */
-export default function Keytag({ flipped = false }: { flipped?: boolean }) {
-  const [frontMissing, setFrontMissing] = useState(false);
-  const [backMissing, setBackMissing] = useState(false);
+export default function Keytag() {
+  const [showBack, setShowBack] = useState(false);
+  const [pinched, setPinched] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Hold the numbered face — the informative one — and never move.
+      setShowBack(true);
+      return;
+    }
+
+    let swap: ReturnType<typeof setTimeout>;
+    const turn = setInterval(() => {
+      setPinched(true);
+      swap = setTimeout(() => {
+        setShowBack((v) => !v);
+        setPinched(false);
+      }, PINCH_MS);
+    }, HOLD_MS + PINCH_MS);
+
+    return () => {
+      clearInterval(turn);
+      clearTimeout(swap);
+    };
+  }, []);
 
   return (
     <div className="hp-tag" aria-hidden="true">
       <span className="hp-tag-glow" />
-      <div className="hp-tag-spin" data-flipped={flipped}>
-        <div className="hp-tag-face hp-tag-front">
-          {frontMissing ? (
-            <DrawnTag>
-              <HexMark />
-            </DrawnTag>
-          ) : (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={FRONT_SRC}
-              alt=""
-              decoding="async"
-              onError={() => setFrontMissing(true)}
-            />
-          )}
-        </div>
-
-        <div className="hp-tag-face hp-tag-back">
-          {backMissing ? (
-            <DrawnTag>
-              <span className="hp-tag-wordmark">
-                HCI
-                <em>SPORTS &amp; FITNESS</em>
-              </span>
-              <span className="hp-tag-panel">123456</span>
-            </DrawnTag>
-          ) : (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={BACK_SRC}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              onError={() => setBackMissing(true)}
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Rounded hexagon with the lanyard hole punched out. */
-function DrawnTag({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="hp-tag-drawn">
-      <svg viewBox="0 0 200 220" className="hp-tag-silhouette">
-        <path
-          // Hexagon, then the hole as a second subpath — evenodd punches it out.
-          // A thick round-joined stroke in the same colour fakes the corner
-          // radius without hand-authoring twelve arc segments.
-          d="M100 22 L177 66 L177 154 L100 198 L23 154 L23 66 Z M100 40 a13 13 0 1 0 0 26 a13 13 0 1 0 0 -26"
-          fillRule="evenodd"
-          fill="#0a0a0a"
-          stroke="#0a0a0a"
-          strokeWidth="26"
-          strokeLinejoin="round"
+      <div className="hp-tag-card" data-pinched={pinched}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={showBack ? BACK_SRC : FRONT_SRC}
+          alt=""
+          decoding="async"
         />
-      </svg>
-      <div className="hp-tag-content">{children}</div>
+      </div>
+      {/* Preloaded so the swap at the pinch never lands on an undecoded image.
+          The back face is 1.4 MB — a raster inside a vector wrapper — so
+          without this the first turn would show an empty card. */}
+      <link rel="preload" as="image" href={BACK_SRC} />
     </div>
-  );
-}
-
-/** The hex mark, same path as components/Logo. */
-function HexMark() {
-  return (
-    <svg viewBox="0 0 180.48 207.88" className="hp-tag-mark" fill="#fff">
-      <path d="M90.24,0L0,51.97v103.94l90.24,51.97,90.24-51.97V51.97L90.24,0ZM172.71,151.43l-82.47,47.49L7.78,151.43V56.45L90.24,8.96l82.47,47.49v94.99h0Z" />
-      <path d="M146.68,75.7v56.49l18.03,10.39v-77.26l-18.03,10.39h0Z" />
-      <path d="M90.22,169.25l-56.47-32.53v-65.55l56.47-32.53,52.99,30.53,17.81-10.25L90.24,18.14,15.77,61.04v85.81l74.47,42.9,70.77-40.76-17.81-10.25-52.99,30.52h0Z" />
-      <path d="M121.8,65.96v28.5h-63.18v-28.48l-17.14,9.87v56.16l17.14,9.87v-28.47h63.18v28.5l17.2-9.9v-56.16l-17.2-9.9h0Z" />
-    </svg>
   );
 }
