@@ -241,11 +241,20 @@ export default function WelcomeFlow() {
 
   return (
     <main className="hp-wel" data-step={step}>
-      <Progress total={steps.length} index={index} />
-
+      {/* Close left, brand centre, skip right — leaving is always available and
+          always in the same place. Progress sits under the row, not above it. */}
       <header className="hp-wel-top">
+        <a
+          className="hp-wel-close"
+          href="https://www.hillcountryindoor.com"
+          aria-label="Leave setup"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </a>
         <span className="hp-wel-brand">
-          <Logo height={30} />
+          <Logo height={26} />
         </span>
         {!isLast && step !== "start" ? (
           <button type="button" className="hp-wel-skip" onClick={() => goTo(steps.length - 1)}>
@@ -253,6 +262,8 @@ export default function WelcomeFlow() {
           </button>
         ) : null}
       </header>
+
+      <Progress total={steps.length} index={index} />
 
       <div key={step} ref={liveRef} tabIndex={-1} className="hp-wel-screen" aria-live="polite">
         {step === "start" ? (

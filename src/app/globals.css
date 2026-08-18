@@ -1786,7 +1786,7 @@ html, body {
 
 /* ── Progress — segments track the derived itinerary ──────────── */
 .hp-wel-progress {
-  margin: max(10px, env(safe-area-inset-top)) var(--hci-x) 0;
+  margin: 0 var(--hci-x);
   height: 2px; border-radius: 1px; overflow: hidden;
   background: rgba(255, 255, 255, 0.16);
 }
@@ -1799,7 +1799,24 @@ html, body {
 .hp-wel-top {
   position: relative;
   display: flex; align-items: center; justify-content: center;
-  padding: 16px var(--hci-x);
+  padding: max(10px, env(safe-area-inset-top)) var(--hci-x) 12px;
+}
+
+/* Circular chip, left. Same tap target as everything else in the flow. */
+.hp-wel-close {
+  position: absolute; left: var(--hci-x); top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface); color: var(--text-2);
+  transition: background .15s ease, color .15s ease;
+}
+.hp-wel-close::after { content: ""; position: absolute; inset: -8px; }
+.hp-wel-close svg {
+  width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 2.2; stroke-linecap: round;
+}
+@media (hover: hover) {
+  .hp-wel-close:hover { background: #1f1f1f; color: var(--text); }
 }
 .hp-wel-brand { display: block; color: #fff; }
 .hp-wel-top .hp-wel-skip {
@@ -1903,7 +1920,11 @@ html, body {
 }
 
 /* ── Email field ──────────────────────────────────────────────── */
-.hp-wel-field { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.hp-wel-field {
+  display: flex; flex-direction: column; gap: 8px; width: 100%;
+  /* The question should be read before the keyboard opens over it. */
+  margin-top: clamp(4px, 2.2vh, 20px);
+}
 .hp-wel-fieldlabel {
   font-size: 13px; font-weight: 500; letter-spacing: -0.01em; color: var(--text-3);
 }
@@ -1912,10 +1933,11 @@ html, body {
   background: var(--surface); color: var(--text);
   border: 0; border-radius: var(--radius-control);
   font: inherit; font-size: 17px; letter-spacing: -0.022em;
-  outline: 1px solid transparent; transition: outline-color .15s ease;
+  outline: 1px solid transparent; outline-offset: 0;
+  transition: outline-color .15s ease, background .15s ease;
 }
 .hp-wel-input::placeholder { color: #6a6a6a; }
-.hp-wel-input:focus { outline-color: var(--text-3); }
+.hp-wel-input:focus { outline-color: #fff; background: #1f1f1f; }
 .hp-wel-input[aria-invalid="true"] { outline-color: #ff6b00; }
 .hp-wel-fielderror { font-size: 13px; letter-spacing: -0.01em; color: #ff6b00; }
 

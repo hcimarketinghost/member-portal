@@ -226,3 +226,42 @@ narrowing in `/api/welcome/member` still drops `Barcode`, `PastDueAmount`, and
 2. **Which sender** for director routing and the +24h pass reminder —
    `Email/mailjet-event-email-template.html` suggests Mailjet is already in play.
 3. **Entry point priority** — QR card first, or the welcome-email button first?
+
+---
+
+## Mobile pattern notes (from Robinhood, 2026-08-18)
+
+Taken from six real screens Victor captured. Split deliberately into structure
+(adopt) and materials (do not) — Robinhood's *look* contradicts HCI's shipped
+language in three specific ways, and Live wins.
+
+### Adopt — layout and rhythm
+
+1. **Content top-anchored, actions bottom-anchored, real emptiness between.**
+   Nothing is vertically centred. The email step has the field in the upper
+   third and a third of the screen blank above the button. The space is the
+   point: it makes a one-field screen look like a one-field screen.
+2. **`X` close top-left in a circular chip; the secondary route top-right.**
+   Leaving is always available and always in the same place.
+3. **Progress sits directly under that header row**, not above it.
+4. **One input per screen**, with a large gap between the question and the
+   field — the question gets read before the keyboard opens.
+5. **Focused field is emphasised, unfocused fields recede.** Robinhood swaps a
+   dim border for a bright one; the point is that only the active field is
+   visually live.
+6. **Primary action full-width at the bottom, secondary directly beneath it.**
+   Both stay above the keyboard.
+7. **Legal and helper text sits just above the primary action**, not beside the
+   field it refers to.
+
+### Do NOT adopt — materials
+
+| Robinhood | HCI Live |
+|---|---|
+| Pill buttons (fully rounded) | `4px` controls, `8px` cards |
+| Transparent inputs with 1px borders | Solid `#1a1a1a` fills, no borders |
+| Centred headlines and body | Left-aligned, `-0.04em` tracking |
+
+Copying those would be a redesign of the portal wearing Robinhood's clothes.
+The structural patterns above are what actually move completion; the materials
+are just their brand.
