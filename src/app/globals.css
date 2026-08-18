@@ -2005,189 +2005,39 @@ html, body {
   .hp-wel-actions .hp-btn { width: 100%; }
 }
 
-/* ── Membership summary + what's included ─────────────────────── */
-.hp-wel-summary {
-  margin: 0; width: 100%;
-  display: flex; flex-direction: column; gap: 1px;
-  border-radius: var(--radius-card); overflow: hidden; background: var(--hairline);
+/* ── Membership summary + what's included ─────────────────────────
+   One solid surface, not rows separated by hairlines. The rule is
+   explicit: hairline is for passive dividers, sparingly, and NEVER as a
+   fill — which is what a hairline-coloured container showing through 1px
+   gaps amounts to. Separation here is spacing and the grey ladder, the
+   way EventsShowcase does it. */
+.hp-wel-summary,
+.hp-wel-included {
+  margin: 0; padding: 18px 20px; width: 100%;
+  list-style: none;
+  display: flex; flex-direction: column; gap: 18px;
+  border-radius: var(--radius-card);
+  background: #1a1a1a;
 }
+
 .hp-wel-summaryrow {
   display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
-  padding: 12px 16px; background: var(--surface);
 }
 .hp-wel-summaryrow dt {
-  font-size: 14px; letter-spacing: -0.01em; color: var(--text-3); flex: 0 0 auto;
+  flex: 0 0 auto;
+  font-size: 15px; letter-spacing: -0.01em; color: var(--text-3);
 }
 .hp-wel-summaryrow dd {
-  margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.02em;
-  color: var(--text); text-align: right;
+  margin: 0; text-align: right;
+  font-size: 17px; font-weight: 500; letter-spacing: -0.022em; color: #f5f5f7;
 }
 
-.hp-wel-included {
-  margin: 0; padding: 0; list-style: none; width: 100%;
-  display: flex; flex-direction: column; gap: 1px;
-  border-radius: var(--radius-card); overflow: hidden; background: var(--hairline);
-}
-.hp-wel-included li {
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 12px 16px; background: var(--surface);
-}
+.hp-wel-included li { display: flex; flex-direction: column; gap: 3px; }
 .hp-wel-inclabel {
-  font-size: 15px; font-weight: 600; letter-spacing: -0.022em; color: var(--text);
+  font-size: 17px; font-weight: 500; letter-spacing: -0.022em; color: #f5f5f7;
 }
 .hp-wel-incdetail {
-  font-size: 13px; line-height: 1.4; letter-spacing: -0.01em; color: var(--text-3);
-}
-
-/* ── Plain screen — no photo, content leads (walkthrough, hub) ── */
-.hp-wel-plain {
-  padding: 8px var(--hci-x) 24px;
-  display: flex; flex-direction: column; gap: 16px; align-items: flex-start;
-}
-
-/* ── ActiveNet walkthrough ────────────────────────────────────── */
-.hp-wt { width: 100%; display: flex; flex-direction: column; gap: 16px; }
-
-.hp-wt-stage {
-  position: relative; width: 100%; height: min(38dvh, 320px);
-  display: flex; align-items: center; justify-content: center;
-}
-.hp-wt-slide {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transform: translateX(18px) scale(0.98);
-  transition: opacity .45s var(--wel-curve), transform .45s var(--wel-curve);
-  pointer-events: none;
-}
-.hp-wt-slide[data-active="true"] { opacity: 1; transform: none; }
-.hp-wt-slide img {
-  max-height: 100%; max-width: 62%; object-fit: contain; display: block;
-}
-
-.hp-wt-copy { display: flex; flex-direction: column; gap: 8px; min-height: 118px; }
-.hp-wt-count {
-  font-size: 13px; font-weight: 500; letter-spacing: -0.01em; color: var(--text-3);
-}
-.hp-wt-title {
-  margin: 0; font-size: 1.35rem; line-height: 1.05; font-weight: 600;
-  letter-spacing: -0.04em; color: #fff;
-}
-.hp-wt-body {
-  margin: 0; font-size: 16px; line-height: 1.45; letter-spacing: -0.02em;
-  color: var(--body); max-width: 46ch;
-}
-
-.hp-wt-dots { display: flex; gap: 6px; }
-.hp-wt-dot {
-  width: 26px; height: 3px; border-radius: 2px; border: 0; padding: 0;
-  background: rgba(255, 255, 255, 0.2); cursor: pointer;
-  transition: background .25s var(--wel-curve);
-  /* Keep the tap target honest without inflating the visual mark. */
-  position: relative;
-}
-.hp-wt-dot::after { content: ""; position: absolute; inset: -14px -4px; }
-.hp-wt-dot[data-active="true"] { background: #fff; }
-
-.hp-wt-cta {
-  width: 100%;
-  opacity: 0; transform: translateY(10px);
-  transition: opacity .4s var(--wel-curve), transform .4s var(--wel-curve);
-  pointer-events: none;
-}
-.hp-wt-cta[data-show="true"] { opacity: 1; transform: none; pointer-events: auto; }
-
-@media (prefers-reduced-motion: reduce) {
-  .hp-wt-slide, .hp-wt-cta { transition: none; }
-}
-
-/* ── Learn-more hub ───────────────────────────────────────────── */
-.hp-lm-grid {
-  width: 100%; display: grid; gap: 8px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.hp-lm-tile {
-  position: relative; overflow: hidden; cursor: pointer;
-  border: 0; padding: 0; border-radius: var(--radius-card);
-  aspect-ratio: 1 / 1; background: var(--surface); font: inherit;
-  display: block; text-align: left;
-}
-.hp-lm-tile img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; object-position: center 30%;
-  transition: transform .6s var(--wel-curve);
-}
-@media (hover: hover) { .hp-lm-tile:hover img { transform: scale(1.04); } }
-.hp-lm-tilefade {
-  position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 0%,
-              rgba(0,0,0,0.62) 88%, rgba(0,0,0,0.74) 100%);
-}
-.hp-lm-tiletext {
-  position: absolute; left: 12px; right: 12px; bottom: 11px;
-  display: flex; flex-direction: column; gap: 1px;
-}
-.hp-lm-tilelabel {
-  font-size: 15px; font-weight: 600; letter-spacing: -0.03em; color: #fff;
-}
-.hp-lm-tilehint {
-  font-size: 12px; letter-spacing: -0.01em; color: #cdcdcd;
-}
-
-.hp-lm-detail { animation: hp-wel-enter .35s var(--wel-curve) both; }
-.hp-lm-detail .hp-btn { margin-top: 4px; }
-@media (prefers-reduced-motion: reduce) { .hp-lm-detail { animation: none; } }
-
-@media (min-width: 720px) {
-  .hp-wt-stage { height: min(42dvh, 380px); }
-}
-
-/* Mockup not supplied yet — a deliberate frame beats a broken-image icon. */
-.hp-wt-placeholder {
-  width: 58%; max-width: 190px; aspect-ratio: 9 / 19;
-  border-radius: 22px; background: #101010;
-  box-shadow: inset 0 0 0 1.5px var(--hairline);
-  display: flex; align-items: center; justify-content: center;
-}
-.hp-wt-placeholder span {
-  font-size: 34px; font-weight: 600; letter-spacing: -0.04em; color: #2e2e2e;
-}
-
-/* "Where do I find this?" — keytag helper image */
-
-
-/* ── Summary skeleton ─────────────────────────────────────────────
-   Shaped like the answer so nothing reflows when the data lands. The
-   sweep is linear on purpose — the house curve is for things that
-   start and stop, and this loops. */
-.hp-wel-skel { width: 100%; display: flex; flex-direction: column; gap: 8px; }
-.hp-wel-skel-group {
-  display: flex; flex-direction: column; gap: 1px;
-  border-radius: var(--radius-card); overflow: hidden; background: var(--hairline);
-}
-.hp-wel-skel-row {
-  display: block; height: 46px; background: var(--surface); position: relative; overflow: hidden;
-}
-.hp-wel-skel-row::before {
-  content: ""; position: absolute; top: 14px; left: 16px; height: 11px;
-  border-radius: 3px; background: #262626;
-}
-.hp-wel-skel-row[data-w="0"]::before { width: 46%; }
-.hp-wel-skel-row[data-w="1"]::before { width: 62%; }
-.hp-wel-skel-row[data-w="2"]::before { width: 38%; }
-.hp-wel-skel-row[data-w="3"]::before { width: 54%; }
-.hp-wel-skel-row::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
-  transform: translateX(-100%);
-  animation: hp-wel-sweep 1.4s linear infinite;
-}
-.hp-wel-skel-row:nth-child(2)::after { animation-delay: .1s; }
-.hp-wel-skel-row:nth-child(3)::after { animation-delay: .2s; }
-.hp-wel-skel-row:nth-child(4)::after { animation-delay: .3s; }
-@keyframes hp-wel-sweep { to { transform: translateX(100%); } }
-
-@media (prefers-reduced-motion: reduce) {
-  .hp-wel-skel-row::after { animation: none; opacity: 0; }
+  font-size: 15px; line-height: 1.45; letter-spacing: -0.01em; color: var(--text-3);
 }
 
 /* ── Ask screen — text-led, no photo ──────────────────────────────
@@ -2265,13 +2115,24 @@ html, body {
 }
 .hp-tag-back { transform: rotateY(180deg); }
 
-/* Every child needs this too. backface-visibility does NOT inherit through a
-   child that has its own stacking context, so the front image rendered
-   straight through the back of the card — the flip looked like the front face
-   turning around rather than a reveal. */
 .hp-tag-face > *,
 .hp-tag-face::before {
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+
+/* backface-visibility alone is not trustworthy here. It does not inherit
+   through children with their own stacking context, and even with it declared
+   on every one, some engines still paint the turned-away face — it showed as a
+   MIRRORED front, which is exactly what a leaking backface looks like.
+   So the faces are also hidden outright, swapped at the halfway point of the
+   turn. Belt and braces, and the visibility swap is what actually guarantees
+   it. */
+.hp-tag-front { opacity: 1; }
+.hp-tag-back { opacity: 0; }
+.hp-tag-spin[data-flipped="true"] .hp-tag-front { opacity: 0; }
+.hp-tag-spin[data-flipped="true"] .hp-tag-back { opacity: 1; }
+.hp-tag-face {
+  transition: opacity 0s linear var(--tag-swap, .34s);
 }
 
 /* The tag is black and so is the page, so without this it has no edge — a
@@ -2425,4 +2286,36 @@ html, body {
   width: 78%; padding: 14px 0 4px; border-radius: 3px;
   background: #fff; color: #000; text-align: center;
   font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+}
+
+/* ── Summary skeleton ─────────────────────────────────────────────
+   Same solid card and same row rhythm as the real summary, so nothing
+   moves when the data lands. The sweep is linear because it loops —
+   the house curve is for things that start and stop. */
+.hp-wel-skel { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.hp-wel-skel-group {
+  padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 18px;
+  border-radius: var(--radius-card); background: #1a1a1a;
+}
+.hp-wel-skel-row {
+  display: block; height: 15px; border-radius: 3px;
+  background: #262626; position: relative; overflow: hidden;
+}
+.hp-wel-skel-row[data-w="0"] { width: 46%; }
+.hp-wel-skel-row[data-w="1"] { width: 62%; }
+.hp-wel-skel-row[data-w="2"] { width: 38%; }
+.hp-wel-skel-row[data-w="3"] { width: 54%; }
+.hp-wel-skel-row::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: hp-wel-sweep 1.4s linear infinite;
+}
+.hp-wel-skel-row:nth-child(2)::after { animation-delay: .1s; }
+.hp-wel-skel-row:nth-child(3)::after { animation-delay: .2s; }
+.hp-wel-skel-row:nth-child(4)::after { animation-delay: .3s; }
+@keyframes hp-wel-sweep { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .hp-wel-skel-row::after { animation: none; opacity: 0; }
 }

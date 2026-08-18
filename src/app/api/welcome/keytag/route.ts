@@ -81,6 +81,26 @@ export async function POST(request: Request) {
 
   clearMember(String(memberId));
 
+
+  // Which of the summary fields ClubReady actually populated for this member.
+  // Victor got "Found you, Victor" with no plan, covers, status or renewal —
+  // so getAccount resolved but MembershipTypeName came back empty. Logging the
+  // shape (never the values) is the only way to tell whether that is true of
+  // every record or just his. Staff-visible logs; no PII.
+  console.info(
+    `[welcome/keytag] UserId ${memberId} fields present: ` +
+      Object.entries({
+        FirstName: account.FirstName,
+        LastName: account.LastName,
+        Email: account.Email,
+        MembershipTypeName: account.MembershipTypeName,
+        MembershipExpiresDate: account.MembershipExpiresDate,
+        CustomStatusText: account.CustomStatusText,
+      })
+        .map(([k, v]) => `${k}=${v ? "yes" : "EMPTY"}`)
+        .join(" ")
+  );
+
   // Best-effort: a pass failure must not cost the member their summary.
   const pass = account.Email
     ? await lookupPass(account.Email)
