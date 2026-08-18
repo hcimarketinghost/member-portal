@@ -2124,29 +2124,25 @@ html, body {
 
 .hp-tag-face {
   position: absolute; inset: 0;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
   display: flex; align-items: center; justify-content: center;
 }
 .hp-tag-back { transform: rotateY(180deg); }
 
-.hp-tag-face > *,
-.hp-tag-face::before {
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-}
-
-/* backface-visibility alone is not trustworthy here. It does not inherit
-   through children with their own stacking context, and even with it declared
-   on every one, some engines still paint the turned-away face — it showed as a
-   MIRRORED front, which is exactly what a leaking backface looks like.
-   So the faces are also hidden outright, swapped at the halfway point of the
-   turn. Belt and braces, and the visibility swap is what actually guarantees
-   it. */
+/* Visibility is handled by opacity alone, NOT backface-visibility.
+   Running both is what made the turn flicker: backface kept the back face
+   hidden until the 90-degree point at 375ms, while the opacity swap revealed
+   it at 340ms — so for 35ms neither face was drawn and the tag vanished.
+   backface-visibility was also unreliable on its own here (it does not
+   inherit through children with their own stacking context, and the front
+   leaked through as a mirror), so opacity is the single mechanism and the
+   swap lands exactly on the midpoint. */
 .hp-tag-front { opacity: 1; }
 .hp-tag-back { opacity: 0; }
 .hp-tag-spin[data-flipped="true"] .hp-tag-front { opacity: 0; }
 .hp-tag-spin[data-flipped="true"] .hp-tag-back { opacity: 1; }
 .hp-tag-face {
-  transition: opacity 0s linear var(--tag-swap, .34s);
+  /* Exactly half of the .75s turn — the instant the card is edge-on. */
+  transition: opacity 0s linear .375s;
 }
 
 /* The tag is black and so is the page, so without this it has no edge — a
@@ -2251,7 +2247,6 @@ html, body {
 
 .hp-tag-face {
   position: absolute; inset: 0;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
   display: flex; align-items: center; justify-content: center;
 }
 
