@@ -1816,7 +1816,7 @@ html, body {
   stroke-width: 2.2; stroke-linecap: round;
 }
 @media (hover: hover) {
-.hp-wel-close:hover { background: #1f1f1f; color: var(--text); }
+  .hp-wel-close:hover { background: #1f1f1f; color: var(--text); }
 }
 .hp-wel-brand { display: block; color: #fff; }
 .hp-wel-top .hp-wel-skip {
@@ -1829,7 +1829,7 @@ html, body {
   transition: color .15s ease;
 }
 @media (hover: hover) {
-.hp-wel-skip:hover { color: var(--text); }
+  .hp-wel-skip:hover { color: var(--text); }
 }
 
 /* ── Screen ───────────────────────────────────────────────────── */
@@ -1878,7 +1878,7 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-.hp-wel-photo,
+  .hp-wel-photo,
   .hp-wel-copy > *,
   .hp-wel-plain > * { animation: none; }
   .hp-wel-fill { transition: none; }
@@ -1966,7 +1966,7 @@ html, body {
   transition: opacity .15s ease;
 }
 @media (hover: hover) {
-.hp-wel-more:hover { opacity: .75; }
+  .hp-wel-more:hover { opacity: .75; }
 }
 
 /* Stacked, not side by side. Two half-width buttons give each a cramped tap
@@ -1974,7 +1974,7 @@ html, body {
    phone you have". Side by side only once there is room to spare. */
 .hp-wel-stores { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 @media (min-width: 480px) {
-.hp-wel-stores { flex-direction: row; }
+  .hp-wel-stores { flex-direction: row; }
   .hp-wel-stores .hp-btn { flex: 1; }
 }
 
@@ -2011,7 +2011,7 @@ html, body {
   transition: color .15s ease;
 }
 @media (hover: hover) {
-.hp-wel-back:hover { color: var(--text); }
+  .hp-wel-back:hover { color: var(--text); }
 }
 
 /* Desktop: the flow stays a phone-width column rather than stretching. */
@@ -2084,7 +2084,7 @@ html, body {
 .hp-wel-ask > *:nth-child(3) { animation-delay: .12s; }
 .hp-wel-ask > *:nth-child(n + 4) { animation-delay: .16s; }
 @media (prefers-reduced-motion: reduce) {
-.hp-wel-ask > * { animation: none; }
+  .hp-wel-ask > * { animation: none; }
 }
 
 /* The turn is the whole affordance, so it stays — just instant. The glow is
@@ -2121,7 +2121,7 @@ html, body {
 .hp-wel-skel-row:nth-child(4)::after { animation-delay: .3s; }
 @keyframes hp-wel-sweep { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) {
-.hp-wel-skel-row::after { animation: none; opacity: 0; }
+  .hp-wel-skel-row::after { animation: none; opacity: 0; }
 }
 
 /* ── Keytag ───────────────────────────────────────────────────────
