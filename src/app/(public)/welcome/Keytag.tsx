@@ -8,9 +8,11 @@ export const FRONT_SRC = `${BUNNY}/hextag%20front%20side.svg`;
 const BACK_SRC = `${BUNNY}/Hextag%20backside.svg`;
 
 /**
- * The hex keytag, rotating, so "where do I find this?" is answered by showing
- * the thing rather than describing it. The flip lands on the BACK — the face
- * with the number on it — because that is the information being asked for.
+ * The hex keytag. It turns to its BACK — the face carrying the number — while
+ * the member is filling in the membership ID, and turns back when they leave
+ * the field. Driven by focus rather than a timer: the answer appears exactly
+ * when the question is being asked, and nothing spins at someone who is
+ * already typing.
  *
  * Faces come from Bunny, the same pull zone `lib/images.ts` already uses. A
  * failed load falls back to a drawn approximation rather than a broken image.
@@ -25,13 +27,14 @@ const BACK_SRC = `${BUNNY}/Hextag%20backside.svg`;
  * The glimmer is masked to the tag silhouette, so it travels across the tag and
  * not the empty box around it.
  */
-export default function Keytag() {
+export default function Keytag({ flipped = false }: { flipped?: boolean }) {
   const [frontMissing, setFrontMissing] = useState(false);
   const [backMissing, setBackMissing] = useState(false);
 
   return (
     <div className="hp-tag" aria-hidden="true">
-      <div className="hp-tag-spin">
+      <span className="hp-tag-glow" />
+      <div className="hp-tag-spin" data-flipped={flipped}>
         <div className="hp-tag-face hp-tag-front">
           {frontMissing ? (
             <DrawnTag>
@@ -46,7 +49,6 @@ export default function Keytag() {
               onError={() => setFrontMissing(true)}
             />
           )}
-          <span className="hp-tag-glimmer" />
         </div>
 
         <div className="hp-tag-face hp-tag-back">
@@ -68,7 +70,6 @@ export default function Keytag() {
               onError={() => setBackMissing(true)}
             />
           )}
-          <span className="hp-tag-glimmer" />
         </div>
       </div>
     </div>

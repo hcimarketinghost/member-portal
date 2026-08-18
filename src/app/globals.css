@@ -1777,7 +1777,10 @@ html, body {
   --wel-curve: cubic-bezier(0.32, 0.72, 0.36, 1);
   position: fixed; inset: 0;
   display: grid; grid-template-rows: auto auto 1fr auto;
-  background: #000; color: var(--text);
+  /* Lifted a few points at the top rather than flat #000 — enough to give the
+     screen depth behind the tag's glow without reading as a colour. */
+  background: linear-gradient(#111112 0%, #050505 38%, #000 100%);
+  color: var(--text);
   overflow: hidden;
 }
 
@@ -1887,6 +1890,11 @@ html, body {
 .hp-wel-title {
   font-size: 2rem; line-height: 0.94; font-weight: 600;
   letter-spacing: -0.04em; color: #fff; margin: 0;
+}
+/* Short viewports: step the headline down rather than push the button off. */
+@media (max-height: 720px) {
+  .hp-wel-ask .hp-wel-title { font-size: 1.7rem; }
+  .hp-wel-ask .hp-wel-body { font-size: 15px; }
 }
 .hp-wel-body {
   font-size: 17px; line-height: 1.5; font-weight: 400;
@@ -2164,16 +2172,157 @@ html, body {
    The opening steps are a task, not a poster. Imagery competes with
    the single thing being asked for, so it sits this part out. */
 .hp-wel-ask {
-  padding: 2vh var(--hci-x) 24px;
-  display: flex; flex-direction: column; gap: 16px; align-items: flex-start;
+  /* Sized to fit one viewport — this is a phone-only flow, and a scrollbar on
+     the very first screen makes a three-field form look like a long one. Gaps
+     and padding flex with height so a 667px phone gets the same layout as an
+     844px one, just tighter. */
+  padding: clamp(4px, 1.4vh, 16px) var(--hci-x) clamp(12px, 2vh, 24px);
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: clamp(10px, 1.8vh, 16px);
 }
 
 /* Hero slot — the tag stands where the photo used to. */
 .hp-wel-hero {
   width: 100%; display: flex; justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: clamp(0px, 0.6vh, 4px);
 }
-.hp-wel-hero .hp-tag { max-width: min(46vw, 168px); }
+.hp-wel-hero .hp-tag { max-width: min(42vw, 20vh, 168px); }
+.hp-wel-ask > * { animation: hp-wel-rise .4s var(--wel-curve) both; }
+.hp-wel-ask > *:nth-child(1) { animation-delay: .02s; }
+.hp-wel-ask > *:nth-child(2) { animation-delay: .07s; }
+.hp-wel-ask > *:nth-child(3) { animation-delay: .12s; }
+.hp-wel-ask > *:nth-child(n + 4) { animation-delay: .16s; }
+@media (prefers-reduced-motion: reduce) { .hp-wel-ask > * { animation: none; } }
+
+/* ── Keytag ───────────────────────────────────────────────────────
+   Turns to the back — the face with the number — while the member is
+   in the Membership ID field, and turns back when they leave it. Focus
+   driven, not a timer: the answer arrives exactly when the question is
+   being asked, and nothing spins at someone mid-type. */
+.hp-tag {
+  --tag-mask: url("https://hcivideos.b-cdn.net/hextag%20front%20side.svg");
+  position: relative;
+  width: 100%; max-width: 200px; aspect-ratio: 129 / 144;
+  perspective: 900px; margin: 0 auto;
+}
+
+/* Ambient glow, not a pointer spotlight. The published versions of this effect
+   all track a mouse; this flow is a phone in a lobby, where there is no
+   pointer and no hover — so the light is always on and simply swells when the
+   field takes focus. Sits behind the tag and is blurred well past its edge. */
+.hp-tag-glow {
+  position: absolute; left: 50%; top: 52%;
+  width: 132%; height: 118%; transform: translate(-50%, -50%);
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.06) 42%,
+    transparent 72%
+  );
+  filter: blur(14px);
+  opacity: 0.75;
+  transition: opacity .5s var(--wel-curve), transform .5s var(--wel-curve);
+}
+.hp-tag:has(.hp-tag-spin[data-flipped="true"]) .hp-tag-glow {
+  opacity: 1; transform: translate(-50%, -50%) scale(1.08);
+}
+
+.hp-tag-spin {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateY(0deg);
+  transition: transform .75s var(--wel-curve);
+}
+.hp-tag-spin[data-flipped="true"] { transform: rotateY(180deg); }
+
+.hp-tag-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.hp-tag-back { transform: rotateY(180deg); }
+
+/* Every child needs this too. backface-visibility does NOT inherit through a
+   child that has its own stacking context, so the front image rendered
+   straight through the back of the card — the flip looked like the front face
+   turning around rather than a reveal. */
+.hp-tag-face > *,
+.hp-tag-face::before {
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+
+/* The tag is black and so is the page, so without this it has no edge — a
+   floating wordmark with nothing holding it. A slightly oversized copy of the
+   silhouette in hairline grey reads as a rim light. Not a drop shadow: the
+   language forbids those, and this is an edge, not a cast shadow. */
+.hp-tag-face::before {
+  content: ""; position: absolute; inset: 0;
+  background: #2f2f2f;
+  -webkit-mask-image: var(--tag-mask); mask-image: var(--tag-mask);
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  transform: scale(1.025);
+}
+
+.hp-tag-face > img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  /* Positioned so it paints in the same pass as the ::before rim and can sit
+     above it. As a static flex item it painted in the in-flow pass, i.e.
+     underneath every absolutely positioned sibling, and the rim covered it. */
+  position: relative; z-index: 1;
+}
+
+/* Drawn fallback until the exported SVGs load. */
+.hp-tag-drawn { position: relative; z-index: 1; width: 100%; height: 100%; }
+.hp-tag-silhouette { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hp-tag-content {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 22% 16% 14%;
+}
+.hp-tag-mark { width: 52%; height: auto; }
+.hp-tag-wordmark {
+  display: flex; flex-direction: column; align-items: center; line-height: 1;
+  font-size: 26px; font-weight: 700; letter-spacing: -0.04em; color: #fff;
+}
+.hp-tag-wordmark em {
+  font-style: normal; font-size: 7px; font-weight: 600; letter-spacing: 0.14em;
+  margin-top: 3px;
+}
+.hp-tag-panel {
+  width: 78%; padding: 14px 0 4px; border-radius: 3px;
+  background: #fff; color: #000; text-align: center;
+  font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+}
+
+/* The turn is the whole affordance, so it stays — just instant. The glow is
+   decorative and holds still. */
+@media (prefers-reduced-motion: reduce) {
+  .hp-tag-spin { transition: none; }
+  .hp-tag-glow { transition: none; }
+}
+
+/* ── Ask screen — text-led, no photo ──────────────────────────────
+   The opening steps are a task, not a poster. Imagery competes with
+   the single thing being asked for, so it sits this part out. */
+.hp-wel-ask {
+  /* Sized to fit one viewport — this is a phone-only flow, and a scrollbar on
+     the very first screen makes a three-field form look like a long one. Gaps
+     and padding flex with height so a 667px phone gets the same layout as an
+     844px one, just tighter. */
+  padding: clamp(4px, 1.4vh, 16px) var(--hci-x) clamp(12px, 2vh, 24px);
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: clamp(10px, 1.8vh, 16px);
+}
+
+/* Hero slot — the tag stands where the photo used to. */
+.hp-wel-hero {
+  width: 100%; display: flex; justify-content: center;
+  margin-bottom: clamp(0px, 0.6vh, 4px);
+}
+.hp-wel-hero .hp-tag { max-width: min(42vw, 20vh, 168px); }
 .hp-wel-ask > * { animation: hp-wel-rise .4s var(--wel-curve) both; }
 .hp-wel-ask > *:nth-child(1) { animation-delay: .02s; }
 .hp-wel-ask > *:nth-child(2) { animation-delay: .07s; }
@@ -2254,35 +2403,4 @@ html, body {
   width: 78%; padding: 14px 0 4px; border-radius: 3px;
   background: #fff; color: #000; text-align: center;
   font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
-}
-
-/* Glimmer — masked to the tag silhouette so the sweep travels across the tag
-   rather than the empty box around it. Timed to cross while a face is held
-   toward the viewer, not mid-turn where it would read as a flicker. */
-.hp-tag-glimmer {
-  position: absolute; inset: 0; pointer-events: none; z-index: 2;
-  background: linear-gradient(
-    105deg,
-    transparent 43%,
-    rgba(255, 255, 255, 0.26) 50%,
-    transparent 57%
-  );
-  -webkit-mask-image: var(--tag-mask); mask-image: var(--tag-mask);
-  -webkit-mask-size: contain; mask-size: contain;
-  -webkit-mask-position: center; mask-position: center;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  animation: hp-tag-glimmer 9s ease-in-out infinite;
-}
-@keyframes hp-tag-glimmer {
-  0%, 8%    { transform: translateX(-130%); }
-  22%       { transform: translateX(130%); }
-  56%       { transform: translateX(-130%); }
-  70%, 100% { transform: translateX(130%); }
-}
-
-/* Motion off: hold the BACK face still. It is the one with the number, so the
-   static state must be the informative one, not merely the first one. */
-@media (prefers-reduced-motion: reduce) {
-  .hp-tag-spin { animation: none; transform: rotateY(180deg); }
-  .hp-tag-glimmer { animation: none; opacity: 0; }
 }
