@@ -1965,8 +1965,22 @@ html, body {
 }
 @media (hover: hover) { .hp-wel-more:hover { opacity: .75; } }
 
-.hp-wel-stores { display: flex; gap: 8px; width: 100%; }
-.hp-wel-stores .hp-btn { width: auto; flex: 1; }
+/* Stacked, not side by side. Two half-width buttons give each a cramped tap
+   target and read as a choice between them, when the answer is "whichever
+   phone you have". Side by side only once there is room to spare. */
+.hp-wel-stores { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+@media (min-width: 480px) {
+  .hp-wel-stores { flex-direction: row; }
+  .hp-wel-stores .hp-btn { flex: 1; }
+}
+
+/* Every button in the flow spans its column. The portal caps .hp-btn at 309px
+   from 720px up, which a phone in landscape hits — and inside this flow the
+   column is already narrow, so a short button just floats in it. */
+.hp-wel .hp-btn,
+.hp-wel-actions .hp-btn {
+  width: 100%; max-width: none;
+}
 
 .hp-wel-confirm {
   margin: 0; font-size: 15px; letter-spacing: -0.01em; color: var(--text-2);
