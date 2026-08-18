@@ -14,6 +14,7 @@ import {
   sequenceFor,
   type SegmentId,
 } from "@/lib/welcome";
+import Keytag from "./Keytag";
 import LearnMore from "./LearnMore";
 import Walkthrough from "./Walkthrough";
 
@@ -306,9 +307,10 @@ export default function WelcomeFlow() {
 
                     {showTagHelp ? (
                       <figure className="hp-wel-taghelp">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/welcome/keytag.png" alt="The membership ID printed on an HCI keytag" />
-                        <figcaption>It&rsquo;s printed on your hex keytag.</figcaption>
+                        <Keytag />
+                        <figcaption>
+                          It&rsquo;s the number on the back of your hex keytag, under the barcode.
+                        </figcaption>
                       </figure>
                     ) : null}
                   </>

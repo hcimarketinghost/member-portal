@@ -13,4 +13,10 @@ background, since they sit on #000.
 | `activenet-2.png` | ActiveNet walkthrough, step 2 — add family members |
 | `activenet-3.png` | ActiveNet walkthrough, step 3 — member pricing |
 | `app-home.png` | "Everything lives in the app" screen |
-| `keytag.png` | "Where do I find this?" helper under the Membership ID field |
+| `keytag-front.svg` | Rotating keytag, front face (hex mark) |
+| `keytag-back.svg` | Rotating keytag, back face — the one with the number |
+
+The keytag faces fall back to a drawn approximation until the SVGs land, so the
+helper works without them. Export from Figma with a transparent background: the
+front face doubles as the mask for the glimmer sweep, so its alpha channel must
+be the tag silhouette.
